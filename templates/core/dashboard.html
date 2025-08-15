@@ -1,0 +1,477 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard - ZAIN HMS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Hospital Overview & Quick Actions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .stats-card .card-body {
+        padding: 2rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
+
+    .stats-card.patients { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stats-card.appointments { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stats-card.doctors { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .stats-card.revenue { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .stats-card.emergency { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .stats-card.nurses { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+
+    .quick-action-btn {
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid #e3f2fd;
+        background: white;
+        text-decoration: none;
+        display: block;
+    }
+
+    .quick-action-btn:hover {
+        background: #f8f9fa;
+        border-color: #2196f3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+    }
+
+    .activity-item {
+        padding: 1rem;
+        border-left: 4px solid #2196f3;
+        background: white;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .activity-item:hover {
+        transform: translateX(5px);
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #e74c3c;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Welcome back, {{ user.get_display_name }}!</h1>
+                    <p class="text-muted">{{ hospital.name }} • {{ today|date:"F d, Y" }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if unread_notifications_count > 0 %}
+                    <button class="btn btn-outline-primary position-relative" data-bs-toggle="modal" data-bs-target="#notificationsModal">
+                        <i class="bi bi-bell"></i>
+                        <span class="notification-badge">{{ unread_notifications_count }}</span>
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' or user.is_superuser %}
+    <div class="row g-3 mb-4">
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stats-card patients">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ total_patients|default:0 }}</h3>
+                    <p class="mb-1">Total Patients</p>
+                    <small class="opacity-75">+{{ new_patients_today|default:0 }} today</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stats-card appointments">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ appointments_today|default:0 }}</h3>
+                    <p class="mb-1">Today's Appointments</p>
+                    <small class="opacity-75">{{ pending_appointments|default:0 }} pending</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stats-card doctors">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-badge-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ total_doctors|default:0 }}</h3>
+                    <p class="mb-1">Total Doctors</p>
+                    <small class="opacity-75">{{ total_nurses|default:0 }} nurses</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stats-card revenue">
+                <div class="card-body text-center">
+                    <i class="bi bi-currency-dollar fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ revenue_today|floatformat:0|default:0 }}</h3>
+                    <p class="mb-1">Today's Revenue</p>
+                    <small class="opacity-75">{{ pending_bills|default:0 }} pending bills</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stats-card emergency">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ emergency_cases_today|default:0 }}</h3>
+                    <p class="mb-1">Emergency Cases</p>
+                    <small class="opacity-75">{{ active_emergency_cases|default:0 }} active</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stats-card nurses">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-heart fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ total_staff|default:0 }}</h3>
+                    <p class="mb-1">Total Staff</p>
+                    <small class="opacity-75">Active personnel</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Doctor Dashboard -->
+    {% if user.role == 'DOCTOR' %}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card appointments">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ my_appointments_today|default:0 }}</h3>
+                    <p class="mb-1">Today's Appointments</p>
+                    <small class="opacity-75">My Schedule</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card patients">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ my_patients|default:0 }}</h3>
+                    <p class="mb-1">My Patients</p>
+                    <small class="opacity-75">Total under care</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card revenue">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ my_completed_appointments|default:0 }}</h3>
+                    <p class="mb-1">Completed</p>
+                    <small class="opacity-75">This month</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card stats-card emergency">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-fill fs-1 mb-2"></i>
+                    <h3 class="mb-1">{{ my_pending_appointments|default:0 }}</h3>
+                    <p class="mb-1">Pending</p>
+                    <small class="opacity-75">Appointments</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-8">
+            <div class="card chart-container">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if user.has_module_permission.patients %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'patients:patient_create' %}" class="quick-action-btn">
+                                <i class="bi bi-person-plus-fill text-primary fs-2 d-block mb-2"></i>
+                                <div class="fw-semibold">Add New Patient</div>
+                                <small class="text-muted">Register a new patient</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.has_module_permission.appointments %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'appointments:appointment_create' %}" class="quick-action-btn">
+                                <i class="bi bi-calendar-plus-fill text-success fs-2 d-block mb-2"></i>
+                                <div class="fw-semibold">Book Appointment</div>
+                                <small class="text-muted">Schedule new appointment</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.has_module_permission.emergency %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'emergency:case_create' %}" class="quick-action-btn">
+                                <i class="bi bi-plus-circle-fill text-danger fs-2 d-block mb-2"></i>
+                                <div class="fw-semibold">Emergency Case</div>
+                                <small class="text-muted">Register emergency</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.has_module_permission.billing %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'billing:bill_create' %}" class="quick-action-btn">
+                                <i class="bi bi-receipt-cutoff text-warning fs-2 d-block mb-2"></i>
+                                <div class="fw-semibold">Create Bill</div>
+                                <small class="text-muted">Generate patient bill</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.has_module_permission.laboratory %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'laboratory:test_request' %}" class="quick-action-btn">
+                                <i class="bi bi-clipboard-pulse text-info fs-2 d-block mb-2"></i>
+                                <div class="fw-semibold">Lab Test</div>
+                                <small class="text-muted">Order lab test</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.has_module_permission.reports %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'reports:report_list' %}" class="quick-action-btn">
+                                <i class="bi bi-graph-up text-secondary fs-2 d-block mb-2"></i>
+                                <div class="fw-semibold">View Reports</div>
+                                <small class="text-muted">Analytics & reports</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities & Notifications -->
+        <div class="col-lg-4">
+            <div class="card chart-container h-100">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Activities</h5>
+                    <a href="{% url 'core:activity_logs' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">{{ activity.user.get_full_name }}</div>
+                                    <div class="text-muted small">{{ activity.action }} {{ activity.model_name }}</div>
+                                    <div class="text-muted small">{{ activity.timestamp|timesince }} ago</div>
+                                </div>
+                                <span class="badge bg-light text-dark">{{ activity.action }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-activity fs-1 d-block mb-2"></i>
+                            <p>No recent activities</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Appointments for Doctors -->
+    {% if user.role == 'DOCTOR' and upcoming_appointments %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card chart-container">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">Upcoming Appointments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in upcoming_appointments %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                {{ appointment.patient.first_name.0 }}{{ appointment.patient.last_name.0 }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ appointment.patient.get_full_name }}</div>
+                                                <small class="text-muted">ID: {{ appointment.patient.patient_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ appointment.appointment_date|date:"M d, Y" }}</td>
+                                    <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                    <td>{{ appointment.appointment_type }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ appointment.status }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'appointments:appointment_detail' appointment.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Notifications Modal -->
+<div class="modal fade" id="notificationsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notifications</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if recent_notifications %}
+                    {% for notification in recent_notifications %}
+                    <div class="alert alert-{{ notification.type|lower }} alert-dismissible fade show" role="alert">
+                        <h6 class="alert-heading">{{ notification.title }}</h6>
+                        <p class="mb-1">{{ notification.message }}</p>
+                        <hr>
+                        <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                        {% if not notification.is_read %}
+                            <button type="button" class="btn btn-sm btn-outline-primary ms-2" 
+                                    onclick="markAsRead('{{ notification.id }}')">
+                                Mark as Read
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+                        <p>No notifications</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'core:notifications' %}" class="btn btn-primary">View All Notifications</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAsRead(notificationId) {
+    fetch(`/dashboard/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Auto refresh dashboard every 5 minutes
+setTimeout(() => {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+<!-- templates/appointments/doctor_options.html -->
+<option value="">Select Doctor</option>
+{% for doctor in doctors %}
+<option value="{{ doctor.doctor_id }}">
+    Dr. {{ doctor.first_name }} {{ doctor.last_name }}
+</option>
+{% endfor %}

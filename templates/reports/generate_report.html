@@ -1,0 +1,374 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Generate Report - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #f8f9fa;
+        border-left: 4px solid var(--bs-primary);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0 0.375rem 0.375rem 0;
+    }
+    .form-help {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .report-preview {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.375rem;
+        padding: 2rem;
+        text-align: center;
+        background: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Generate Report</h1>
+        <p class="text-muted">Create a new report for your hospital data</p>
+    </div>
+    <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>
+        Back to Reports
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Basic Information
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            Report Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-help">
+                            Give your report a descriptive name for easy identification
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.report_type.id_for_label }}" class="form-label">
+                            Report Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.report_type }}
+                        {% if form.report_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.report_type.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.format.id_for_label }}" class="form-label">
+                            Format <span class="text-danger">*</span>
+                        </label>
+                        {{ form.format }}
+                        {% if form.format.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.format.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Date Range -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Date Range
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.date_from.id_for_label }}" class="form-label">
+                            From Date
+                        </label>
+                        {{ form.date_from }}
+                        {% if form.date_from.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.date_from.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.date_to.id_for_label }}" class="form-label">
+                            To Date
+                        </label>
+                        {{ form.date_to }}
+                        {% if form.date_to.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.date_to.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setDateRange('today')">
+                        Today
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setDateRange('week')">
+                        This Week
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setDateRange('month')">
+                        This Month
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setDateRange('quarter')">
+                        This Quarter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Advanced Filters -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>
+                    Advanced Filters
+                </h5>
+                
+                <div id="filter-options">
+                    <p class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Advanced filters will be available based on the selected report type
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 mb-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-cog me-1"></i>
+                    Generate Report
+                </button>
+                <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Report Preview -->
+        <div class="card sticky-top" style="top: 2rem;">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-eye me-1"></i>
+                    Report Preview
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="report-preview" id="report-preview">
+                    <i class="fas fa-file-chart fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Select report options to see preview</p>
+                </div>
+                
+                <div class="mt-3" id="preview-details" style="display: none;">
+                    <h6>Report Details:</h6>
+                    <ul class="list-unstyled small">
+                        <li><strong>Type:</strong> <span id="preview-type">-</span></li>
+                        <li><strong>Format:</strong> <span id="preview-format">-</span></li>
+                        <li><strong>Date Range:</strong> <span id="preview-dates">-</span></li>
+                        <li><strong>Estimated Records:</strong> <span id="preview-records">-</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Templates -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-template me-1"></i>
+                    Quick Templates
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="useTemplate('patient-summary')">
+                        Patient Summary
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="useTemplate('appointment-daily')">
+                        Daily Appointments
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="useTemplate('financial-monthly')">
+                        Monthly Financial
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="useTemplate('billing-pending')">
+                        Pending Bills
+                    </button>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'reports:template_list' %}" class="btn btn-link btn-sm">
+                        View All Templates
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Date range helpers
+function setDateRange(period) {
+    const today = new Date();
+    const dateFromInput = document.getElementById('{{ form.date_from.id_for_label }}');
+    const dateToInput = document.getElementById('{{ form.date_to.id_for_label }}');
+    
+    let fromDate, toDate;
+    
+    switch(period) {
+        case 'today':
+            fromDate = toDate = today;
+            break;
+        case 'week':
+            fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+            toDate = today;
+            break;
+        case 'month':
+            fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            toDate = today;
+            break;
+        case 'quarter':
+            const quarter = Math.floor(today.getMonth() / 3);
+            fromDate = new Date(today.getFullYear(), quarter * 3, 1);
+            toDate = today;
+            break;
+    }
+    
+    dateFromInput.value = fromDate.toISOString().split('T')[0];
+    dateToInput.value = toDate.toISOString().split('T')[0];
+    
+    updatePreview();
+}
+
+// Template helpers
+function useTemplate(templateType) {
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const typeSelect = document.getElementById('{{ form.report_type.id_for_label }}');
+    const formatSelect = document.getElementById('{{ form.format.id_for_label }}');
+    
+    switch(templateType) {
+        case 'patient-summary':
+            nameInput.value = 'Patient Summary Report - ' + new Date().toLocaleDateString();
+            typeSelect.value = 'PATIENT';
+            formatSelect.value = 'PDF';
+            setDateRange('month');
+            break;
+        case 'appointment-daily':
+            nameInput.value = 'Daily Appointments - ' + new Date().toLocaleDateString();
+            typeSelect.value = 'APPOINTMENT';
+            formatSelect.value = 'EXCEL';
+            setDateRange('today');
+            break;
+        case 'financial-monthly':
+            nameInput.value = 'Monthly Financial Report - ' + new Date().toLocaleDateString();
+            typeSelect.value = 'FINANCIAL';
+            formatSelect.value = 'PDF';
+            setDateRange('month');
+            break;
+        case 'billing-pending':
+            nameInput.value = 'Pending Bills Report - ' + new Date().toLocaleDateString();
+            typeSelect.value = 'BILLING';
+            formatSelect.value = 'EXCEL';
+            break;
+    }
+    
+    updatePreview();
+}
+
+// Preview updater
+function updatePreview() {
+    const type = document.getElementById('{{ form.report_type.id_for_label }}').value;
+    const format = document.getElementById('{{ form.format.id_for_label }}').value;
+    const dateFrom = document.getElementById('{{ form.date_from.id_for_label }}').value;
+    const dateTo = document.getElementById('{{ form.date_to.id_for_label }}').value;
+    
+    if (type || format || dateFrom || dateTo) {
+        document.getElementById('preview-details').style.display = 'block';
+        document.getElementById('preview-type').textContent = type || '-';
+        document.getElementById('preview-format').textContent = format || '-';
+        
+        let dateRange = '-';
+        if (dateFrom && dateTo) {
+            dateRange = `${dateFrom} to ${dateTo}`;
+        } else if (dateFrom) {
+            dateRange = `From ${dateFrom}`;
+        } else if (dateTo) {
+            dateRange = `Until ${dateTo}`;
+        }
+        document.getElementById('preview-dates').textContent = dateRange;
+        
+        // Simulate record estimation
+        if (type) {
+            const estimates = {
+                'PATIENT': '150-300',
+                'APPOINTMENT': '50-200',
+                'BILLING': '100-500',
+                'FINANCIAL': '20-100'
+            };
+            document.getElementById('preview-records').textContent = estimates[type] || '10-100';
+        }
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Update preview on form changes
+    document.querySelectorAll('select, input[type="date"]').forEach(element => {
+        element.addEventListener('change', updatePreview);
+    });
+    
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+});
+</script>
+{% endblock %}

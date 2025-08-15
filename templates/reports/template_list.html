@@ -1,0 +1,330 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Report Templates - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .template-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .template-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .template-actions .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Report Templates</h1>
+        <p class="text-muted">Manage predefined report templates</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Reports
+        </a>
+        <a href="{% url 'reports:template_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>
+            Create Template
+        </a>
+    </div>
+</div>
+
+<!-- Templates Grid -->
+<div class="row">
+    {% for template in templates %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card template-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title mb-0">{{ template.name }}</h5>
+                    <span class="badge bg-primary">{{ template.get_report_type_display }}</span>
+                </div>
+                
+                <p class="card-text text-muted mb-3">
+                    {{ template.description|default:"No description provided" }}
+                </p>
+                
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-columns me-1"></i>
+                        {{ template.columns|length }} columns
+                    </small>
+                    <br>
+                    <small class="text-muted">
+                        <i class="fas fa-filter me-1"></i>
+                        {{ template.default_filters|length }} default filters
+                    </small>
+                    <br>
+                    <small class="text-muted">
+                        <i class="fas fa-user me-1"></i>
+                        Created by {{ template.created_by.get_full_name }}
+                    </small>
+                    <br>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        {{ template.created_at|date:"M d, Y" }}
+                    </small>
+                </div>
+                
+                <div class="template-actions d-flex gap-1">
+                    <a href="{% url 'reports:use_template' template.pk %}" 
+                       class="btn btn-sm btn-primary flex-fill">
+                        <i class="fas fa-play me-1"></i>
+                        Use Template
+                    </a>
+                    <a href="{% url 'reports:template_edit' template.pk %}" 
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            onclick="deleteTemplate('{{ template.pk }}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Templates Found</h5>
+                <p class="text-muted">Create your first report template to get started</p>
+                <a href="{% url 'reports:template_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    Create Template
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Popular Templates Section -->
+<div class="card mt-5">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-star me-2"></i>
+            Suggested Templates
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                        <h6>Patient Summary</h6>
+                        <p class="text-muted small">Comprehensive patient overview</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="createSuggestedTemplate('patient-summary')">
+                            Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-check fa-2x text-success mb-2"></i>
+                        <h6>Daily Appointments</h6>
+                        <p class="text-muted small">Today's appointment schedule</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="createSuggestedTemplate('daily-appointments')">
+                            Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign fa-2x text-warning mb-2"></i>
+                        <h6>Financial Overview</h6>
+                        <p class="text-muted small">Revenue and billing summary</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="createSuggestedTemplate('financial-overview')">
+                            Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                        <h6>Emergency Cases</h6>
+                        <p class="text-muted small">Emergency department activity</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="createSuggestedTemplate('emergency-cases')">
+                            Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this template? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let templateToDelete = null;
+
+function deleteTemplate(templateId) {
+    templateToDelete = templateId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+function confirmDelete() {
+    if (templateToDelete) {
+        // In a real implementation, this would make an AJAX call to delete the template
+        fetch(`/reports/templates/${templateToDelete}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            }
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+}
+
+function createSuggestedTemplate(templateType) {
+    let templateData = {};
+    
+    switch(templateType) {
+        case 'patient-summary':
+            templateData = {
+                name: 'Patient Summary Report',
+                report_type: 'PATIENT',
+                description: 'Comprehensive overview of patient demographics and statistics',
+                columns: JSON.stringify([
+                    'patient_id', 'full_name', 'age', 'gender', 
+                    'blood_group', 'phone', 'registration_date'
+                ]),
+                default_filters: JSON.stringify({
+                    'status': 'active'
+                })
+            };
+            break;
+            
+        case 'daily-appointments':
+            templateData = {
+                name: 'Daily Appointments Report',
+                report_type: 'APPOINTMENT',
+                description: 'Today\'s appointment schedule and status',
+                columns: JSON.stringify([
+                    'appointment_id', 'patient_name', 'doctor_name', 
+                    'appointment_time', 'status', 'type'
+                ]),
+                default_filters: JSON.stringify({
+                    'appointment_date': 'today'
+                })
+            };
+            break;
+            
+        case 'financial-overview':
+            templateData = {
+                name: 'Financial Overview Report',
+                report_type: 'FINANCIAL',
+                description: 'Revenue, billing, and financial performance summary',
+                columns: JSON.stringify([
+                    'date', 'total_revenue', 'total_bills', 
+                    'paid_amount', 'pending_amount', 'collection_rate'
+                ]),
+                default_filters: JSON.stringify({
+                    'period': 'month'
+                })
+            };
+            break;
+            
+        case 'emergency-cases':
+            templateData = {
+                name: 'Emergency Cases Report',
+                report_type: 'EMERGENCY',
+                description: 'Emergency department cases and response times',
+                columns: JSON.stringify([
+                    'case_id', 'patient_name', 'admission_time', 
+                    'severity_level', 'status', 'discharge_time'
+                ]),
+                default_filters: JSON.stringify({
+                    'status': 'all'
+                })
+            };
+            break;
+    }
+    
+    // Redirect to template creation form with pre-filled data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "reports:template_create" %}';
+    
+    // Add CSRF token
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = '{{ csrf_token }}';
+    form.appendChild(csrfToken);
+    
+    // Add template data
+    for (const [key, value] of Object.entries(templateData)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Add click handlers for template cards
+document.querySelectorAll('.template-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        // Don't trigger if clicking on action buttons
+        if (!e.target.closest('.template-actions')) {
+            const useLink = this.querySelector('a[href*="use_template"]');
+            if (useLink) {
+                window.location.href = useLink.href;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

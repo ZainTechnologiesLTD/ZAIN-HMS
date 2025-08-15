@@ -1,0 +1,427 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .analytics-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    
+    .metric-change {
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 350px;
+        padding: 1rem;
+    }
+    
+    .trend-up { color: #28a745; }
+    .trend-down { color: #dc3545; }
+    .trend-neutral { color: #6c757d; }
+    
+    .department-item {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="fas fa-chart-line me-2"></i>
+            Analytics Dashboard
+        </h1>
+        <p class="text-muted">Hospital performance insights and metrics</p>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-calendar me-1"></i>
+                This Month
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="?period=today">Today</a></li>
+                <li><a class="dropdown-item" href="?period=week">This Week</a></li>
+                <li><a class="dropdown-item" href="?period=month">This Month</a></li>
+                <li><a class="dropdown-item" href="?period=quarter">This Quarter</a></li>
+                <li><a class="dropdown-item" href="?period=year">This Year</a></li>
+            </ul>
+        </div>
+        <a href="{% url 'reports:generate_report' %}" class="btn btn-primary">
+            <i class="fas fa-file-export me-1"></i>
+            Generate Report
+        </a>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card analytics-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Total Patients</h6>
+                        <div class="metric-value">{{ total_patients|default:0 }}</div>
+                        <div class="metric-change">
+                            <i class="fas fa-arrow-up"></i> +{{ weekly_patients|default:0 }} this week
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card analytics-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Revenue</h6>
+                        <div class="metric-value">${{ monthly_revenue|floatformat:0|default:0 }}</div>
+                        <div class="metric-change">
+                            <i class="fas fa-arrow-up"></i> +12% from last month
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card analytics-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Appointments</h6>
+                        <div class="metric-value">{{ active_appointments|default:0 }}</div>
+                        <div class="metric-change">
+                            <i class="fas fa-arrow-up"></i> {{ total_doctors|default:0 }} doctors active
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card analytics-card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Emergency Cases</h6>
+                        <div class="metric-value">{{ emergency_cases|default:0 }}</div>
+                        <div class="metric-change">
+                            <i class="fas fa-exclamation-triangle"></i> This month
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-ambulance fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card analytics-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-area me-2"></i>
+                    Monthly Trends
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card analytics-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Department Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Performance and Patient Demographics -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card analytics-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2"></i>
+                    Department Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for dept in department_stats %}
+                <div class="department-item">
+                    <div class="flex-grow-1">
+                        <strong>{{ dept.department__name|default:"General" }}</strong>
+                        <div class="text-muted small">{{ dept.count }} patients</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="progress" style="width: 100px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: {{ dept.percentage|default:0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ dept.percentage|default:0|floatformat:1 }}%</small>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center">No department data available</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card analytics-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Patient Demographics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <h6>Age Groups</h6>
+                        <div class="small">
+                            <div class="d-flex justify-content-between">
+                                <span>0-18 years</span>
+                                <strong>25%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>19-35 years</span>
+                                <strong>35%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>36-50 years</span>
+                                <strong>25%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>50+ years</span>
+                                <strong>15%</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h6>Gender Distribution</h6>
+                        <div class="small">
+                            <div class="d-flex justify-content-between">
+                                <span>Male</span>
+                                <strong>52%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Female</span>
+                                <strong>48%</strong>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-3">Blood Groups</h6>
+                        <div class="small">
+                            <div class="d-flex justify-content-between">
+                                <span>O+</span>
+                                <strong>35%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>A+</span>
+                                <strong>28%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>B+</span>
+                                <strong>20%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Others</span>
+                                <strong>17%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Insights -->
+<div class="row">
+    <div class="col-12">
+        <div class="card analytics-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Key Insights
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-arrow-up fa-2x text-success mb-2"></i>
+                            <h6>Patient Growth</h6>
+                            <p class="text-muted small">15% increase in new patient registrations this month compared to last month.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                            <h6>Average Wait Time</h6>
+                            <p class="text-muted small">Average patient wait time has decreased to 12 minutes from 18 minutes.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-star fa-2x text-info mb-2"></i>
+                            <h6>Patient Satisfaction</h6>
+                            <p class="text-muted small">Overall patient satisfaction score improved to 4.6/5.0 this quarter.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Trends Chart
+const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+const trendsChart = new Chart(trendsCtx, {
+    type: 'line',
+    data: {
+        labels: {{ appointment_trends|safe }}.map(item => item.month),
+        datasets: [{
+            label: 'Appointments',
+            data: {{ appointment_trends|safe }}.map(item => item.count),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Department Chart
+const deptCtx = document.getElementById('departmentChart').getContext('2d');
+const departmentChart = new Chart(deptCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ department_stats|safe }}.map(item => item.department__name || 'General'),
+        datasets: [{
+            data: {{ department_stats|safe }}.map(item => item.count),
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Auto refresh data every 5 minutes
+setInterval(function() {
+    fetch(window.location.href + '?ajax=1')
+    .then(response => response.json())
+    .then(data => {
+        // Update charts with new data
+        if (data.updated) {
+            location.reload();
+        }
+    })
+    .catch(error => console.log('Auto-refresh failed:', error));
+}, 300000); // 5 minutes
+</script>
+{% endblock %}

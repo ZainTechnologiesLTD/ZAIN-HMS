@@ -1,0 +1,229 @@
+{% comment %} templates/patients/quick_add.html {% endcomment %}
+{% if show_success %}
+    <!-- Success Message -->
+    <div class="modal-header bg-light">
+        <h5 class="modal-title text-success">
+            <i class="bi bi-check-circle-fill me-2"></i>Success
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-success border-0 d-flex align-items-center">
+            <i class="bi bi-person-check-fill me-2"></i>
+            Patient {{ patient.first_name }} {{ patient.last_name }} was added successfully!
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Close
+        </button>
+        <a href="{% url 'patients:patient_detail' patient.pk %}" class="btn btn-primary">
+            <i class="bi bi-eye me-1"></i>View Patient
+        </a>
+    </div>
+{% else %}
+    <!-- Quick Add Patient Form -->
+    <div class="modal-header bg-light">
+        <h5 class="modal-title">
+            <i class="bi bi-person-plus-fill me-2"></i>Quick Add Patient
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form hx-post="{% url 'patients:quick_add' %}" 
+              hx-target="#modal-content"
+              class="needs-validation"
+              novalidate>
+            {% csrf_token %}
+            
+            <!-- Personal Information Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <i class="bi bi-person me-2"></i>Personal Information
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="form-label">
+                                <i class="bi bi-person-badge me-1"></i>First Name*
+                            </label>
+                            <input type="text" class="form-control" id="id_first_name" name="first_name" required>
+                            <div class="invalid-feedback">First name is required</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="form-label">
+                                <i class="bi bi-person-badge me-1"></i>Last Name*
+                            </label>
+                            <input type="text" class="form-control" id="id_last_name" name="last_name" required>
+                            <div class="invalid-feedback">Last name is required</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_date_of_birth" class="form-label">
+                                <i class="bi bi-calendar-event me-1"></i>Date of Birth*
+                            </label>
+                            <input type="date" class="form-control" id="id_date_of_birth" name="date_of_birth" required>
+                            <div class="invalid-feedback">Date of birth is required</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_gender" class="form-label">
+                                <i class="bi bi-gender-ambiguous me-1"></i>Gender*
+                            </label>
+                            <select class="form-select" id="id_gender" name="gender" required>
+                                <option value="">Choose...</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                                <option value="O">Other</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a gender</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <i class="bi bi-telephone me-2"></i>Contact Information
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_phone_number" class="form-label">
+                                <i class="bi bi-phone me-1"></i>Phone Number*
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">📞</span>
+                                <input type="tel" class="form-control" id="id_phone_number" name="phone_number" 
+                                       pattern="^\+?1?\d{9,15}$" required>
+                            </div>
+                            <div class="invalid-feedback">Please enter a valid phone number</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">
+                                <i class="bi bi-envelope me-1"></i>Email*
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">@</span>
+                                <input type="email" class="form-control" id="id_email" name="email" required>
+                            </div>
+                            <div class="invalid-feedback">Please enter a valid email</div>
+                        </div>
+                        <div class="col-12">
+                            <label for="id_address" class="form-label">
+                                <i class="bi bi-geo-alt me-1"></i>Address
+                            </label>
+                            <textarea class="form-control" id="id_address" name="address" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Information Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <i class="bi bi-heart-pulse me-2"></i>Medical Information
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_blood_type" class="form-label">
+                                <i class="bi bi-droplet me-1"></i>Blood Type
+                            </label>
+                            <select class="form-select" id="id_blood_type" name="blood_type">
+                                <option value="">Choose...</option>
+                                {% for value, label in form.fields.blood_type.choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="id_allergies" class="form-label">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Allergies
+                            </label>
+                            <textarea class="form-control" id="id_allergies" name="allergies" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label for="id_medical_conditions" class="form-label">
+                                <i class="bi bi-clipboard2-pulse me-1"></i>Medical Conditions
+                            </label>
+                            <textarea class="form-control" id="id_medical_conditions" name="medical_conditions" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label for="id_medications" class="form-label">
+                                <i class="bi bi-capsule me-1"></i>Medications
+                            </label>
+                            <textarea class="form-control" id="id_medications" name="medications" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact Section -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <i class="bi bi-person-heart me-2"></i>Emergency Contact
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_emergency_contact_name" class="form-label">
+                                <i class="bi bi-person me-1"></i>Contact Name
+                            </label>
+                            <input type="text" class="form-control" id="id_emergency_contact_name" name="emergency_contact_name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_emergency_contact_phone" class="form-label">
+                                <i class="bi bi-telephone me-1"></i>Contact Phone
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">📞</span>
+                                <input type="tel" class="form-control" id="id_emergency_contact_phone" 
+                                       name="emergency_contact_phone" pattern="^\+?1?\d{9,15}$">
+                            </div>
+                            <div class="invalid-feedback">Please enter a valid phone number</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-person-plus-fill me-1"></i>Add Patient
+                </button>
+            </div>
+        </form>
+    </div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Initialize Select2 for dropdowns
+    $('.form-select').select2({
+        theme: 'bootstrap',
+        width: '100%'
+    });
+
+    // Add loading state to submit button
+    $('form').on('submit', function() {
+        const submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Adding...').prop('disabled', true);
+    });
+});
+</script>
+{% endblock %}

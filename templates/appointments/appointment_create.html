@@ -1,0 +1,261 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Time slot colors */
+    #availableSlots option.available-slot {
+        background-color: #d4edda !important;
+        color: #155724 !important;
+    }
+
+    #availableSlots option.booked-slot {
+        background-color: #f8d7da !important;
+        color: #721c24 !important;
+        cursor: not-allowed;
+    }
+
+    /* Make the select element taller to show more slots */
+    #availableSlots {
+        height: 300px !important;
+    }
+</style>
+<div class="container-fluid py-4">
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Create Appointment</h5>
+            <small class="text-muted">Created by: {{ user.get_full_name|default:user.username }}</small>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'appointments:appointment_create' %}" id="appointmentForm" novalidate>
+                {% csrf_token %}
+                
+                <!-- Patient Search Section -->
+                <div class="mb-4">
+                    <label class="form-label">Search Patient</label>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" name="search_name" id="search_name" class="form-control" placeholder="Patient Name">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="search_phone" id="search_phone" class="form-control" placeholder="Mobile Number">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="search_patient_id" id="search_patient_id" class="form-control" placeholder="Patient ID">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary mt-2" 
+                            hx-get="{% url 'appointments:search_patients' %}"
+                            hx-include="[name='search_name'], [name='search_phone'], [name='search_patient_id']"
+                            hx-target="#patientResults"
+                            hx-swap="innerHTML">
+                        Search
+                    </button>
+                </div>
+                
+                <!-- Search Results -->
+                <div id="patientResults" class="mb-4"></div>
+
+                <!-- Hidden Fields -->
+                <input type="hidden" name="patient" id="selectedPatient">
+                <input type="hidden" name="doctor" id="id_doctor">
+                <input type="hidden" name="date_time" id="id_date_time">
+                
+                <!-- Selected Patient Info -->
+                <div id="selectedPatientInfo" class="alert alert-info d-none"></div>
+                
+                <!-- Doctor Selection Section -->
+                <div class="mb-4">
+                    <label class="form-label">Specialization</label>
+                    <select name="specialization" 
+                            id="specialization" 
+                            class="form-select mb-3"
+                            hx-get="{% url 'appointments:get_doctors' %}"
+                            hx-target="#doctorSelect"
+                            hx-trigger="change"
+                            required>
+                        <option value="">Select Specialization</option>
+                        {% for spec in specializations %}
+                            <option value="{{ spec.0 }}">{{ spec.1 }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="form-label">Doctor</label>
+                    <select name="doctor" 
+                            id="doctorSelect" 
+                            class="form-select" 
+                            hx-get="{% url 'appointments:get_doctor_schedule' %}"
+                            hx-target="#availableSlots"
+                            hx-trigger="change"
+                            required>
+                        <option value="">Select doctor</option>
+                    </select>
+                </div>
+                
+                <!-- Available Time Slots -->
+                <div class="mb-3">
+                    <label for="availableSlots" class="form-label">Available Time Slots</label>
+                    <select id="availableSlots" 
+                            name="time" 
+                            class="form-select" 
+                            required>
+                        <option value="">Select doctor first</option>
+                    </select>
+                </div>
+               
+                <!-- Appointment Type -->
+                <div class="mb-4">
+                    <label class="form-label">Appointment Type</label>
+                    <select name="appointment_type" id="appointmentType" class="form-select" required>
+                        {% for type in appointment_types %}
+                            <option value="{{ type.0 }}">{{ type.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Reason for Visit -->
+                <div class="mb-3">
+                    <label for="id_reason" class="form-label">Reason for Visit</label>
+                    <textarea name="reason" id="id_reason" class="form-control" rows="3" required></textarea>
+                </div>
+
+                <!-- Fee -->
+                <div class="mb-3">
+                    <label class="form-label">Fee</label>
+                    <input type="number" name="fee" class="form-control" step="0.01" value="{{ form.fee.value|default:'0.00' }}">
+                </div>
+
+                <!-- Error Messages -->
+                <div id="appointment-errors" class="alert alert-danger d-none"></div>
+                
+                <!-- Form Buttons -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success">Create Appointment</button>
+                    <a href="{% url 'appointments:appointment_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let isSubmitting = false;  // Add this flag at the top of your script
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const form = document.getElementById('appointmentForm');
+    const specializationSelect = document.getElementById('specialization');
+    const doctorSelect = document.getElementById('doctorSelect');
+    const availableSlotsSelect = document.getElementById('availableSlots');
+    const errorDiv = document.getElementById('appointment-errors');
+
+    // Patient selection function
+    window.selectPatient = function(patientId, patientName) {
+        document.getElementById('selectedPatient').value = patientId;
+        const selectedPatientInfo = document.getElementById('selectedPatientInfo');
+        selectedPatientInfo.innerHTML = `Selected Patient: ${patientName}`;
+        selectedPatientInfo.classList.remove('d-none');
+    };
+
+    // Handle specialization changes
+    specializationSelect.addEventListener('change', function() {
+        if (this.value) {
+            doctorSelect.disabled = false;
+        } else {
+            doctorSelect.disabled = true;
+            doctorSelect.innerHTML = '<option value="">First select specialization</option>';
+        }
+        availableSlotsSelect.innerHTML = '<option value="">Select doctor first</option>';
+    });
+
+    // Handle doctor selection
+    doctorSelect.addEventListener('change', function() {
+        const doctorId = this.value;
+        document.getElementById('id_doctor').value = doctorId;
+        
+        if (!doctorId) {
+            availableSlotsSelect.innerHTML = '<option value="">Select doctor first</option>';
+        }
+    });
+
+    // Handle time slot selection
+availableSlotsSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    
+    if (selectedOption.classList.contains('booked-slot')) {
+        // Prevent selection of booked slots
+        this.value = '';
+        showError('This time slot is already booked. Please select another slot.');
+        return;
+    }
+    
+    const selectedTime = this.value;
+    document.getElementById('id_date_time').value = selectedTime;
+});
+
+// Form validation and submission
+form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    // Prevent double submission
+    if (formSubmitted) {
+        return;
+    }
+
+    // Validate form
+    const errors = validateForm();
+    if (errors.length > 0) {
+        showError(errors.join('<br>'));
+        return;
+    }
+
+    // Disable form submission
+    formSubmitted = true;
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Creating appointment...';
+
+    try {
+        // Submit the form
+        form.submit();
+    } catch (error) {
+        // Re-enable form on error
+        formSubmitted = false;
+        submitButton.disabled = false;
+        submitButton.innerHTML = 'Create Appointment';
+        showError('An error occurred. Please try again.');
+    }
+});
+
+// Separate validation function
+function validateForm() {
+    const errors = [];
+    const patientId = document.getElementById('selectedPatient').value;
+    const doctorId = doctorSelect.value;
+    const timeSlot = availableSlotsSelect.value;
+    const reason = document.getElementById('id_reason').value;
+
+    if (!patientId) errors.push('Please select a patient');
+    if (!doctorId) errors.push('Please select a doctor');
+    if (!timeSlot) errors.push('Please select an available time slot');
+    if (!reason.trim()) errors.push('Please enter a reason for the visit');
+
+    return errors;
+}
+
+// Reset form state when page is shown (handles back button)
+window.addEventListener('pageshow', function(event) {
+    formSubmitted = false;
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = false;
+    submitButton.innerHTML = 'Create Appointment';
+});
+
+    // Helper function to show errors
+    function showError(message) {
+        errorDiv.innerHTML = message;
+        errorDiv.classList.remove('d-none');
+        errorDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}

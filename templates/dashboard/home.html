@@ -1,0 +1,310 @@
+<!-- templates/dashboard/home.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickActionsModal">
+    <i class="bi bi-lightning"></i> Quick Actions
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    {% if user.role in 'ADMIN,SUPERADMIN' %}
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-value">{{ total_patients|intcomma }}</div>
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i> 12.5%
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="stat-value">{{ today_appointments }}</div>
+            <div class="stat-label">Today's Appointments</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i> 8.2%
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="bi bi-ambulance"></i>
+            </div>
+            <div class="stat-value">{{ emergency_cases }}</div>
+            <div class="stat-label">Emergency Cases</div>
+            <div class="stat-change negative">
+                <i class="bi bi-arrow-down"></i> 3.1%
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="stat-value">${{ pending_bills|floatformat:0|intcomma }}</div>
+            <div class="stat-label">Pending Bills</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i> 15.3%
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Appointments Overview</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active">Week</button>
+                    <button type="button" class="btn btn-outline-secondary">Month</button>
+                    <button type="button" class="btn btn-outline-secondary">Year</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="appointmentChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Department Status</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="departmentChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="row g-4">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Appointments</h5>
+                <a href="{% url 'appointments:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in recent_appointments %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="user-avatar" style="width: 32px; height: 32px;">
+                                                {{ appointment.patient.first_name.0 }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ appointment.patient.get_full_name }}</div>
+                                            <div class="small text-muted">{{ appointment.patient.patient_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Dr. {{ appointment.doctor.get_full_name }}</td>
+                                <td>{{ appointment.time|time:"g:i A" }}</td>
+                                <td>
+                                    <span class="badge bg-{{ appointment.get_status_color }}">
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No recent appointments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Patients</h5>
+                <a href="{% url 'patients:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Contact</th>
+                                <th>Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for patient in recent_patients %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="user-avatar" style="width: 32px; height: 32px;">
+                                                {{ patient.first_name.0 }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ patient.get_full_name }}</div>
+                                            <div class="small text-muted">{{ patient.patient_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small">{{ patient.phone }}</div>
+                                    <div class="small text-muted">{{ patient.email }}</div>
+                                </td>
+                                <td>{{ patient.created_at|timesince }} ago</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'patients:detail' patient.id %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'appointments:create' %}?patient={{ patient.id }}" class="btn btn-outline-success">
+                                            <i class="bi bi-calendar-plus"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No recent patients</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Modal -->
+<div class="modal fade" id="quickActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'patients:create' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus me-2"></i> Register New Patient
+                    </a>
+                    <a href="{% url 'appointments:create' %}" class="btn btn-outline-success">
+                        <i class="bi bi-calendar-plus me-2"></i> Schedule Appointment
+                    </a>
+                    <a href="{% url 'emergency:create' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-ambulance me-2"></i> Register Emergency Case
+                    </a>
+                    <a href="{% url 'billing:create' %}" class="btn btn-outline-warning">
+                        <i class="bi bi-receipt me-2"></i> Create Bill
+                    </a>
+                    <a href="{% url 'laboratory:create' %}" class="btn btn-outline-info">
+                        <i class="bi bi-flask me-2"></i> Request Lab Test
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Appointment Chart
+const appointmentCtx = document.getElementById('appointmentChart').getContext('2d');
+new Chart(appointmentCtx, {
+    type: 'line',
+    data: {
+        labels: {{ appointment_chart_data|safe }}.map(d => d.date),
+        datasets: [{
+            label: 'Appointments',
+            data: {{ appointment_chart_data|safe }}.map(d => d.count),
+            borderColor: 'rgb(102, 126, 234)',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Department Chart
+const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+new Chart(departmentCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'Emergency'],
+        datasets: [{
+            data: [30, 25, 20, 15, 10],
+            backgroundColor: [
+                'rgb(102, 126, 234)',
+                'rgb(17, 153, 142)',
+                'rgb(242, 153, 74)',
+                'rgb(235, 51, 73)',
+                'rgb(33, 150, 243)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient List{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Patient List</h5>
+                <a href="{% url 'patients:patient_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Add New Patient
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Search Form -->
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="search" name="q" class="form-control" 
+                                   placeholder="Search patients by name, patient ID, email..." 
+                                   value="{{ request.GET.q }}">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                            {% if request.GET.q %}
+                                <a href="{% url 'patients:patient_list' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Clear
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Patient Table -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Contact</th>
+                            <th>Blood Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.patient_id }}</td>
+                            <td>
+                                {% if patient.image %}
+                                    <img src="{{ patient.image.url }}" class="rounded-circle me-2" width="30" height="30">
+                                {% endif %}
+                                {{ patient.first_name }} {{ patient.last_name }}
+                            </td>
+                            <td>{{ patient.age }}</td>
+                            <td>{{ patient.get_gender_display }}</td>
+                            <td>
+                                <div>{{ patient.phone_number }}</div>
+                                <small class="text-muted">{{ patient.email }}</small>
+                            </td>
+                            <td>{{ patient.blood_type|default:"-" }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'patients:patient_detail' patient.id %}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'patients:patient_update' patient.id %}" 
+                                       class="btn btn-sm btn-outline-success" 
+                                       title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            title="Delete"
+                                            hx-get="{% url 'patients:patient_delete_modal' patient.id %}"
+                                            hx-target="#deleteModal"
+                                            hx-trigger="click">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                {% if request.GET.q %}
+                                    No patients found matching "{{ request.GET.q }}"
+                                {% else %}
+                                    No patients in the system
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination (if applicable) -->
+            {% if is_paginated %}
+            <nav aria-label="Patient list navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal content will be loaded here by HTMX -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+    // Handle modal show/hide with HTMX
+    document.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'deleteModal') {
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    });
+</script>
+{% endblock %}

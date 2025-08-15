@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointments List{% endblock %}
+
+{% block extra_css %}
+<style>
+    .appointment-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .appointment-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .status-badge {
+        padding: 0.5em 1em;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .action-button {
+        transition: all 0.2s ease;
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+
+    .custom-dropdown-menu {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Appointments Management</h4>
+            <p class="text-muted mb-0">Manage and track all patient appointments</p>
+        </div>
+        <div>
+            <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary action-button">
+                <i class="fas fa-plus-circle me-2"></i>Schedule New Appointment
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filter-section mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search appointments...">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="completed">Completed</option>
+                    <option value="canceled">Canceled</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="typeFilter">
+                    <option value="">All Types</option>
+                    <option value="GENERAL">General</option>
+                    <option value="OPD">OPD</option>
+                    <option value="EMERGENCY">Emergency</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control" id="dateFilter">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-secondary w-100" id="resetFilters">
+                    <i class="fas fa-undo me-2"></i>Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Card -->
+    <div class="appointment-card">
+        <div class="card-body">
+            {% if appointments %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4"><i class="far fa-calendar me-2"></i>Date & Time</th>
+                                <th><i class="far fa-user me-2"></i>Patient</th>
+                                <th><i class="fas fa-user-md me-2"></i>Doctor</th>
+                                <th><i class="far fa-clipboard me-2"></i>Type</th>
+                                <th><i class="far fa-check-circle me-2"></i>Status</th>
+                                <th class="text-center"><i class="fas fa-cog me-2"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold">{{ appointment.date_time|date:"M d, Y" }}</span>
+                                            <small class="text-muted">{{ appointment.date_time|date:"H:i" }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                {% if appointment.patient.image %}
+                                                    <img src="{{ appointment.patient.image.url }}" class="rounded-circle" width="40" height="40">
+                                                {% else %}
+                                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user text-secondary"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</div>
+                                                <small class="text-muted">ID: {{ appointment.patient.patient_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold">Dr. {{ appointment.doctor.last_name }}</span>
+                                            <small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ appointment.get_appointment_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge 
+                                            {% if appointment.status == 'scheduled' %}bg-success text-white
+                                            {% elif appointment.status == 'canceled' %}bg-danger text-white
+                                            {% elif appointment.status == 'completed' %}bg-info text-white
+                                            {% else %}bg-secondary text-white{% endif %}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="dropdown text-center">
+                                            <button class="btn btn-sm btn-outline-secondary action-button" 
+                                                    type="button" 
+                                                    data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                            <ul class="dropdown-menu custom-dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'appointments:appointment_detail' appointment.id %}">
+                                                        <i class="fas fa-eye me-2 text-primary"></i>View Details
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'appointments:appointment_edit' appointment.id %}">
+                                                        <i class="fas fa-edit me-2 text-warning"></i>Edit
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form method="post" action="{% url 'appointments:appointment_cancel' appointment.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="fas fa-times-circle me-2 text-danger"></i>Cancel Appointment
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5>No Appointments Found</h5>
+                    <p class="text-muted">There are currently no appointments scheduled.</p>
+                    <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary action-button mt-2">
+                        <i class="fas fa-plus-circle me-2"></i>Schedule New Appointment
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Confirmation for appointment cancellation
+        const cancelForms = document.querySelectorAll('form[action*="appointment_cancel"]');
+        cancelForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Cancel Appointment?',
+                    text: 'Are you sure you want to cancel this appointment?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, cancel it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const resetButton = document.getElementById('resetFilters');
+
+        function filterTable() {
+            const rows = document.querySelectorAll('tbody tr');
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusTerm = statusFilter.value.toLowerCase();
+            const typeTerm = typeFilter.value;
+            const dateTerm = dateFilter.value;
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const status = row.querySelector('.status-badge').textContent.toLowerCase();
+                const type = row.querySelector('td:nth-child(4)').textContent.trim();
+                const date = row.querySelector('td:nth-child(1)').textContent.trim();
+
+                const matchesSearch = text.includes(searchTerm);
+                const matchesStatus = !statusTerm || status.includes(statusTerm);
+                const matchesType = !typeTerm || type.includes(typeTerm);
+                const matchesDate = !dateTerm || date.includes(dateTerm);
+
+                row.style.display = matchesSearch && matchesStatus && matchesType && matchesDate ? '' : 'none';
+            });
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        typeFilter.addEventListener('change', filterTable);
+        dateFilter.addEventListener('input', filterTable);
+
+        resetButton.addEventListener('click', function() {
+            searchInput.value = '';
+            statusFilter.value = '';
+            typeFilter.value = '';
+            dateFilter.value = '';
+            filterTable();
+        });
+    });
+</script>
+{% endblock %}

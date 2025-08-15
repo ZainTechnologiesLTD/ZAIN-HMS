@@ -1,0 +1,463 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ report.name }} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    .status-completed { background-color: #28a745; }
+    .status-processing { background-color: #ffc107; }
+    .status-pending { background-color: #17a2b8; }
+    .status-failed { background-color: #dc3545; }
+    
+    .progress-circle {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .metadata-card {
+        border-left: 4px solid var(--bs-primary);
+    }
+    
+    .error-details {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        font-family: monospace;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ report.name }}</h1>
+        <p class="text-muted mb-0">
+            <span class="status-indicator status-{{ report.status|lower }}"></span>
+            {{ report.get_status_display }} • {{ report.get_report_type_display }} • {{ report.get_format_display }}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if report.status == 'COMPLETED' and report.file %}
+        <a href="{% url 'reports:download_report' report.pk %}" class="btn btn-success">
+            <i class="fas fa-download me-1"></i>
+            Download Report
+        </a>
+        {% endif %}
+        <button class="btn btn-outline-danger" onclick="deleteReport('{{ report.pk }}')">
+            <i class="fas fa-trash me-1"></i>
+            Delete
+        </button>
+        <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Reports
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Report Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Report Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        {% if report.status == 'COMPLETED' %}
+                            <div class="d-flex align-items-center text-success mb-2">
+                                <i class="fas fa-check-circle fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Report Generated Successfully</h6>
+                                    <small class="text-muted">
+                                        Completed on {{ report.completed_at|date:"F d, Y \a\t g:i A" }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% elif report.status == 'PROCESSING' %}
+                            <div class="d-flex align-items-center text-warning mb-2">
+                                <div class="spinner-border text-warning me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Processing Report</h6>
+                                    <small class="text-muted">
+                                        Started {{ report.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            </div>
+                        {% elif report.status == 'PENDING' %}
+                            <div class="d-flex align-items-center text-info mb-2">
+                                <i class="fas fa-clock fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Report Queued</h6>
+                                    <small class="text-muted">
+                                        Created {{ report.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="d-flex align-items-center text-danger mb-2">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Report Generation Failed</h6>
+                                    <small class="text-muted">
+                                        Failed {{ report.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if report.status == 'PROCESSING' %}
+                        <div class="progress mt-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 65%"></div>
+                        </div>
+                        <small class="text-muted">Estimated completion: 2-5 minutes</small>
+                        {% endif %}
+                    </div>
+                    
+                    {% if report.status == 'COMPLETED' %}
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex justify-content-end gap-3">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-primary">{{ report.total_records }}</div>
+                                <small class="text-muted">Records</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-primary">{{ report.file_size|filesizeformat }}</div>
+                                <small class="text-muted">File Size</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Details (if failed) -->
+        {% if report.status == 'FAILED' and report.error_message %}
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="error-details">
+                    {{ report.error_message }}
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="retryReport()">
+                        <i class="fas fa-redo me-1"></i>
+                        Retry Generation
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Report Configuration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Report Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Report Type:</dt>
+                            <dd class="col-sm-7">{{ report.get_report_type_display }}</dd>
+                            
+                            <dt class="col-sm-5">Format:</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge bg-primary">{{ report.get_format_display }}</span>
+                            </dd>
+                            
+                            <dt class="col-sm-5">Generated By:</dt>
+                            <dd class="col-sm-7">{{ report.generated_by.get_full_name }}</dd>
+                        </dl>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <dl class="row">
+                            {% if report.date_from or report.date_to %}
+                            <dt class="col-sm-4">Date Range:</dt>
+                            <dd class="col-sm-8">
+                                {% if report.date_from and report.date_to %}
+                                    {{ report.date_from|date:"M d, Y" }} - {{ report.date_to|date:"M d, Y" }}
+                                {% elif report.date_from %}
+                                    From {{ report.date_from|date:"M d, Y" }}
+                                {% elif report.date_to %}
+                                    Until {{ report.date_to|date:"M d, Y" }}
+                                {% endif %}
+                            </dd>
+                            {% else %}
+                            <dt class="col-sm-4">Date Range:</dt>
+                            <dd class="col-sm-8">All Time</dd>
+                            {% endif %}
+                            
+                            <dt class="col-sm-4">Created:</dt>
+                            <dd class="col-sm-8">{{ report.created_at|date:"M d, Y g:i A" }}</dd>
+                            
+                            {% if report.completed_at %}
+                            <dt class="col-sm-4">Completed:</dt>
+                            <dd class="col-sm-8">{{ report.completed_at|date:"M d, Y g:i A" }}</dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+                
+                {% if report.filters %}
+                <div class="mt-3">
+                    <h6>Applied Filters:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for key, value in report.filters.items %}
+                        <span class="badge bg-light text-dark border">
+                            {{ key }}: {{ value }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Report Preview (if completed) -->
+        {% if report.status == 'COMPLETED' %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    Report Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if report.format == 'PDF' %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-pdf fa-4x text-danger mb-3"></i>
+                        <h6>PDF Report Ready</h6>
+                        <p class="text-muted">Click download to view the complete PDF report</p>
+                        <a href="{% url 'reports:download_report' report.pk %}" class="btn btn-danger">
+                            <i class="fas fa-download me-1"></i>
+                            Download PDF
+                        </a>
+                    </div>
+                {% elif report.format == 'EXCEL' %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-excel fa-4x text-success mb-3"></i>
+                        <h6>Excel Report Ready</h6>
+                        <p class="text-muted">Click download to view the complete Excel report</p>
+                        <a href="{% url 'reports:download_report' report.pk %}" class="btn btn-success">
+                            <i class="fas fa-download me-1"></i>
+                            Download Excel
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-csv fa-4x text-info mb-3"></i>
+                        <h6>CSV Report Ready</h6>
+                        <p class="text-muted">Click download to view the complete CSV report</p>
+                        <a href="{% url 'reports:download_report' report.pk %}" class="btn btn-info">
+                            <i class="fas fa-download me-1"></i>
+                            Download CSV
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4 metadata-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-1"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if report.status == 'COMPLETED' %}
+                        <a href="{% url 'reports:download_report' report.pk %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-download me-1"></i>
+                            Download Report
+                        </a>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-primary btn-sm" onclick="duplicateReport()">
+                        <i class="fas fa-copy me-1"></i>
+                        Duplicate Report
+                    </button>
+                    
+                    <button class="btn btn-outline-secondary btn-sm" onclick="shareReport()">
+                        <i class="fas fa-share me-1"></i>
+                        Share Report
+                    </button>
+                    
+                    {% if report.status == 'FAILED' %}
+                    <button class="btn btn-warning btn-sm" onclick="retryReport()">
+                        <i class="fas fa-redo me-1"></i>
+                        Retry Generation
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Report Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Report Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    {% if report.status == 'COMPLETED' %}
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <div class="h5 mb-0 text-primary">{{ report.total_records }}</div>
+                                    <small class="text-muted">Records</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="h5 mb-0 text-success">{{ report.file_size|filesizeformat }}</div>
+                                <small class="text-muted">File Size</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">
+                            Statistics will be available once the report is generated.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Reports -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-1"></i>
+                    Related Reports
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">Other {{ report.get_report_type_display|lower }} reports</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:report_list' %}?type={{ report.report_type }}" class="btn btn-outline-primary btn-sm">
+                        View All {{ report.get_report_type_display }} Reports
+                    </a>
+                    <a href="{% url 'reports:generate_report' %}" class="btn btn-outline-secondary btn-sm">
+                        Generate Similar Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this report? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'reports:delete_report' report.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteReport(reportId) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+function duplicateReport() {
+    // Redirect to generate report with pre-filled data
+    const url = new URL('{% url "reports:generate_report" %}', window.location.origin);
+    url.searchParams.set('duplicate', '{{ report.pk }}');
+    window.location.href = url;
+}
+
+function shareReport() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ report.name }}',
+            text: 'Hospital Report: {{ report.name }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Report link copied to clipboard!');
+        });
+    }
+}
+
+function retryReport() {
+    if (confirm('Are you sure you want to retry generating this report?')) {
+        // In a real implementation, this would trigger a retry
+        fetch(`{% url 'reports:generate_report' %}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'retry': '{{ report.pk }}',
+                'name': '{{ report.name }}',
+                'report_type': '{{ report.report_type }}',
+                'format': '{{ report.format }}'
+            })
+        }).then(() => {
+            location.reload();
+        });
+    }
+}
+
+// Auto-refresh for processing reports
+{% if report.status == 'PROCESSING' or report.status == 'PENDING' %}
+setInterval(function() {
+    location.reload();
+}, 10000); // Refresh every 10 seconds
+{% endif %}
+</script>
+{% endblock %}

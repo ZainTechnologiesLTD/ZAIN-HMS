@@ -1,0 +1,64 @@
+<!-- templates/billing/quick_invoice_form.html -->
+<div class="modal-header">
+    <h5 class="modal-title">Quick Create Invoice</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form hx-post="{% url 'billing:create_quick_invoice' %}" hx-target="#quickActionModal">
+        <div class="mb-3">
+            <label for="patient" class="form-label">Patient</label>
+            <select name="patient" id="patient" class="form-select" required>
+                <option value="">Select Patient</option>
+                {% for patient in patients %}
+                <option value="{{ patient.id }}">{{ patient.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="appointments" class="form-label">Appointments</label>
+            <select name="appointments" id="appointments" class="form-select" multiple>
+                {% for appointment in appointments %}
+                <option value="{{ appointment.id }}">
+                    {{ appointment.date|date:"Y-m-d" }} - Dr. {{ appointment.doctor.last_name }} 
+                    (${{ appointment.fee }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="lab_tests" class="form-label">Lab Tests</label>
+            <select name="lab_tests" id="lab_tests" class="form-select" multiple>
+                {% for test in lab_tests %}
+                <option value="{{ test.id }}">{{ test.test_name }} (${{ test.price }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="hospital_charges" class="form-label">Hospital Charges</label>
+            <input type="number" class="form-control" id="hospital_charges" name="hospital_charges" 
+                   step="0.01" min="0" value="0">
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Create Invoice</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Initialize Select2 for better multiple select experience
+    $(document).ready(function() {
+        $('#appointments').select2({
+            placeholder: 'Select appointments',
+            width: '100%'
+        });
+        $('#lab_tests').select2({
+            placeholder: 'Select lab tests',
+            width: '100%'
+        });
+    });
+</script>

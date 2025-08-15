@@ -1,0 +1,155 @@
+<!-- templates/appointments/quick_schedule_form.html -->
+
+<div class="modal-header">
+    <h5 class="modal-title">Schedule Appointment</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form hx-post="{% url 'appointments:quick_schedule' %}" 
+    
+          hx-target="#quickActionModal"
+          hx-swap="outerHTML"
+          id="appointmentForm">
+        
+        <!-- Patient Search Section -->
+        <div class="mb-4">
+            <label class="form-label">Patient Search</label>
+            <div class="input-group">
+                <input type="text" 
+                       class="form-control" 
+                       id="patientSearch" 
+                       placeholder="Search by ID, name, or phone"
+                       hx-get="{% url 'appointments:search_patients' %}"
+                       hx-trigger="keyup changed delay:500ms"
+                       hx-target="#patientResults">
+            </div>
+            <div id="patientResults" class="list-group mt-2" aria-live="polite">
+                <!-- Default message -->
+                <div class="list-group-item text-muted">Start typing to search for patients.</div>
+            </div>
+            <input type="hidden" name="patient" id="selectedPatient" required>
+            <div id="selectedPatientInfo" class="mt-2"></div>
+        </div>
+
+        <!-- Doctor Selection Section -->
+        <div class="mb-4">
+            <label class="form-label">Specialization</label>
+            <select name="specialization" 
+                    id="specialization" 
+                    class="form-select mb-3"
+                    hx-get="{% url 'appointments:get_doctors' %}"
+                    hx-target="#doctorSelect"
+                    required>
+                <option value="">Select Specialization</option>
+                {% for spec in specializations %}
+                    <option value="{{ spec.0 }}">{{ spec.1 }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="form-label">Doctor</label>
+            <select name="doctor" id="doctorSelect" class="form-select" required disabled>
+                <option value="">First select specialization</option>
+            </select>
+            <div id="doctorSchedule" class="mt-2"></div>
+        </div>
+
+        <!-- Date & Time Selection -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label">Date</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="date" 
+                       name="date"
+                       min="{{ today|date:'Y-m-d' }}"
+                       hx-post="{% url 'appointments:check_availability' %}"
+                       hx-trigger="change"
+                       hx-include="[name='doctor'], [name='date']"
+                       hx-target="#availableSlots"
+                       required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Time</label>
+                <select id="availableSlots" 
+                        name="time" 
+                        class="form-select" 
+                        required>
+                    <option value="">Select date first</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Appointment Details -->
+        <div class="mb-4">
+            <label class="form-label">Appointment Type</label>
+            <select name="appointment_type" class="form-select" required>
+                {% for type in appointment_types %}
+                    <option value="{{ type.0 }}">{{ type.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label">Reason for Visit</label>
+            <textarea class="form-control" 
+                      id="reason" 
+                      name="reason" 
+                      rows="3" 
+                      required></textarea>
+        </div>
+
+        <div id="appointment-errors" class="alert alert-danger d-none"></div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+        </div>
+    </form>
+</div>
+
+<!-- Script for handling patient selection and form submission -->
+<div id="appointment-errors" class="alert alert-danger d-none"></div>
+        
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+</div>
+</form>
+</div>
+
+<!-- Script for handling patient selection and form submission -->
+<script>
+function selectPatient(patientId, patientName) {
+console.log("Selected Patient ID:", patientId);
+console.log("Selected Patient Name:", patientName);
+// Set the selected patient ID in the hidden input
+document.getElementById('selectedPatient').value = patientId;
+// Display selected patient info
+document.getElementById('selectedPatientInfo').innerHTML = 
+    `<div class="alert alert-info">Selected Patient: ${patientName}</div>`;
+
+// Optionally, clear any previous error messages
+const errorDiv = document.getElementById('appointment-errors');
+errorDiv.classList.add('d-none');
+errorDiv.textContent = '';
+}
+
+// Add the form submission handler once when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+document.getElementById('appointmentForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    // Validate patient selection
+    const patientId = document.getElementById('selectedPatient').value;
+    if (!patientId) {
+        const errorDiv = document.getElementById('appointment-errors');
+        errorDiv.classList.remove('d-none');
+        errorDiv.textContent = 'Please select a patient';
+        return;
+    }
+    
+    // Use HTMX to submit the form
+    this.submit();  // Allow HTMX to handle the submission
+});
+});
+</script>

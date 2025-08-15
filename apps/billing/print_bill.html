@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bill for {{ bill.patient }}</title>
+</head>
+<body>
+    <h1>Bill for {{ bill.patient }}</h1>
+    <p>Status: {{ bill.status }}</p>
+    <p>Total Amount: ${{ bill.total_amount }}</p>
+    <h2>Details</h2>
+    <pre>{{ bill.detailed_bill_text }}</pre>
+    
+    <button onclick="window.print()">Print this bill</button>
+</body>
+</html>

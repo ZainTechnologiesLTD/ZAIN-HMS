@@ -1,0 +1,40 @@
+# templates/ipd/ipd_form.html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{% if form.instance.pk %}Edit{% else %}New{% endif %} IPD Record</h1>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            IPD Record Form
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Record
+                    </button>
+                    <a href="{% url 'ipd:ipd_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 for all select fields
+        $('.select2').select2({
+            theme: 'bootstrap4'
+        });
+    });
+</script>
+{% endblock %}

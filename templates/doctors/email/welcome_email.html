@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Hospital Management System</title>
+</head>
+<body>
+    <h2>Welcome {{ user.get_full_name }}!</h2>
+    <p>Your account has been created in the Hospital Management System.</p>
+    <p>Please click the link below to set your password:</p>
+    <a href="{{ domain }}{{ reset_url }}">Set Password</a>
+</body>
+</html>
