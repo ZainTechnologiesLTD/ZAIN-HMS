@@ -4,7 +4,7 @@ from .models import LabTest, LabResult
 class LabTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = LabTest
-        fields = ['id','patient', 'test_name', 'description', 'price']
+        fields = ['id', 'test_code', 'name', 'description', 'category', 'sample_type', 'price', 'reporting_time_hours', 'is_active']
 
 class LabResultSerializer(serializers.ModelSerializer):
     test_name = serializers.CharField(source='test.name', read_only=True)

@@ -1,0 +1,53 @@
+nohup: ignoring input
+INFO Watching for file changes with StatReloader
+INFO "GET /dashboard/ HTTP/1.1" 302 0
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+WARNING CSRF failure from 127.0.0.1: CSRF token missing.
+WARNING Forbidden (CSRF token missing.): /accounts/login/
+WARNING "POST /accounts/login/ HTTP/1.1" 403 29803
+INFO "GET /dashboard/ HTTP/1.1" 302 0
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+WARNING CSRF failure from 127.0.0.1: CSRF token missing.
+WARNING Forbidden (CSRF token missing.): /accounts/login/
+WARNING "POST /accounts/login/ HTTP/1.1" 403 29803
+INFO "GET /dashboard/ HTTP/1.1" 302 0
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+WARNING CSRF failure from 127.0.0.1: CSRF token missing.
+WARNING Forbidden (CSRF token missing.): /accounts/login/
+WARNING "POST /accounts/login/ HTTP/1.1" 403 29803
+INFO "GET /dashboard/ HTTP/1.1" 302 0
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+INFO "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11699
+INFO /home/mehedi/Projects/zain_hms/apps/dashboard/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 27, 2025 - 05:46:50
+Django version 5.2.5, using settings 'zain_hms.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Loaded hospital database: hospital_ssd
+Loaded hospital database: hospital_mango
+Loaded hospital database: hospital_zain
+Loaded hospital database: hospital_bd
+Loaded hospital database: hospital_testtenant2
+Loaded hospital database: hospital_demo-hospital
+Loaded hospital database: hospital_kw
+Loaded hospital database: hospital_test
+Loaded 6 hospital domains to ALLOWED_HOSTS
+INFO Watching for file changes with StatReloader
+Loaded hospital database: hospital_ssd
+Loaded hospital database: hospital_mango
+Loaded hospital database: hospital_zain
+Loaded hospital database: hospital_bd
+Loaded hospital database: hospital_testtenant2
+Loaded hospital database: hospital_demo-hospital
+Loaded hospital database: hospital_kw
+Loaded hospital database: hospital_test
+Loaded 6 hospital domains to ALLOWED_HOSTS

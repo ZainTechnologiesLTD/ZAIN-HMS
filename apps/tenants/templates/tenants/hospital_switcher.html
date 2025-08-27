@@ -1,0 +1,152 @@
+<!-- apps/tenants/templates/tenants/hospital_switcher.html -->
+{% load hospital_tags %}
+<div class="hospital-switcher dropdown">
+    {% if hospital %}
+    <button class="btn btn-link dropdown-toggle text-white p-0" type="button" id="hospitalSwitcher" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+        <div class="d-flex align-items-center">
+            <img src="{% get_hospital_logo hospital %}" 
+                 alt="{{ hospital.name }}" 
+                 class="rounded-circle me-2" 
+                 style="width: 32px; height: 32px; object-fit: cover;">
+            <div class="text-start d-none d-md-block">
+                <div class="fw-semibold" style="font-size: 14px; line-height: 1.2;">{{ hospital.name }}</div>
+                <div style="font-size: 11px; opacity: 0.8;">
+                    {% get_subscription_status hospital as subscription_badge %}
+                    {{ hospital.get_subscription_plan_display }}
+                </div>
+            </div>
+            <i class="fas fa-chevron-down ms-2" style="font-size: 10px;"></i>
+        </div>
+    </button>
+    
+    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 280px;">
+        <!-- Current Hospital Info -->
+        <li class="px-3 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="d-flex align-items-center text-white">
+                <img src="{% get_hospital_logo hospital %}" 
+                     alt="{{ hospital.name }}" 
+                     class="rounded-circle me-2" 
+                     style="width: 40px; height: 40px; object-fit: cover;">
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{{ hospital.name }}</div>
+                    <div style="font-size: 12px; opacity: 0.9;">
+                        {{ hospital.get_subscription_plan_display }}
+                        {% if hospital.is_trial %} - Trial{% endif %}
+                    </div>
+                </div>
+            </div>
+        </li>
+        
+        <li><hr class="dropdown-divider my-1"></li>
+        
+        <!-- Quick Hospital Stats -->
+        <li class="px-3 py-2">
+            <div class="row g-2 text-center" style="font-size: 12px;">
+                <div class="col-4">
+                    <div class="fw-semibold text-primary">{{ hospital.get_user_count }}</div>
+                    <div class="text-muted">Users</div>
+                </div>
+                <div class="col-4">
+                    <div class="fw-semibold text-success">{{ enabled_modules|length }}</div>
+                    <div class="text-muted">Modules</div>
+                </div>
+                <div class="col-4">
+                    <div class="fw-semibold text-warning">{{ hospital.days_until_expiry }}</div>
+                    <div class="text-muted">Days Left</div>
+                </div>
+            </div>
+        </li>
+        
+        <li><hr class="dropdown-divider my-1"></li>
+        
+        <!-- Quick Actions -->
+        <li>
+            <a class="dropdown-item py-2" href="{% url 'tenants:hospital_profile' %}">
+                <i class="fas fa-hospital text-primary me-2"></i>Hospital Profile
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item py-2" href="{% url 'tenants:subscription_details' %}">
+                <i class="fas fa-credit-card text-info me-2"></i>Subscription Details
+            </a>
+        </li>
+        {% if user|has_module_access:"telemedicine" %}
+        <li>
+            <a class="dropdown-item py-2" href="{% url 'telemedicine:dashboard' %}">
+                <i class="fas fa-video text-success me-2"></i>Telemedicine Dashboard
+            </a>
+        </li>
+        {% endif %}
+        
+        <li><hr class="dropdown-divider my-1"></li>
+        
+        <!-- Switch Hospital -->
+        {% if user_hospitals|length > 1 %}
+        <li>
+            <a class="dropdown-item py-2" href="{% url 'tenants:hospital_selection' %}">
+                <i class="fas fa-exchange-alt text-warning me-2"></i>
+                Switch Hospital 
+                <span class="badge bg-secondary ms-1">{{ user_hospitals|length }}</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Available Hospitals (if multiple) -->
+        {% if user_hospitals|length > 1 %}
+        <li><hr class="dropdown-divider my-1"></li>
+        <li class="px-3 py-1">
+            <div class="fw-semibold text-muted" style="font-size: 11px;">OTHER HOSPITALS</div>
+        </li>
+        {% for access in user_hospitals %}
+            {% if access.tenant.id != hospital.id %}
+            <li>
+                <a class="dropdown-item py-2" href="{% url 'tenants:switch_hospital' access.tenant.id %}" style="font-size: 13px;">
+                    <img src="{% get_hospital_logo access.tenant %}" 
+                         alt="{{ access.tenant.name }}" 
+                         class="rounded-circle me-2" 
+                         style="width: 20px; height: 20px; object-fit: cover;">
+                    {{ access.tenant.name }}
+                    <div class="text-muted" style="font-size: 11px;">{{ access.get_role_display }}</div>
+                </a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+    </ul>
+    {% else %}
+    <!-- No Hospital Selected -->
+    <a href="{% url 'tenants:hospital_selection' %}" class="btn btn-warning btn-sm">
+        <i class="fas fa-exclamation-triangle me-1"></i>Select Hospital
+    </a>
+    {% endif %}
+</div>
+
+<style>
+.hospital-switcher .dropdown-toggle::after {
+    display: none; /* Hide default bootstrap arrow */
+}
+
+.hospital-switcher .dropdown-menu {
+    border-radius: 12px;
+    border: 0;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.hospital-switcher .dropdown-item {
+    border-radius: 6px;
+    margin: 0 4px;
+    transition: all 0.2s ease;
+}
+
+.hospital-switcher .dropdown-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+    .hospital-switcher .dropdown-menu {
+        min-width: 260px;
+        margin-right: -20px;
+    }
+}
+</style>

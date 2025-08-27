@@ -1,0 +1,460 @@
+{% extends 'base_dashboard.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Select Hospital" %} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+.hospital-card {
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+}
+
+.hospital-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.hospital-card.selected {
+    border-color: #28a745;
+    background-color: #f8f9fa;
+}
+
+.hospital-stats {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 10px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.search-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.current-hospital-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.hospital-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">{% trans "Loading..." %}</span>
+        </div>
+        <p class="mt-2 mb-0">{% trans "Switching hospital..." %}</p>
+    </div>
+</div>
+
+<!-- Search Header -->
+<div class="search-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-0">
+                    <i class="fas fa-hospital-alt me-2"></i>
+                    {% trans "Select Hospital to Manage" %}
+                </h1>
+                <p class="mb-3 opacity-75">
+                    {% trans "Choose which hospital you want to access and manage" %}
+                </p>
+                
+                {% if current_hospital %}
+                <div class="mb-3">
+                    <span class="current-hospital-badge">
+                        <i class="fas fa-check-circle me-1"></i>
+                        {% trans "Currently managing:" %} {{ current_hospital.name }}
+                    </span>
+                    <a href="{% url 'accounts:clear_hospital_selection' %}" class="btn btn-outline-light btn-sm ms-2">
+                        <i class="fas fa-times me-1"></i>
+                        {% trans "Clear Selection" %}
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Search Form -->
+                <form method="get" class="d-flex align-items-center">
+                    <div class="input-group input-group-lg" style="max-width: 500px;">
+                        <input type="text" 
+                               class="form-control" 
+                               name="q" 
+                               value="{{ search_query }}"
+                               placeholder="{% trans 'Search hospitals by name, code, or location...' %}"
+                               autocomplete="off">
+                        <button class="btn btn-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        {% if search_query %}
+                        <a href="{% url 'accounts:hospital_selection' %}" class="btn btn-outline-light">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number text-primary">{{ total_hospitals }}</div>
+                                <div class="stat-label text-muted">{% trans "Total Hospitals" %}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number text-success">{{ hospitals_with_stats|length }}</div>
+                                <div class="stat-label text-muted">{% trans "Available Hospitals" %}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number text-info">
+                                    {% for item in hospitals_with_stats %}{{ item.stats.total_patients|add:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                                </div>
+                                <div class="stat-label text-muted">{% trans "Total Patients" %}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number text-warning">
+                                    {% for item in hospitals_with_stats %}{{ item.stats.active_users|add:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                                </div>
+                                <div class="stat-label text-muted">{% trans "Active Users" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospitals Grid -->
+    {% if hospitals_with_stats %}
+    <div class="row">
+        {% for item in hospitals_with_stats %}
+        {% with hospital=item.hospital stats=item.stats %}
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+            <div class="card hospital-card h-100 {% if current_hospital and current_hospital.id == hospital.id %}selected{% endif %}"
+                 data-hospital-id="{{ hospital.id }}"
+                 onclick="selectHospital('{{ hospital.id }}')">
+                
+                <!-- Hospital Header -->
+                <div class="card-header bg-white border-0 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="card-title mb-1 fw-bold">{{ hospital.name }}</h5>
+                            <small class="text-muted">
+                                <i class="fas fa-code me-1"></i>{{ hospital.code }}
+                            </small>
+                        </div>
+                        {% if current_hospital and current_hospital.id == hospital.id %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>{% trans "Active" %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Hospital Image -->
+                {% if hospital.logo %}
+                <img src="{{ hospital.logo.url }}" class="hospital-image" alt="{{ hospital.name }}">
+                {% else %}
+                <div class="hospital-image bg-light d-flex align-items-center justify-content-center">
+                    <i class="fas fa-hospital-alt fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+
+                <!-- Hospital Info -->
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ hospital.city }}, {{ hospital.state }}
+                        </small>
+                        {% if hospital.phone %}
+                        <small class="text-muted d-block">
+                            <i class="fas fa-phone me-1"></i>
+                            {{ hospital.phone }}
+                        </small>
+                        {% endif %}
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="hospital-stats rounded p-2 mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ stats.total_patients }}</div>
+                                    <div class="stat-label">{% trans "Patients" %}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ stats.today_appointments }}</div>
+                                    <div class="stat-label">{% trans "Today" %}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ stats.pending_bills }}</div>
+                                    <div class="stat-label">{% trans "Bills" %}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ stats.active_users }}</div>
+                                    <div class="stat-label">{% trans "Users" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="d-grid">
+                        {% if current_hospital and current_hospital.id == hospital.id %}
+                        <button class="btn btn-success" disabled>
+                            <i class="fas fa-check me-2"></i>{% trans "Currently Selected" %}
+                        </button>
+                        {% else %}
+                        <button class="btn btn-primary" onclick="selectHospital('{{ hospital.id }}')">
+                            <i class="fas fa-arrow-right me-2"></i>{% trans "Select Hospital" %}
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="{% trans 'Hospital pagination' %}">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}">
+                            {% trans "First" %}
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            {% trans "Previous" %}
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            {% trans "Next" %}
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            {% trans "Last" %}
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- No Hospitals Found -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-hospital-alt fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">{% trans "No Hospitals Found" %}</h4>
+                    {% if search_query %}
+                    <p class="text-muted">
+                        {% trans "No hospitals match your search criteria:" %} <strong>{{ search_query }}</strong>
+                    </p>
+                    <a href="{% url 'accounts:hospital_selection' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>{% trans "Show All Hospitals" %}
+                    </a>
+                    {% else %}
+                    <p class="text-muted">
+                        {% trans "No active hospitals are available for selection." %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectHospital(hospitalId) {
+    // Show loading overlay
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    // Build the URL for selecting hospital
+    const selectUrl = '/auth/select-hospital/' + hospitalId + '/';
+    
+    // Make AJAX request to select hospital
+    fetch(selectUrl, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showToast('success', data.message);
+            
+            // Redirect after a short delay
+            setTimeout(() => {
+                window.location.href = data.redirect_url || '{% url "core:home" %}';
+            }, 1000);
+        } else {
+            // Hide loading and show error
+            document.getElementById('loadingOverlay').style.display = 'none';
+            showToast('error', data.message || '{% trans "Error selecting hospital" %}');
+        }
+    })
+    .catch(error => {
+        // Hide loading and show error
+        document.getElementById('loadingOverlay').style.display = 'none';
+        showToast('error', '{% trans "Error selecting hospital. Please try again." %}');
+        console.error('Error:', error);
+    });
+}
+
+function showToast(type, message) {
+    // Create toast notification
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    // Add to toast container or create one
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    // Initialize and show toast
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
+// Add hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    const hospitalCards = document.querySelectorAll('.hospital-card');
+    
+    hospitalCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('selected')) {
+                this.style.borderColor = '#007bff';
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('selected')) {
+                this.style.borderColor = '#e9ecef';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

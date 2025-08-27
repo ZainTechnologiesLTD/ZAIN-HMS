@@ -2,10 +2,43 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from apps.accounts.models import Hospital
+# # # # from tenants.models import  # Temporarily commented Tenant  # Temporarily commented  # Temporarily commented
 import uuid
 
 User = get_user_model()
+
+
+class BaseTenantModel(models.Model):
+    """
+    Abstract base model for all tenant-specific models
+    Automatically handles tenant context and provides common fields
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # # # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE)  # Temporarily commented
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    
+    class Meta:
+        abstract = True
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        # Auto-set tenant from request context if not set
+        if not self.tenant_id and hasattr(self, '_current_tenant'):
+            self.tenant = self._current_tenant
+        super().save(*args, **kwargs)
+
+
+class TenantFilteredManager(models.Manager):
+    """
+    Manager that automatically filters by tenant context
+    """
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs
+
 
 class ActivityLog(models.Model):
     """Track all user activities in the system"""
@@ -21,7 +54,7 @@ class ActivityLog(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='activity_logs')
+    # # # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='activity_logs')  # Temporarily commented
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     model_name = models.CharField(max_length=100)
@@ -35,7 +68,8 @@ class ActivityLog(models.Model):
     class Meta:
         ordering = ['-timestamp']
         indexes = [
-            models.Index(fields=['hospital', '-timestamp']),
+            # # models.Index(fields=['tenant', '-timestamp']),  # Temporarily commented
+  # Temporarily commented
             models.Index(fields=['user', '-timestamp']),
             models.Index(fields=['action', '-timestamp']),
         ]
@@ -46,11 +80,11 @@ class ActivityLog(models.Model):
 
 class SystemConfiguration(models.Model):
     """System-wide configuration settings"""
-    hospital = models.OneToOneField(Hospital, on_delete=models.CASCADE, related_name='system_config')
+    # # tenant = models.OneToOneField(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='system_configuration')
     
     # General Settings
-    hospital_name = models.CharField(max_length=200)
-    hospital_logo = models.ImageField(upload_to='hospital/logos/', null=True, blank=True)
+    tenant_name = models.CharField(max_length=200)
+    tenant_logo = models.ImageField(upload_to='tenant/logos/', null=True, blank=True)
     contact_email = models.EmailField()
     contact_phone = models.CharField(max_length=17)
     address = models.TextField()
@@ -90,7 +124,7 @@ class SystemConfiguration(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"Configuration for {self.hospital_name}"
+        return f"Configuration for {self.tenant_name}"
 
 
 class Notification(models.Model):
@@ -117,7 +151,7 @@ class Notification(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='notifications')
+    # # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='notifications')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
     
@@ -137,7 +171,8 @@ class Notification(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['recipient', 'is_read', '-created_at']),
-            models.Index(fields=['hospital', '-created_at']),
+            # # models.Index(fields=['tenant', '-created_at']),  # Temporarily commented
+  # Temporarily commented
         ]
     
     def mark_as_read(self):
@@ -153,7 +188,7 @@ class Notification(models.Model):
 class FileUpload(models.Model):
     """Track uploaded files"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='file_uploads')
+    # # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='file_uploads')
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_files')
     
     file = models.FileField(upload_to='uploads/%Y/%m/%d/')
@@ -179,7 +214,7 @@ class FileUpload(models.Model):
 
 class SystemSetting(models.Model):
     """Key-value system settings"""
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='settings')
+    # # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='system_settings')
     key = models.CharField(max_length=100)
     value = models.TextField()
     description = models.TextField(blank=True)
@@ -188,7 +223,7 @@ class SystemSetting(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['hospital', 'key']
+        constraints = []
     
     def __str__(self):
         return f"{self.key}: {self.value[:50]}"

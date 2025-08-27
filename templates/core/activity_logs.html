@@ -1,0 +1,120 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Activity Logs{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Activity Logs</h3>
+                    <div class="card-tools">
+                        <form method="get" class="form-inline">
+                            <div class="input-group">
+                                <select name="user" class="form-control mr-2">
+                                    <option value="">All Users</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if request.GET.user == user.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ user.get_full_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <select name="action" class="form-control mr-2">
+                                    <option value="">All Actions</option>
+                                    <option value="CREATE" {% if request.GET.action == 'CREATE' %}selected{% endif %}>Create</option>
+                                    <option value="UPDATE" {% if request.GET.action == 'UPDATE' %}selected{% endif %}>Update</option>
+                                    <option value="DELETE" {% if request.GET.action == 'DELETE' %}selected{% endif %}>Delete</option>
+                                    <option value="LOGIN" {% if request.GET.action == 'LOGIN' %}selected{% endif %}>Login</option>
+                                    <option value="LOGOUT" {% if request.GET.action == 'LOGOUT' %}selected{% endif %}>Logout</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Module</th>
+                                <th>Details</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in activities %}
+                            <tr>
+                                <td>{{ activity.timestamp|date:"Y-m-d H:i:s" }}</td>
+                                <td>{{ activity.user.get_full_name }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if activity.action == 'CREATE' %}badge-success
+                                        {% elif activity.action == 'UPDATE' %}badge-warning
+                                        {% elif activity.action == 'DELETE' %}badge-danger
+                                        {% elif activity.action == 'LOGIN' %}badge-info
+                                        {% elif activity.action == 'LOGOUT' %}badge-secondary
+                                        {% endif %}">
+                                        {{ activity.action }}
+                                    </span>
+                                </td>
+                                <td>{{ activity.module }}</td>
+                                <td>{{ activity.details }}</td>
+                                <td>{{ activity.ip_address }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No activity logs found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if is_paginated %}
+                <div class="card-footer clearfix">
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&lsaquo; Previous</a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rsaquo;</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

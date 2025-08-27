@@ -1,0 +1,478 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">Reports</li>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports.css' %}">
+{% endblock %}
+
+{% block content %}
+<div x-data="reportsManager()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="fas fa-chart-bar me-3 text-primary"></i>Reports & Analytics
+            </h1>
+            <p class="text-muted mb-0">Comprehensive hospital management reports and insights</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt me-2"></i>Refresh Data
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-2"></i>Quick Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="exportReport('summary', 'pdf')">
+                        <i class="fas fa-file-pdf me-2"></i>Summary Report (PDF)
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportReport('financial', 'excel')">
+                        <i class="fas fa-file-excel me-2"></i>Financial Report (Excel)
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportReport('analytics', 'csv')">
+                        <i class="fas fa-file-csv me-2"></i>Analytics Data (CSV)
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Filters -->
+    <div class="report-filters">
+        <h6 class="mb-3">
+            <i class="fas fa-filter me-2"></i>Report Filters
+        </h6>
+        <form class="filters-grid" x-on:submit.prevent="applyFilters">
+            <div>
+                <label class="form-label">Date Range</label>
+                <div class="d-flex gap-2">
+                    <input type="date" x-model="filters.dateFrom" class="form-control">
+                    <input type="date" x-model="filters.dateTo" class="form-control">
+                </div>
+            </div>
+            
+            <div>
+                <label class="form-label">Department</label>
+                <select x-model="filters.department" class="form-select">
+                    <option value="">All Departments</option>
+                    <option value="OPD">OPD</option>
+                    <option value="IPD">IPD</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Surgery">Surgery</option>
+                    <option value="Laboratory">Laboratory</option>
+                    <option value="Pharmacy">Pharmacy</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Report Type</label>
+                <select x-model="filters.reportType" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="financial">Financial</option>
+                    <option value="operational">Operational</option>
+                    <option value="analytics">Analytics</option>
+                    <option value="administrative">Administrative</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Doctor</label>
+                <select x-model="filters.doctor" class="form-select">
+                    <option value="">All Doctors</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}">Dr. {{ doctor.get_full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>Apply Filters
+                </button>
+                <button type="button" class="btn btn-outline-secondary" @click="resetFilters">
+                    <i class="fas fa-times me-1"></i>Reset
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="quick-stat-card revenue">
+            <div class="quick-stat-number revenue">${{ monthly_revenue|default:0|floatformat:2 }}</div>
+            <div class="quick-stat-label">Monthly Revenue</div>
+            <div class="quick-stat-change change-positive">
+                <i class="fas fa-arrow-up me-1"></i>+12.5% from last month
+            </div>
+        </div>
+        
+        <div class="quick-stat-card patients">
+            <div class="quick-stat-number patients">{{ total_patients|default:0 }}</div>
+            <div class="quick-stat-label">Total Patients</div>
+            <div class="quick-stat-change change-positive">
+                <i class="fas fa-arrow-up me-1"></i>+{{ new_patients_today|default:0 }} today
+            </div>
+        </div>
+        
+        <div class="quick-stat-card appointments">
+            <div class="quick-stat-number appointments">{{ monthly_appointments|default:0 }}</div>
+            <div class="quick-stat-label">Monthly Appointments</div>
+            <div class="quick-stat-change change-positive">
+                <i class="fas fa-arrow-up me-1"></i>85% completion rate
+            </div>
+        </div>
+        
+        <div class="quick-stat-card occupancy">
+            <div class="quick-stat-number occupancy">{{ bed_occupancy|default:0 }}%</div>
+            <div class="quick-stat-label">Bed Occupancy</div>
+            <div class="quick-stat-change change-negative">
+                <i class="fas fa-arrow-down me-1"></i>-3% from last week
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Grid -->
+    <div class="reports-grid mb-4">
+        <!-- Financial Reports -->
+        <div class="report-card">
+            <div class="report-header financial">
+                <div class="report-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="report-info">
+                    <h5>Financial Reports</h5>
+                    <p class="report-description mb-0">Revenue, billing, payments and financial analytics</p>
+                </div>
+            </div>
+            <div class="report-body">
+                <div class="report-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">${{ daily_revenue|default:0|floatformat:0 }}</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${{ weekly_revenue|default:0|floatformat:0 }}</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ pending_bills|default:0 }}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <a href="{% url 'reports:financial_summary' %}" class="btn btn-success btn-report">
+                        <i class="fas fa-chart-line me-1"></i>Summary
+                    </a>
+                    <button class="btn btn-outline-success btn-report" onclick="generateReport('financial')">
+                        <i class="fas fa-file-pdf me-1"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Reports -->
+        <div class="report-card">
+            <div class="report-header">
+                <div class="report-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="report-info">
+                    <h5>Patient Reports</h5>
+                    <p class="report-description mb-0">Patient demographics, admission and discharge reports</p>
+                </div>
+            </div>
+            <div class="report-body">
+                <div class="report-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ new_registrations|default:0 }}</div>
+                        <div class="stat-label">New Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ active_patients|default:0 }}</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ discharged_today|default:0 }}</div>
+                        <div class="stat-label">Discharged</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <a href="{% url 'reports:patient_summary' %}" class="btn btn-primary btn-report">
+                        <i class="fas fa-chart-pie me-1"></i>Analytics
+                    </a>
+                    <button class="btn btn-outline-primary btn-report" onclick="generateReport('patient')">
+                        <i class="fas fa-file-excel me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointment Reports -->
+        <div class="report-card">
+            <div class="report-header operational">
+                <div class="report-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="report-info">
+                    <h5>Appointment Reports</h5>
+                    <p class="report-description mb-0">Scheduling efficiency and appointment analytics</p>
+                </div>
+            </div>
+            <div class="report-body">
+                <div class="report-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ todays_appointments|default:0 }}</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">85%</div>
+                        <div class="stat-label">Show Rate</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ cancelled_appointments|default:0 }}</div>
+                        <div class="stat-label">Cancelled</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <a href="{% url 'reports:appointment_summary' %}" class="btn btn-info btn-report">
+                        <i class="fas fa-chart-area me-1"></i>Trends
+                    </a>
+                    <button class="btn btn-outline-info btn-report" onclick="generateReport('appointment')">
+                        <i class="fas fa-download me-1"></i>Download
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Performance -->
+        <div class="report-card">
+            <div class="report-header analytics">
+                <div class="report-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="report-info">
+                    <h5>Doctor Performance</h5>
+                    <p class="report-description mb-0">Doctor productivity and performance metrics</p>
+                </div>
+            </div>
+            <div class="report-body">
+                <div class="report-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ active_doctors|default:0 }}</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ avg_consultations|default:0 }}</div>
+                        <div class="stat-label">Avg/Day</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">4.8</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <a href="{% url 'reports:doctor_performance' %}" class="btn btn-warning btn-report">
+                        <i class="fas fa-trophy me-1"></i>Rankings
+                    </a>
+                    <button class="btn btn-outline-warning btn-report" onclick="generateReport('doctor')">
+                        <i class="fas fa-chart-bar me-1"></i>Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Reports -->
+        <div class="report-card">
+            <div class="report-header admin">
+                <div class="report-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="report-info">
+                    <h5>Inventory Reports</h5>
+                    <p class="report-description mb-0">Stock levels, usage and procurement analytics</p>
+                </div>
+            </div>
+            <div class="report-body">
+                <div class="report-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ low_stock_items|default:0 }}</div>
+                        <div class="stat-label">Low Stock</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ expired_items|default:0 }}</div>
+                        <div class="stat-label">Expired</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${{ inventory_value|default:0|floatformat:0 }}</div>
+                        <div class="stat-label">Total Value</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <a href="{% url 'reports:inventory_summary' %}" class="btn btn-danger btn-report">
+                        <i class="fas fa-warehouse me-1"></i>Overview
+                    </a>
+                    <button class="btn btn-outline-danger btn-report" onclick="generateReport('inventory')">
+                        <i class="fas fa-list me-1"></i>Details
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lab Reports -->
+        <div class="report-card">
+            <div class="report-header operational">
+                <div class="report-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="report-info">
+                    <h5>Laboratory Reports</h5>
+                    <p class="report-description mb-0">Test volumes, turnaround times and quality metrics</p>
+                </div>
+            </div>
+            <div class="report-body">
+                <div class="report-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ daily_tests|default:0 }}</div>
+                        <div class="stat-label">Tests Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ pending_results|default:0 }}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2.5h</div>
+                        <div class="stat-label">Avg TAT</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <a href="{% url 'reports:lab_summary' %}" class="btn btn-info btn-report">
+                        <i class="fas fa-microscope me-1"></i>Analysis
+                    </a>
+                    <button class="btn btn-outline-info btn-report" onclick="generateReport('lab')">
+                        <i class="fas fa-vial me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Container -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h5 class="chart-title">Revenue Trends</h5>
+            <div class="chart-controls">
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="chartPeriod" id="daily" checked>
+                    <label class="btn btn-outline-primary btn-sm" for="daily">Daily</label>
+                    <input type="radio" class="btn-check" name="chartPeriod" id="weekly">
+                    <label class="btn btn-outline-primary btn-sm" for="weekly">Weekly</label>
+                    <input type="radio" class="btn-check" name="chartPeriod" id="monthly">
+                    <label class="btn btn-outline-primary btn-sm" for="monthly">Monthly</label>
+                </div>
+            </div>
+        </div>
+        <canvas id="revenueChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="recent-reports">
+        <h6 class="mb-3">
+            <i class="fas fa-history me-2"></i>Recent Reports
+        </h6>
+        
+        {% for report in recent_reports %}
+        <div class="recent-report-item">
+            <div class="recent-report-icon">
+                <i class="fas fa-file-{{ report.type }}"></i>
+            </div>
+            <div class="recent-report-info">
+                <div class="recent-report-name">{{ report.name }}</div>
+                <div class="recent-report-meta">
+                    <span><i class="fas fa-calendar me-1"></i>{{ report.created_at|date:"M d, Y" }}</span>
+                    <span><i class="fas fa-user me-1"></i>{{ report.created_by.get_full_name }}</span>
+                    <span><i class="fas fa-download me-1"></i>{{ report.download_count }} downloads</span>
+                </div>
+            </div>
+            <div class="recent-report-actions">
+                <a href="{{ report.file_url }}" class="btn btn-sm btn-outline-primary" download>
+                    <i class="fas fa-download"></i>
+                </a>
+                <button class="btn btn-sm btn-outline-secondary" onclick="shareReport('{{ report.id }}')">
+                    <i class="fas fa-share"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('{{ report.id }}')">>
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="fas fa-file-alt fa-3x mb-3 opacity-50"></i>
+            <p>No recent reports available</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Export Options -->
+    <div class="export-dropdown">
+        <h6 class="mb-3">
+            <i class="fas fa-download me-2"></i>Bulk Export Options
+        </h6>
+        <div class="export-options">
+            <a href="#" class="export-option" onclick="exportReport('all', 'pdf')">
+                <div class="export-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <h6>Complete PDF Report</h6>
+                <p class="text-muted small mb-0">All sections in one document</p>
+            </a>
+            
+            <a href="#" class="export-option" onclick="exportReport('all', 'excel')">
+                <div class="export-icon">
+                    <i class="fas fa-file-excel"></i>
+                </div>
+                <h6>Excel Workbook</h6>
+                <p class="text-muted small mb-0">Multiple sheets with data</p>
+            </a>
+            
+            <a href="#" class="export-option" onclick="exportReport('all', 'csv')">
+                <div class="export-icon">
+                    <i class="fas fa-file-csv"></i>
+                </div>
+                <h6>CSV Data Export</h6>
+                <p class="text-muted small mb-0">Raw data for analysis</p>
+            </a>
+            
+            <a href="#" class="export-option" onclick="scheduleReport()">
+                <div class="export-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h6>Schedule Reports</h6>
+                <p class="text-muted small mb-0">Automated generation</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div x-show="loading" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h6>Generating Report...</h6>
+            <p class="text-muted mb-0">Please wait while we prepare your report</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/reports.js' %}"></script>
+{% endblock %}

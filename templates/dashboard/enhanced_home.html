@@ -1,0 +1,987 @@
+<!-- Enhanced Dashboard Template with Real-time Analytics -->
+{% extends 'base_enhanced.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Enhanced Dashboard - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card-enhanced {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card-enhanced:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card-enhanced.primary { border-left-color: #3b82f6; }
+    .stat-card-enhanced.success { border-left-color: #10b981; }
+    .stat-card-enhanced.warning { border-left-color: #f59e0b; }
+    .stat-card-enhanced.danger { border-left-color: #ef4444; }
+    .stat-card-enhanced.info { border-left-color: #06b6d4; }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .stat-icon.primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .stat-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .stat-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .stat-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .stat-icon.info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stat-change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    
+    .stat-change.positive { color: #059669; }
+    .stat-change.negative { color: #dc2626; }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .activity-feed {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.2s ease;
+    }
+    
+    .activity-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .real-time-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    
+    .emergency-alert {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border: 1px solid #f87171;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        animation: alertPulse 2s infinite;
+    }
+    
+    @keyframes alertPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .quick-action-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .quick-action-btn:hover {
+        border-color: #3b82f6;
+        background: #f8fafc;
+        color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}
+    {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' %}
+        Hospital Dashboard
+    {% elif user.role == 'DOCTOR' %}
+        Doctor Dashboard
+    {% elif user.role == 'NURSE' %}
+        Nurse Dashboard
+    {% elif user.role == 'RECEPTIONIST' %}
+        Reception Dashboard
+    {% else %}
+        Dashboard
+    {% endif %}
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <button class="btn btn-outline-primary" onclick="refreshDashboard()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickActionsModal">
+        <i class="bi bi-lightning"></i> Quick Actions
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Real-time Status Bar -->
+<div class="dashboard-stats">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h3 class="mb-1">Welcome back, {{ user.get_display_name }}!</h3>
+            <p class="mb-0 opacity-75">
+                {% now "l, F j, Y" %} - {{ hospital_name }}
+                <span class="real-time-indicator" title="Live Data"></span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end gap-3">
+                <div class="text-center">
+                    <div class="h4 mb-0" id="currentTime">{{ current_time|time:"H:i" }}</div>
+                    <small class="opacity-75">Current Time</small>
+                </div>
+                <div class="text-center">
+                    <div class="h4 mb-0">{{ user.role|title }}</div>
+                    <small class="opacity-75">Your Role</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Alerts -->
+{% if emergency_active > 0 %}
+<div class="emergency-alert">
+    <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+        <div>
+            <h6 class="mb-1 text-danger">Emergency Alert</h6>
+            <p class="mb-0">{{ emergency_active }} active emergency case{{ emergency_active|pluralize }} require immediate attention.</p>
+        </div>
+        <a href="#" class="btn btn-danger ms-auto">
+            View Emergency Cases
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    {% if user.role in 'ADMIN,SUPERADMIN,RECEPTIONIST' %}
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-person-plus quick-action-icon"></i>
+        <span>New Patient</span>
+    </a>
+    {% endif %}
+    
+    {% if user.role in 'ADMIN,SUPERADMIN,DOCTOR,RECEPTIONIST' %}
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-calendar-plus quick-action-icon"></i>
+        <span>New Appointment</span>
+    </a>
+    {% endif %}
+    
+    {% if user.role in 'ADMIN,SUPERADMIN,BILLING_CLERK,ACCOUNTANT' %}
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-receipt quick-action-icon"></i>
+        <span>Create Bill</span>
+    </a>
+    {% endif %}
+    
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-graph-up quick-action-icon"></i>
+        <span>View Reports</span>
+    </a>
+</div>
+
+    .metric-card.info {
+        background: linear-gradient(135deg, var(--info-color) 0%, #0284c7 100%);
+    }
+
+    .metric-icon {
+        font-size: 3rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .metric-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+        font-size: 1rem;
+        font-weight: 500;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .metric-change {
+        font-size: 0.875rem;
+        opacity: 0.8;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        height: 400px;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .quick-action-card {
+        background: white;
+        border: 2px solid transparent;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--gray-700);
+        transition: all var(--transition-fast);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-action-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        color: var(--primary-color);
+    }
+
+    .quick-action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+
+    .recent-activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--gray-100);
+        transition: background-color var(--transition-fast);
+    }
+
+    .recent-activity-item:hover {
+        background: var(--gray-50);
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-description {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+
+    .appointment-item {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        transition: all var(--transition-fast);
+    }
+
+    .appointment-item:hover {
+        box-shadow: var(--shadow);
+        border-color: var(--primary-color);
+    }
+
+    .appointment-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .appointment-patient {
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .appointment-time {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .appointment-doctor {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .real-time-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: var(--success-color);
+        border-radius: 50%;
+        margin-right: 0.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    .status-scheduled { background: var(--info-color); }
+    .status-completed { background: var(--success-color); }
+    .status-cancelled { background: var(--danger-color); }
+    .status-pending { background: var(--warning-color); }
+
+    .weather-widget {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .clock-widget {
+        text-align: center;
+        padding: 1.5rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .digital-clock {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .date-display {
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .metric-number {
+            font-size: 2rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            padding: 1rem;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    } #}
+{% endblock %}
+
+{% block content %}
+<div x-data="dashboardData()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <span class="real-time-indicator"></span>
+                Good {{ time_of_day }}, {{ user.first_name|default:user.username }}!
+            </h1>
+            <p class="text-muted mb-0">Here's what's happening at your hospital today</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="refreshDashboard()" data-bs-toggle="tooltip" title="Refresh Data">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-plus me-2"></i>Quick Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'patients:create' %}">
+                        <i class="fas fa-user-plus me-2"></i>Add Patient
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'appointments:appointment_create' %}">
+                        <i class="fas fa-calendar-plus me-2"></i>Schedule Appointment
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'emergency:create' %}">
+                        <i class="fas fa-ambulance me-2"></i>Emergency Case
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-4 mb-4" id="dashboard-stats" hx-get="{% url 'core:stats' %}" hx-trigger="load, refresh">
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-number" x-text="stats.patients.total">{{ total_patients|default:0 }}</div>
+                <div class="metric-label">Total Patients</div>
+                <div class="metric-change">
+                    <i class="fas fa-arrow-up"></i>
+                    +{{ new_patients_today|default:0 }} today
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card success">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="metric-number" x-text="stats.appointments.today">{{ appointments_today|default:0 }}</div>
+                <div class="metric-label">Today's Appointments</div>
+                <div class="metric-change">
+                    <i class="fas fa-clock"></i>
+                    {{ pending_appointments|default:0 }} pending
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card warning">
+                <div class="metric-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="metric-number" x-text="stats.doctors.active">{{ active_doctors|default:0 }}</div>
+                <div class="metric-label">Active Doctors</div>
+                <div class="metric-change">
+                    <i class="fas fa-stethoscope"></i>
+                    {{ doctors_on_duty|default:0 }} on duty
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card danger">
+                <div class="metric-icon">
+                    <i class="fas fa-ambulance"></i>
+                </div>
+                <div class="metric-number" x-text="stats.emergency.active">{{ emergency_cases|default:0 }}</div>
+                <div class="metric-label">Emergency Cases</div>
+                <div class="metric-change">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Active now
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-xl-8">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions-grid">
+                        <a href="{% url 'patients:create' %}" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h6>Add Patient</h6>
+                            <p class="text-muted small mb-0">Register new patient</p>
+                        </a>
+
+                        <a href="{% url 'appointments:appointment_create' %}" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <h6>Book Appointment</h6>
+                            <p class="text-muted small mb-0">Schedule consultation</p>
+                        </a>
+
+                        <a href="{% url 'emergency:create' %}" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-ambulance"></i>
+                            </div>
+                            <h6>Emergency Case</h6>
+                            <p class="text-muted small mb-0">Register emergency</p>
+                        </a>
+
+                        <a href="{% url 'billing:create' %}" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <h6>Create Bill</h6>
+                            <p class="text-muted small mb-0">Generate invoice</p>
+                        </a>
+
+                        <a href="{% url 'laboratory:create' %}" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <h6>Lab Test</h6>
+                            <p class="text-muted small mb-0">Request lab work</p>
+                        </a>
+
+                        <a href="{% url 'reports:dashboard' %}" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h6>Reports</h6>
+                            <p class="text-muted small mb-0">View analytics</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Chart -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Appointments Trend
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="chartPeriod" id="chart7days" checked>
+                        <label class="btn btn-outline-primary btn-sm" for="chart7days">7 Days</label>
+                        
+                        <input type="radio" class="btn-check" name="chartPeriod" id="chart30days">
+                        <label class="btn btn-outline-primary btn-sm" for="chart30days">30 Days</label>
+                        
+                        <input type="radio" class="btn-check" name="chartPeriod" id="chart90days">
+                        <label class="btn btn-outline-primary btn-sm" for="chart90days">90 Days</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="appointmentsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Appointments -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-day me-2"></i>Today's Appointments
+                    </h5>
+                    <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body" hx-get="{% url 'appointments:today' %}" hx-trigger="load, every 30s">
+                    {% for appointment in todays_appointments %}
+                    <div class="appointment-item">
+                        <div class="appointment-header">
+                            <div class="appointment-patient">{{ appointment.patient.get_full_name }}</div>
+                            <span class="badge bg-{{ appointment.get_status_color }}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="appointment-time">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ appointment.date_time|date:"g:i A" }}
+                        </div>
+                        <div class="appointment-doctor">
+                            <i class="fas fa-user-md me-1"></i>
+                            Dr. {{ appointment.doctor.get_full_name }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <p>No appointments scheduled for today</p>
+                        <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Schedule First Appointment
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-xl-4">
+            <!-- Clock Widget -->
+            <div class="clock-widget mb-4">
+                <div class="digital-clock" id="digitalClock"></div>
+                <div class="date-display" id="dateDisplay"></div>
+            </div>
+
+            <!-- System Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-server me-2"></i>System Status
+                    </h5>
+                </div>
+                <div class="card-body" hx-get="{% url 'health:status' %}" hx-trigger="load, every 60s">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Database</span>
+                        <span class="badge bg-success">
+                            <span class="status-indicator status-scheduled"></span>Online
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Cache</span>
+                        <span class="badge bg-success">
+                            <span class="status-indicator status-scheduled"></span>Connected
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Storage</span>
+                        <span class="badge bg-warning">
+                            <span class="status-indicator status-pending"></span>75% Used
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Backup</span>
+                        <span class="badge bg-success">
+                            <span class="status-indicator status-completed"></span>Up to date
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                    {% for activity in recent_activities %}
+                    <div class="recent-activity-item">
+                        <div class="activity-icon bg-{{ activity.type }}-light text-{{ activity.type }}">
+                            <i class="fas fa-{{ activity.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">{{ activity.title }}</div>
+                            <div class="activity-description">{{ activity.description }}</div>
+                            <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <p>No recent activity</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </h5>
+                    <span class="badge bg-primary">{{ notifications_count|default:0 }}</span>
+                </div>
+                <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+                    {% for notification in recent_notifications %}
+                    <div class="recent-activity-item">
+                        <div class="activity-icon bg-{{ notification.level }}-light text-{{ notification.level }}">
+                            <i class="fas fa-{{ notification.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">{{ notification.title }}</div>
+                            <div class="activity-description">{{ notification.message }}</div>
+                            <div class="activity-time">{{ notification.created_at|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                        <p>No new notifications</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/enhanced-common.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+    // Initialize dashboard with server data
+    function dashboardData() {
+        return {
+            stats: {
+                patients: { total: {{ total_patients|default:0 }} },
+                appointments: { today: {{ appointments_today|default:0 }} },
+                doctors: { active: {{ active_doctors|default:0 }} },
+                emergency: { active: {{ emergency_cases|default:0 }} }
+            },
+            
+            init() {
+                this.initClock();
+                this.initChart();
+                this.setupEventListeners();
+            },
+            
+            initClock() {
+                function updateClock() {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('en-US', {
+                        hour12: true,
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    const dateString = now.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    document.getElementById('digitalClock').textContent = timeString;
+                    document.getElementById('dateDisplay').textContent = dateString;
+                }
+                
+                updateClock();
+                setInterval(updateClock, 1000);
+            },
+            
+            initChart() {
+                const ctx = document.getElementById('appointmentsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: {{ chart_labels|safe }},
+                        datasets: [{
+                            label: 'Appointments',
+                            data: {{ chart_data|safe }},
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+            
+            setupEventListeners() {
+                // Chart period selection
+                document.querySelectorAll('input[name="chartPeriod"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        this.updateChart(e.target.id);
+                    });
+                });
+            },
+            
+            updateChart(period) {
+                // Update chart based on selected period
+                fetch(`/dashboard/chart-data/?period=${period}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update chart with new data
+                        console.log('Chart updated for period:', period);
+                    });
+            }
+        }
+    }
+
+    function refreshDashboard() {
+        showLoading();
+        htmx.trigger('#dashboard-stats', 'refresh');
+        
+        // Refresh other dynamic sections
+        setTimeout(() => {
+            hideLoading();
+            showNotification('Dashboard refreshed!', 'success');
+        }, 1000);
+    }
+
+    // Auto-refresh setup
+    document.addEventListener('DOMContentLoaded', function() {
+        // Refresh every 5 minutes
+        setInterval(refreshDashboard, 300000);
+        
+        // Real-time updates for critical sections
+        setInterval(() => {
+            htmx.trigger('[hx-trigger*="every"]', 'refresh');
+        }, 30000);
+    });
+</script>
+
+{% block extra_js %}
+<script src="{% static 'js/enhanced-common.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+    // Initialize dashboard with server data
+    document.addEventListener('DOMContentLoaded', function() {
+        window.dashboardStats = {
+            patients: { total: {{ total_patients|default:0 }} },
+            appointments: { today: {{ appointments_today|default:0 }} },
+            doctors: { active: {{ active_doctors|default:0 }} },
+            emergency: { active: {{ emergency_cases|default:0 }} }
+        };
+    });
+</script>
+{% endblock %}

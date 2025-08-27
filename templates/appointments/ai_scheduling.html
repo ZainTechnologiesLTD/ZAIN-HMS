@@ -1,0 +1,611 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI-Powered Scheduling{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-scheduling-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .doctor-selection-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .doctor-selection-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .doctor-selection-card.selected {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .time-slot {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .time-slot:hover {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.1);
+    }
+    
+    .time-slot.selected {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.2);
+    }
+    
+    .time-slot.highly-recommended {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.05);
+    }
+    
+    .time-slot.recommended {
+        border-color: #ffc107;
+        background: rgba(255, 193, 7, 0.05);
+    }
+    
+    .time-slot.not-recommended {
+        border-color: #dc3545;
+        background: rgba(220, 53, 69, 0.05);
+        opacity: 0.7;
+    }
+    
+    .ai-score-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .recommendation-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .recommendation-indicator.highly-recommended {
+        background: rgba(40, 167, 69, 0.2);
+        color: #155724;
+    }
+    
+    .recommendation-indicator.recommended {
+        background: rgba(255, 193, 7, 0.2);
+        color: #856404;
+    }
+    
+    .recommendation-indicator.available {
+        background: rgba(108, 117, 125, 0.2);
+        color: #495057;
+    }
+    
+    .recommendation-indicator.not-recommended {
+        background: rgba(220, 53, 69, 0.2);
+        color: #721c24;
+    }
+    
+    .ai-insights-panel {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .patient-selection {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .conflict-alert {
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid #dc3545;
+        border-radius: 5px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .alternative-suggestion {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid #ffc107;
+        border-radius: 5px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .alternative-suggestion:hover {
+        background: rgba(255, 193, 7, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- AI Scheduling Header -->
+    <div class="ai-scheduling-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-robot"></i> AI-Powered Appointment Scheduling
+                </h1>
+                <p class="mb-0">Intelligent scheduling with conflict detection and optimization recommendations</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="badge bg-light text-dark fs-6">
+                    <i class="fas fa-brain"></i> AI ENABLED
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scheduling Form -->
+    <form method="post" id="aiSchedulingForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Left Column: Form Fields -->
+            <div class="col-md-6">
+                <!-- Doctor Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-md"></i> Select Doctor
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for doctor in doctors %}
+                            <div class="col-md-6 mb-3">
+                                <div class="doctor-selection-card" 
+                                     data-doctor-id="{{ doctor.id }}"
+                                     onclick="selectDoctor({{ doctor.id }})">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-user-md fa-2x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Dr. {{ doctor.full_name }}</h6>
+                                            <small class="text-muted">{{ doctor.specialization|default:"General Practice" }}</small>
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="doctor" value="{{ doctor.id }}" 
+                                           class="d-none doctor-radio"
+                                           {% if selected_doctor and selected_doctor.id == doctor.id %}checked{% endif %}>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user"></i> Select Patient
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="patientSearch" 
+                                   placeholder="Search patients...">
+                        </div>
+                        <div class="patient-selection">
+                            <select name="patient" id="patientSelect" class="form-select" required>
+                                <option value="">Choose a patient...</option>
+                                {% for patient in patients %}
+                                <option value="{{ patient.id }}">
+                                    {{ patient.full_name }} - {{ patient.phone|default:"No phone" }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appointment Details -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-alt"></i> Appointment Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="appointmentDate" class="form-label">Date</label>
+                                <input type="date" class="form-control" name="appointment_date" 
+                                       id="appointmentDate" required 
+                                       min="{{ today|date:'Y-m-d' }}"
+                                       onchange="loadOptimizedSlots()">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="appointmentType" class="form-label">Type</label>
+                                <select name="appointment_type" id="appointmentType" class="form-select">
+                                    <option value="">General Consultation</option>
+                                    {% for type in appointment_types %}
+                                    <option value="{{ type.id }}">{{ type.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="duration" class="form-label">Duration (minutes)</label>
+                                <select name="duration" id="duration" class="form-select">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30" selected>30 minutes</option>
+                                    <option value="45">45 minutes</option>
+                                    <option value="60">60 minutes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: AI Optimized Schedule -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-brain"></i> AI-Optimized Time Slots
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="optimizedSchedule">
+                            {% if optimized_schedule %}
+                                {% for date, day_data in optimized_schedule.items %}
+                                <div class="mb-4">
+                                    <h6 class="border-bottom pb-2">
+                                        {{ day_data.day_name }}, {{ day_data.date|date:"M d" }}
+                                        <small class="text-muted">({{ day_data.total_available }} slots available)</small>
+                                    </h6>
+                                    
+                                    {% for slot in day_data.slots %}
+                                    <div class="time-slot {{ slot.recommendation_level|lower }}" 
+                                         data-time="{{ slot.time }}" 
+                                         data-date="{{ date }}"
+                                         onclick="selectTimeSlot(this)">
+                                        <div class="ai-score-badge">
+                                            {{ slot.ai_score|floatformat:1 }}
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ slot.time }}</strong>
+                                                <div class="mt-1">
+                                                    <span class="recommendation-indicator {{ slot.recommendation_level|lower }}">
+                                                        {% if slot.recommendation_level == 'HIGHLY_RECOMMENDED' %}
+                                                            <i class="fas fa-star"></i> Highly Recommended
+                                                        {% elif slot.recommendation_level == 'RECOMMENDED' %}
+                                                            <i class="fas fa-thumbs-up"></i> Recommended
+                                                        {% elif slot.recommendation_level == 'AVAILABLE' %}
+                                                            <i class="fas fa-clock"></i> Available
+                                                        {% else %}
+                                                            <i class="fas fa-exclamation-triangle"></i> Not Recommended
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <input type="radio" name="appointment_time" value="{{ slot.time }}" 
+                                               class="d-none time-radio">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                <p>Select a doctor and date to view AI-optimized time slots</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Insights Panel -->
+                <div id="aiInsightsPanel" class="ai-insights-panel" style="display: none;">
+                    <h6><i class="fas fa-lightbulb"></i> AI Insights</h6>
+                    <div id="aiInsightsContent">
+                        <!-- Dynamic AI insights will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conflict Alerts and Alternatives -->
+        <div id="conflictAlerts"></div>
+
+        <!-- Submit Button -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedDoctor = null;
+let selectedTimeSlot = null;
+
+function selectDoctor(doctorId) {
+    // Remove previous selection
+    document.querySelectorAll('.doctor-selection-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Select new doctor
+    const selectedCard = document.querySelector(`[data-doctor-id="${doctorId}"]`);
+    selectedCard.classList.add('selected');
+    
+    // Update form
+    document.querySelector(`input[name="doctor"][value="${doctorId}"]`).checked = true;
+    selectedDoctor = doctorId;
+    
+    // Load optimized slots if date is selected
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    if (appointmentDate) {
+        loadOptimizedSlots();
+    }
+}
+
+function selectTimeSlot(element) {
+    // Remove previous selection
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.remove('selected');
+    });
+    
+    // Select new time slot
+    element.classList.add('selected');
+    
+    // Update form
+    const time = element.dataset.time;
+    const date = element.dataset.date;
+    
+    document.querySelector(`input[name="appointment_time"][value="${time}"]`).checked = true;
+    
+    // Update appointment date if different
+    document.getElementById('appointmentDate').value = date;
+    
+    selectedTimeSlot = {time: time, date: date};
+    
+    // Load AI insights for this selection
+    loadAIInsights();
+}
+
+function loadOptimizedSlots() {
+    if (!selectedDoctor) {
+        alert('Please select a doctor first');
+        return;
+    }
+    
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const duration = document.getElementById('duration').value;
+    
+    if (!appointmentDate) return;
+    
+    // Show loading state
+    document.getElementById('optimizedSchedule').innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Loading AI-optimized slots...</p>
+        </div>
+    `;
+    
+    // Make API call to get optimized slots
+    fetch(`/appointments/api/ai-scheduling/?action=optimize_slots&doctor_id=${selectedDoctor}&date=${appointmentDate}&duration=${duration}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderOptimizedSlots(data.slots, appointmentDate);
+            } else {
+                document.getElementById('optimizedSchedule').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        No available slots found for this date.
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading slots:', error);
+            document.getElementById('optimizedSchedule').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Error loading time slots. Please try again.
+                </div>
+            `;
+        });
+}
+
+function renderOptimizedSlots(slots, date) {
+    const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
+    const dateFormatted = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    let html = `
+        <div class="mb-4">
+            <h6 class="border-bottom pb-2">
+                ${dayName}, ${dateFormatted}
+                <small class="text-muted">(${slots.length} slots available)</small>
+            </h6>
+    `;
+    
+    slots.forEach(slot => {
+        const recommendationClass = slot.recommendation.toLowerCase().replace('_', '-');
+        const recommendationText = slot.recommendation.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        let icon = 'fas fa-clock';
+        if (slot.recommendation === 'HIGHLY_RECOMMENDED') icon = 'fas fa-star';
+        else if (slot.recommendation === 'RECOMMENDED') icon = 'fas fa-thumbs-up';
+        else if (slot.recommendation === 'NOT_RECOMMENDED') icon = 'fas fa-exclamation-triangle';
+        
+        html += `
+            <div class="time-slot ${recommendationClass}" 
+                 data-time="${slot.time}" 
+                 data-date="${date}"
+                 onclick="selectTimeSlot(this)">
+                <div class="ai-score-badge">
+                    ${slot.ai_score.toFixed(1)}
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${slot.time}</strong>
+                        <div class="mt-1">
+                            <span class="recommendation-indicator ${recommendationClass}">
+                                <i class="${icon}"></i> ${recommendationText}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="radio" name="appointment_time" value="${slot.time}" 
+                       class="d-none time-radio">
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    document.getElementById('optimizedSchedule').innerHTML = html;
+}
+
+function loadAIInsights() {
+    if (!selectedDoctor || !selectedTimeSlot) return;
+    
+    const patientId = document.getElementById('patientSelect').value;
+    if (!patientId) return;
+    
+    const datetime = `${selectedTimeSlot.date} ${selectedTimeSlot.time}`;
+    
+    fetch(`/appointments/api/ai-scheduling/?action=predict_no_show&doctor_id=${selectedDoctor}&patient_id=${patientId}&datetime=${encodeURIComponent(datetime)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAIInsights(data);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading AI insights:', error);
+        });
+}
+
+function showAIInsights(data) {
+    const panel = document.getElementById('aiInsightsPanel');
+    const content = document.getElementById('aiInsightsContent');
+    
+    let riskClass = 'success';
+    let riskIcon = 'fas fa-check-circle';
+    
+    if (data.risk_level === 'HIGH') {
+        riskClass = 'danger';
+        riskIcon = 'fas fa-exclamation-triangle';
+    } else if (data.risk_level === 'MEDIUM') {
+        riskClass = 'warning';
+        riskIcon = 'fas fa-exclamation-circle';
+    }
+    
+    let html = `
+        <div class="alert alert-${riskClass} alert-sm">
+            <i class="${riskIcon}"></i>
+            <strong>No-show Risk: ${data.risk_level}</strong>
+            <br>
+            <small>Probability: ${(data.no_show_probability * 100).toFixed(1)}%</small>
+        </div>
+    `;
+    
+    if (data.recommendations && data.recommendations.length > 0) {
+        html += '<div class="mt-2"><strong>Recommendations:</strong><ul class="mt-1 mb-0">';
+        data.recommendations.forEach(rec => {
+            html += `<li><small>${rec}</small></li>`;
+        });
+        html += '</ul></div>';
+    }
+    
+    content.innerHTML = html;
+    panel.style.display = 'block';
+}
+
+// Initialize patient search
+document.getElementById('patientSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const options = document.querySelectorAll('#patientSelect option');
+    
+    options.forEach(option => {
+        if (option.value === '') return; // Skip placeholder
+        
+        const text = option.textContent.toLowerCase();
+        option.style.display = text.includes(searchTerm) ? 'block' : 'none';
+    });
+});
+
+// Load AI insights when patient changes
+document.getElementById('patientSelect').addEventListener('change', function() {
+    if (selectedTimeSlot) {
+        loadAIInsights();
+    }
+});
+
+// Initialize form validation
+document.getElementById('aiSchedulingForm').addEventListener('submit', function(e) {
+    if (!selectedDoctor) {
+        e.preventDefault();
+        alert('Please select a doctor');
+        return;
+    }
+    
+    if (!document.getElementById('appointmentDate').value) {
+        e.preventDefault();
+        alert('Please select an appointment date');
+        return;
+    }
+    
+    if (!selectedTimeSlot) {
+        e.preventDefault();
+        alert('Please select a time slot');
+        return;
+    }
+    
+    if (!document.getElementById('patientSelect').value) {
+        e.preventDefault();
+        alert('Please select a patient');
+        return;
+    }
+});
+
+// Set minimum date to today
+document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

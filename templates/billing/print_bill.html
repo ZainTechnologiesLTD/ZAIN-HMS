@@ -1,0 +1,480 @@
+{% extends 'base_print.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Bill" %} #{{ bill.invoice_number }}{% endblock %}
+
+{% block print_content %}
+<div class="print-document">
+    <!-- Hospital Header -->
+    <div class="hospital-header">
+        <div class="row align-items-center">
+            <div class="col-8">
+                <h1 class="hospital-name">{{ bill.hospital.name }}</h1>
+                <div class="hospital-details">
+                    <p><i class="fas fa-map-marker-alt"></i> {{ bill.hospital.address }}</p>
+                    <p><i class="fas fa-phone"></i> {{ bill.hospital.phone|default:"N/A" }}</p>
+                    <p><i class="fas fa-envelope"></i> {{ bill.hospital.email|default:"N/A" }}</p>
+                </div>
+            </div>
+            <div class="col-4 text-end">
+                <!-- Barcode Component -->
+                {% include 'components/barcode.html' with object=bill %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Header -->
+    <div class="document-header">
+        <div class="row">
+            <div class="col-6">
+                <h2 class="document-title">{% trans "MEDICAL BILL" %}</h2>
+            </div>
+            <div class="col-6 text-end">
+                <!-- Serial Number Component -->
+                {% include 'components/serial_display.html' with object=bill %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Information -->
+    <div class="bill-info-section">
+        <div class="row">
+            <div class="col-6">
+                <div class="info-box">
+                    <h5>{% trans "Bill Information" %}</h5>
+                    <table class="info-table">
+                        <tr>
+                            <td><strong>{% trans "Bill Number" %}:</strong></td>
+                            <td>{{ bill.invoice_number }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Serial Number" %}:</strong></td>
+                            <td>{{ bill.serial_number }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Bill Date" %}:</strong></td>
+                            <td>{{ bill.invoice_date|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Due Date" %}:</strong></td>
+                            <td>{{ bill.due_date|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Payment Terms" %}:</strong></td>
+                            <td>{{ bill.get_payment_terms_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Status" %}:</strong></td>
+                            <td><span class="status-badge status-{{ bill.status|lower }}">{{ bill.get_status_display }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="info-box">
+                    <h5>{% trans "Patient Information" %}</h5>
+                    <table class="info-table">
+                        <tr>
+                            <td><strong>{% trans "Patient Name" %}:</strong></td>
+                            <td>{{ bill.patient.user.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Patient ID" %}:</strong></td>
+                            <td>{{ bill.patient.patient_id }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Phone" %}:</strong></td>
+                            <td>{{ bill.patient.phone|default:"N/A" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Email" %}:</strong></td>
+                            <td>{{ bill.patient.user.email|default:"N/A" }}</td>
+                        </tr>
+                        {% if bill.patient.address %}
+                        <tr>
+                            <td><strong>{% trans "Address" %}:</strong></td>
+                            <td>{{ bill.patient.address }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if bill.appointment %}
+                        <tr>
+                            <td><strong>{% trans "Appointment" %}:</strong></td>
+                            <td>{{ bill.appointment.appointment_date|date:"M d, Y" }} - {{ bill.appointment.doctor.user.get_full_name }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Items -->
+    <div class="bill-items-section">
+        <h5>{% trans "Bill Items" %}</h5>
+        <table class="bill-items-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Service Code" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th class="text-center">{% trans "Quantity" %}</th>
+                    <th class="text-end">{% trans "Unit Price" %}</th>
+                    <th class="text-end">{% trans "Amount" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bill.items.all %}
+                <tr>
+                    <td>{{ item.service.code|default:"N/A" }}</td>
+                    <td>{{ item.service.name|default:item.description }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+                    <td class="text-end">${{ item.total_amount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">{% trans "No items found" %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bill Summary -->
+    <div class="bill-summary-section">
+        <div class="row">
+            <div class="col-6">
+                {% if bill.notes %}
+                <div class="notes-section">
+                    <h6>{% trans "Notes" %}</h6>
+                    <p>{{ bill.notes|linebreaks }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-6">
+                <div class="summary-box">
+                    <table class="summary-table">
+                        <tr>
+                            <td><strong>{% trans "Subtotal" %}:</strong></td>
+                            <td class="text-end">${{ bill.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% if bill.discount_amount > 0 %}
+                        <tr>
+                            <td><strong>{% trans "Discount" %} ({{ bill.discount_percentage }}%):</strong></td>
+                            <td class="text-end">-${{ bill.discount_amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if bill.tax_amount > 0 %}
+                        <tr>
+                            <td><strong>{% trans "Tax" %} ({{ bill.tax_rate }}%):</strong></td>
+                            <td class="text-end">${{ bill.tax_amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="total-row">
+                            <td><strong>{% trans "Total Amount" %}:</strong></td>
+                            <td class="text-end"><strong>${{ bill.total_amount|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% if bill.paid_amount > 0 %}
+                        <tr>
+                            <td><strong>{% trans "Paid Amount" %}:</strong></td>
+                            <td class="text-end">${{ bill.paid_amount|floatformat:2 }}</td>
+                        </tr>
+                        <tr class="balance-row">
+                            <td><strong>{% trans "Balance Due" %}:</strong></td>
+                            <td class="text-end"><strong>${{ bill.balance_amount|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    {% if bill.payments.exists %}
+    <div class="payment-history-section">
+        <h5>{% trans "Payment History" %}</h5>
+        <table class="payment-history-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Method" %}</th>
+                    <th>{% trans "Reference" %}</th>
+                    <th>{% trans "Notes" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in bill.payments.all %}
+                <tr>
+                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                    <td>${{ payment.amount|floatformat:2 }}</td>
+                    <td>{{ payment.get_payment_method_display }}</td>
+                    <td>{{ payment.reference_number|default:"N/A" }}</td>
+                    <td>{{ payment.notes|default:"N/A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="print-footer">
+        <div class="row">
+            <div class="col-6">
+                <small class="text-muted">
+                    {% trans "Generated on" %} {{ "now"|date:"F d, Y g:i A" }}<br>
+                    {% trans "Serial Number" %}: {{ bill.serial_number }}
+                </small>
+            </div>
+            <div class="col-6 text-end">
+                <small class="text-muted">
+                    {% trans "Scan QR code for quick access" %}<br>
+                    {{ bill.hospital.name }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.print-document {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.4;
+}
+
+.hospital-header {
+    border-bottom: 3px solid #007bff;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.hospital-name {
+    color: #007bff;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.hospital-details p {
+    margin: 2px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.hospital-details i {
+    width: 16px;
+    color: #007bff;
+}
+
+.document-header {
+    margin-bottom: 25px;
+}
+
+.document-title {
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.bill-info-section {
+    margin-bottom: 30px;
+}
+
+.info-box {
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.info-box h5 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.info-table {
+    width: 100%;
+    font-size: 14px;
+}
+
+.info-table td {
+    padding: 4px 8px 4px 0;
+    vertical-align: top;
+}
+
+.info-table td:first-child {
+    width: 40%;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-paid { background-color: #d4edda; color: #155724; }
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-draft { background-color: #f8f9fa; color: #6c757d; }
+.status-overdue { background-color: #f8d7da; color: #721c24; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+.status-partially_paid { background-color: #cce5ff; color: #004085; }
+
+.bill-items-section {
+    margin-bottom: 30px;
+}
+
+.bill-items-section h5 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.bill-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.bill-items-table th,
+.bill-items-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.bill-items-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.bill-items-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.bill-summary-section {
+    margin-bottom: 30px;
+}
+
+.notes-section {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.notes-section h6 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.summary-box {
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f8f9ff;
+}
+
+.summary-table {
+    width: 100%;
+    font-size: 14px;
+}
+
+.summary-table td {
+    padding: 6px 0;
+}
+
+.total-row {
+    border-top: 2px solid #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+.total-row td {
+    padding: 12px 0;
+    font-size: 16px;
+    color: #007bff;
+}
+
+.balance-row {
+    border-top: 1px solid #dee2e6;
+}
+
+.balance-row td {
+    padding: 8px 0;
+    color: #dc3545;
+}
+
+.payment-history-section {
+    margin-bottom: 30px;
+}
+
+.payment-history-section h5 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.payment-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.payment-history-table th,
+.payment-history-table td {
+    padding: 8px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.payment-history-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+.print-footer {
+    border-top: 1px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 30px;
+}
+
+/* Print-specific styles */
+@media print {
+    .print-document {
+        padding: 0;
+        box-shadow: none;
+    }
+    
+    .info-box {
+        border: 1px solid #ccc;
+        break-inside: avoid;
+    }
+    
+    .bill-items-table {
+        page-break-inside: avoid;
+    }
+    
+    .summary-box {
+        break-inside: avoid;
+    }
+    
+    .payment-history-section {
+        break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}

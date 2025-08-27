@@ -1,0 +1,44 @@
+{% extends 'base_dashboard.html' %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>Diagnostic List</h1>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Patient</th>
+        <th>Referred Doctor</th>
+        <th>Test Name</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lab_test in lab_tests %}
+      <tr>
+        <td>{{ lab_test.patient }}</td>
+        <td>{{ lab_test.referred_doctor }}</td>
+        <td>{{ lab_test.test_name }}</td>
+        <td>{{ lab_test.description }}</td>
+        <td>{{ lab_test.price }}</td>
+        <td>{{ lab_test.created_at }}</td>
+        <td>
+          <a href="{% url 'laboratory:lab_result_list' lab_test.id %}" class="btn btn-primary btn-sm">View Results</a>
+          <a href="{% url 'laboratory:lab_test_update' lab_test.id %}" class="btn btn-warning btn-sm">Edit</a>
+          <a href="{% url 'laboratory:lab_test_delete' lab_test.id %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">No diagnostic tests found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{% url 'laboratory:lab_test_create' %}" class="btn btn-success">Add New Diagnostic Test</a>
+</div>
+{% endblock %}

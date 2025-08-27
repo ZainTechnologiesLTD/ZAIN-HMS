@@ -1,28 +1,40 @@
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from apps.core.mixins import RequireHospitalSelectionMixin
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
-from .models import EmergencyCase, EmergencyTreatment
+from .models import EmergencyCase, EmergencyMedication
+from apps.core.mixins import require_hospital_selection
 from .forms import EmergencyCaseForm, EmergencyTreatmentForm
+# from tenants.permissions import  # Temporarily commented TenantFilterMixin
 
 class EmergencyDashboardView(LoginRequiredMixin, ListView):
-    template_name = 'emergency/dashboard.html'
+    template_name = 'emergency/case_dashboard.html'
     context_object_name = 'cases'
     
     def get_queryset(self):
+        # Check if user has tenant assignment
+        tenant = getattr(self.request.user, 'tenant', None) if hasattr(self.request, 'user') else None
+        if not tenant:
+            # If no tenant, return empty queryset
+            return EmergencyCase.objects.none()
+        
+        # For now, since EmergencyCase doesn't have tenant field, return all cases
+        # TODO: Add tenant field to EmergencyCase model in future migration
         return EmergencyCase.objects.exclude(status='discharged').order_by('priority', '-arrival_time')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['critical_count'] = self.get_queryset().filter(priority='critical').count()
-        context['waiting_count'] = self.get_queryset().filter(status='waiting').count()
-        context['in_treatment_count'] = self.get_queryset().filter(status='in_treatment').count()
+        queryset = self.get_queryset()
+        context['critical_count'] = queryset.filter(priority='critical').count()
+        context['waiting_count'] = queryset.filter(status='waiting').count()
+        context['in_treatment_count'] = queryset.filter(status='in_treatment').count()
         return context
 
-class EmergencyCaseCreateView(LoginRequiredMixin, CreateView):
+class EmergencyCaseCreateView(RequireHospitalSelectionMixin, LoginRequiredMixin, CreateView):
     model = EmergencyCase
     form_class = EmergencyCaseForm
     template_name = 'emergency/case_form.html'
@@ -68,6 +80,7 @@ class EmergencyCaseDetailView(LoginRequiredMixin, DetailView):
         context['treatment_form'] = EmergencyTreatmentForm()
         return context
 
+@require_hospital_selection
 def add_treatment(request, case_id):
     if not request.htmx:
         return JsonResponse({'error': 'Invalid request'}, status=400)

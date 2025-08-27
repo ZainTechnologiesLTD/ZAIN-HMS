@@ -24,7 +24,7 @@ def analytics_dashboard(request):
     
     # Basic statistics
     total_patients = Patient.objects.filter(hospital=hospital).count()
-    total_doctors = Doctor.objects.filter(hospital=hospital).count()
+    total_doctors = Doctor.objects.filter(user__hospital=hospital).count()
     active_appointments = Appointment.objects.filter(
         hospital=hospital, 
         appointment_date=today,

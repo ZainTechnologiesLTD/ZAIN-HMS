@@ -104,7 +104,7 @@
                 <li><a class="dropdown-item" href="?status=WAITING">Waiting</a></li>
                 <li><a class="dropdown-item" href="?status=IN_TREATMENT">In Treatment</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{% url 'emergency:case_list' %}">All Cases</a></li>
+                <li><a class="dropdown-item" href="{% url 'emergency:emergency_list' %}">All Cases</a></li>
             </ul>
         </div>
     </div>
@@ -307,7 +307,7 @@
                 </h6>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'emergency:quick_triage' %}">
+                <form method="post" action="{% url 'emergency:case_create' %}">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label">Patient Search</label>

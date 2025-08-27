@@ -2,7 +2,8 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
-from apps.accounts.models import Hospital, User
+from apps.tenants.models import Tenant
+from apps.accounts.models import CustomUser as User
 import uuid
 from datetime import date
 
@@ -35,7 +36,7 @@ class Patient(models.Model):
     
     # Basic Information
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='patients')
+    hospital = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='patients', null=True, blank=True)
     patient_id = models.CharField(max_length=20, unique=True, blank=True)
     
     # Personal Details
@@ -106,10 +107,39 @@ class Patient(models.Model):
         return f"{self.get_full_name()} ({self.patient_id})"
     
     def save(self, *args, **kwargs):
+        """Override save to handle cross-database relationships and generate patient ID"""
         if not self.patient_id:
             self.patient_id = self.generate_patient_id()
-        super().save(*args, **kwargs)
+        
+        using = kwargs.get('using', 'default')
+        
+        # If saving to a tenant database, temporarily disable foreign key checks
+        if using and using != 'default':
+            from django.db import connections
+            connection = connections[using]
+            with connection.cursor() as cursor:
+                cursor.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    super().save(*args, **kwargs)
+                finally:
+                    cursor.execute("PRAGMA foreign_keys=ON")
+        else:
+            super().save(*args, **kwargs)
     
+    def delete(self, using=None, keep_parents=False):
+        """Override delete to handle cross-database relationships"""
+        if using and using != 'default':
+            from django.db import connections
+            connection = connections[using]
+            with connection.cursor() as cursor:
+                cursor.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    super().delete(using=using, keep_parents=keep_parents)
+                finally:
+                    cursor.execute("PRAGMA foreign_keys=ON")
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
+
     def generate_patient_id(self):
         """Generate unique patient ID"""
         last_patient = Patient.objects.filter(
@@ -125,7 +155,7 @@ class Patient(models.Model):
         else:
             new_number = 1
             
-        return f"{self.hospital.code}-PAT-{new_number:06d}"
+        return f"{self.hospital.subdomain}-PAT-{new_number:06d}"
     
     def get_full_name(self):
         """Return full name"""
@@ -182,7 +212,7 @@ class PatientDocument(models.Model):
 
 class PatientNote(models.Model):
     """Patient notes and observations"""
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='notes')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient_notes')
     note = models.TextField()
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

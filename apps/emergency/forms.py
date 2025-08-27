@@ -1,55 +1,36 @@
 from django import forms
-from .models import EmergencyCase, EmergencyTreatment
+from .models import EmergencyCase, EmergencyMedication
 
 class EmergencyCaseForm(forms.ModelForm):
     class Meta:
         model = EmergencyCase
-        fields = [
-            'patient_name', 'age', 'contact_number', 'chief_complaint',
-            'priority', 'status', 'assigned_doctor', 'vital_signs', 'notes'
-        ]
+        fields = ['case_number', 'patient_name']
         widgets = {
+            'case_number': forms.TextInput(attrs={'class': 'form-control'}),
             'patient_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'age': forms.NumberInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'chief_complaint': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'priority': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'assigned_doctor': forms.Select(attrs={'class': 'form-select'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['vital_signs'].widget = forms.HiddenInput()
-        
-        # Add Bootstrap classes to all fields
         for field in self.fields:
             if 'class' not in self.fields[field].widget.attrs:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
 class EmergencyTreatmentForm(forms.ModelForm):
     class Meta:
-        model = EmergencyTreatment
-        fields = ['procedure', 'medications', 'notes']
+        model = EmergencyMedication
+        fields = ['medication_name', 'dosage', 'route', 'frequency', 'indication', 'notes']
         widgets = {
-            'procedure': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Enter procedure details'
-            }),
-            'notes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Enter additional notes'
-            }),
+            'medication_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'dosage': forms.TextInput(attrs={'class': 'form-control'}),
+            'route': forms.TextInput(attrs={'class': 'form-control'}),
+            'frequency': forms.TextInput(attrs={'class': 'form-control'}),
+            'indication': forms.TextInput(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['medications'].widget = forms.HiddenInput()
-        
-        # Add Bootstrap classes to all fields
         for field in self.fields:
             if 'class' not in self.fields[field].widget.attrs:
                 self.fields[field].widget.attrs['class'] = 'form-control'

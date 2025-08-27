@@ -11,10 +11,28 @@ app_name = 'doctors'
 
 urlpatterns = [
     # Normal Views
-    path('list/', views.DoctorListView.as_view(), name='doctor_list'),
+    path('', views.DoctorListView.as_view(), name='doctor_list'),  # Main list view
+    path('list/', views.DoctorListView.as_view(), name='doctor_list_alt'),  # Alternative path
     path('<int:pk>/', views.DoctorDetailView.as_view(), name='doctor_detail'),
     path('create/', views.DoctorCreateView.as_view(), name='doctor_create'),
     path('<int:pk>/update/', views.DoctorUpdateView.as_view(), name='doctor_update'),
+    path('<int:pk>/delete/', views.DoctorDeleteView.as_view(), name='doctor_delete'),
+    
+    # Doctor Dashboard and Personal Views
+    path('dashboard/', views.DoctorDashboardView.as_view(), name='doctor_dashboard'),
+    path('my-appointments/', views.DoctorAppointmentsView.as_view(), name='doctor_appointments'),
+    path('my-prescriptions/', views.DoctorPrescriptionsView.as_view(), name='doctor_prescriptions'),
+    
+    # Prescription Management
+    path('prescriptions/create/', views.CreatePrescriptionView.as_view(), name='create_prescription'),
+    path('prescriptions/create/<uuid:appointment_id>/', views.CreatePrescriptionView.as_view(), name='create_prescription_from_appointment'),
+    path('prescriptions/<uuid:pk>/', views.PrescriptionDetailView.as_view(), name='prescription_detail'),
+    
+    # User Management for Doctors
+    path('<int:pk>/create-user/', views.CreateUserForDoctorView.as_view(), name='create_user_for_doctor'),
+    path('<int:pk>/link-user/', views.LinkDoctorUserView.as_view(), name='link_user'),
+    path('<int:pk>/unlink-user/', views.unlink_doctor_user, name='unlink_user'),
+    path('without-users/', views.DoctorsWithoutUsersView.as_view(), name='doctors_without_users'),
 
      # Password Reset URLs - Required for the email link to work
     path('password-reset/', 

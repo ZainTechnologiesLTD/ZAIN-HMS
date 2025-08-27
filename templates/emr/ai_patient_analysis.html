@@ -1,0 +1,748 @@
+<!-- templates/emr/ai_patient_analysis.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Patient Analysis - {{ patient.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ai_dashboard.css' %}">
+<style>
+    .ai-patient-analysis {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .patient-header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    .analysis-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+        border-left: 4px solid #3498db;
+    }
+    
+    .analysis-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .analysis-card.critical {
+        border-left-color: #e74c3c;
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+    
+    .analysis-card.warning {
+        border-left-color: #f39c12;
+        background: linear-gradient(135deg, rgba(243, 156, 18, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+    
+    .analysis-card.success {
+        border-left-color: #27ae60;
+        background: linear-gradient(135deg, rgba(39, 174, 96, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+    
+    .risk-indicator {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .risk-high {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    .risk-medium {
+        background: #f39c12;
+        color: white;
+    }
+    
+    .risk-low {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .symptom-tag {
+        display: inline-block;
+        background: #3498db;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        margin: 2px;
+    }
+    
+    .vital-reading {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-left: 3px solid #3498db;
+    }
+    
+    .vital-reading.abnormal {
+        border-left-color: #e74c3c;
+        background: #fdf2f2;
+    }
+    
+    .medication-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-left: 3px solid #27ae60;
+    }
+    
+    .medication-item.interaction {
+        border-left-color: #e74c3c;
+        background: #fdf2f2;
+    }
+    
+    .lab-result {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .lab-result.abnormal {
+        background: #fdf2f2;
+        border-left: 3px solid #e74c3c;
+    }
+    
+    .lab-result.normal {
+        background: #f0f9f0;
+        border-left: 3px solid #27ae60;
+    }
+    
+    .ai-insight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .recommendation-item {
+        background: #e8f4fd;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-left: 3px solid #2196F3;
+    }
+    
+    .confidence-bar {
+        background: #e0e0e0;
+        border-radius: 10px;
+        height: 8px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    
+    .confidence-fill {
+        background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #3498db;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 10px;
+        color: #3498db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-patient-analysis">
+    <!-- Patient Header -->
+    <div class="patient-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-user-md text-primary me-3"></i>
+                    AI Patient Analysis
+                </h1>
+                <h3 class="text-muted mb-2">{{ patient.get_full_name }}</h3>
+                <div class="patient-info">
+                    <span class="badge bg-info me-2">{{ patient.age }} years old</span>
+                    <span class="badge bg-secondary me-2">{{ patient.get_gender_display }}</span>
+                    <span class="badge bg-primary">ID: {{ patient.patient_id }}</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if ai_analysis.overall_risk %}
+                <div class="risk-indicator risk-{{ ai_analysis.overall_risk.risk_level|lower }}">
+                    {{ ai_analysis.overall_risk.risk_level }} Risk Patient
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">Risk Score: {{ ai_analysis.overall_risk.risk_score }}/100</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Analysis Column -->
+        <div class="col-lg-8">
+            <!-- AI Overall Assessment -->
+            {% if ai_analysis.overall_risk %}
+            <div class="analysis-card {% if ai_analysis.overall_risk.risk_level == 'HIGH' %}critical{% elif ai_analysis.overall_risk.risk_level == 'MEDIUM' %}warning{% else %}success{% endif %}">
+                <h5 class="section-title">
+                    <i class="fas fa-brain"></i>
+                    AI Overall Assessment
+                </h5>
+                
+                <div class="ai-insight">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Clinical Summary</h6>
+                    <p class="mb-2">
+                        Patient presents with {{ ai_analysis.overall_risk.risk_level|lower }} clinical risk based on comprehensive AI analysis.
+                        {% if ai_analysis.overall_risk.risk_factors %}
+                        Key risk factors identified include active clinical concerns requiring attention.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                {% if ai_analysis.overall_risk.risk_factors %}
+                <div class="mt-3">
+                    <h6>Identified Risk Factors:</h6>
+                    <ul class="list-unstyled">
+                        {% for factor in ai_analysis.overall_risk.risk_factors %}
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            {{ factor }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Symptom Analysis -->
+            {% if ai_analysis.symptom_analysis %}
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-stethoscope"></i>
+                    AI Symptom Analysis
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Analyzed Symptoms:</h6>
+                        <div class="symptoms-container">
+                            {% for symptom in ai_analysis.symptom_analysis.symptoms %}
+                            <span class="symptom-tag">{{ symptom|title }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Top Differential Diagnoses:</h6>
+                        {% for diagnosis in ai_analysis.symptom_analysis.possible_conditions %}
+                        <div class="recommendation-item">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ diagnosis.condition|title }}</strong>
+                                <span class="badge bg-info">{{ diagnosis.probability }}%</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: {{ diagnosis.probability }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if ai_analysis.symptom_analysis.recommendations %}
+                <div class="ai-insight mt-3">
+                    <h6><i class="fas fa-clipboard-check me-2"></i>AI Recommendations</h6>
+                    <ul class="mb-0">
+                        {% for rec in ai_analysis.symptom_analysis.recommendations %}
+                        <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Vital Signs Analysis -->
+            {% if ai_analysis.vital_analysis %}
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-heartbeat"></i>
+                    AI Vital Signs Analysis
+                </h5>
+                
+                <div class="row">
+                    {% for vital, analysis in ai_analysis.vital_analysis.vital_assessments.items %}
+                    <div class="col-md-6 mb-3">
+                        <div class="vital-reading {% if analysis.status != 'NORMAL' %}abnormal{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>{{ vital|title|replace:"_":" " }}</strong>
+                                <span class="badge bg-{% if analysis.status == 'NORMAL' %}success{% elif analysis.status == 'ABNORMAL' %}warning{% else %}danger{% endif %}">
+                                    {{ analysis.status }}
+                                </span>
+                            </div>
+                            <div class="mt-1">
+                                <span class="text-muted">Value: {{ analysis.value }} {{ analysis.unit|default:"" }}</span>
+                                {% if analysis.reference_range %}
+                                <small class="d-block text-muted">Normal: {{ analysis.reference_range }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if ai_analysis.vital_analysis.alerts %}
+                <div class="mt-3">
+                    <h6>AI Alerts:</h6>
+                    {% for alert in ai_analysis.vital_analysis.alerts %}
+                    <div class="alert alert-{% if alert.severity == 'HIGH' %}danger{% elif alert.severity == 'MEDIUM' %}warning{% else %}info{% endif %}">
+                        <strong>{{ alert.vital|title }}</strong>: {{ alert.message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Lab Results Analysis -->
+            {% if ai_analysis.lab_analysis %}
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-vial"></i>
+                    AI Laboratory Analysis
+                </h5>
+                
+                <div class="row">
+                    {% for test, result in ai_analysis.lab_analysis.test_results.items %}
+                    <div class="col-md-6 mb-2">
+                        <div class="lab-result {% if result.status != 'NORMAL' %}abnormal{% else %}normal{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ test|title|replace:"_":" " }}</strong>
+                                    <div class="text-muted small">{{ result.value }} {{ result.unit|default:"" }}</div>
+                                </div>
+                                <span class="badge bg-{% if result.status == 'NORMAL' %}success{% elif result.status == 'ABNORMAL' %}warning{% else %}danger{% endif %}">
+                                    {{ result.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if ai_analysis.lab_analysis.abnormal_results %}
+                <div class="mt-3">
+                    <h6>Abnormal Findings:</h6>
+                    {% for finding in ai_analysis.lab_analysis.abnormal_results %}
+                    <div class="alert alert-{% if finding.severity == 'HIGH' %}danger{% elif finding.severity == 'MEDIUM' %}warning{% else %}info{% endif %}">
+                        <strong>{{ finding.test|title }}</strong>: {{ finding.interpretation }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if ai_analysis.lab_analysis.clinical_significance %}
+                <div class="ai-insight">
+                    <h6><i class="fas fa-microscope me-2"></i>Clinical Significance</h6>
+                    <p class="mb-0">{{ ai_analysis.lab_analysis.clinical_significance }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Medication Analysis -->
+            {% if ai_analysis.medication_analysis %}
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-pills"></i>
+                    AI Medication Analysis
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>Current Medications:</h6>
+                        {% for med in current_medications %}
+                        <div class="medication-item {% if med.has_interactions %}interaction{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ med.medication_name }}</strong>
+                                    <div class="text-muted small">
+                                        {{ med.dosage }} • {{ med.frequency }} • {{ med.route }}
+                                    </div>
+                                </div>
+                                <span class="badge bg-{% if med.status == 'ACTIVE' %}success{% else %}secondary{% endif %}">
+                                    {{ med.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Risk Assessment:</h6>
+                        <div class="text-center">
+                            <div class="risk-indicator risk-{{ ai_analysis.medication_analysis.risk_level|lower }}">
+                                {{ ai_analysis.medication_analysis.risk_level }} Risk
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if ai_analysis.medication_analysis.interactions %}
+                <div class="mt-3">
+                    <h6>Drug Interactions Detected:</h6>
+                    {% for interaction in ai_analysis.medication_analysis.interactions %}
+                    <div class="alert alert-{% if interaction.severity == 'MAJOR' %}danger{% elif interaction.severity == 'MODERATE' %}warning{% else %}info{% endif %}">
+                        <strong>{{ interaction.drug1 }} ↔ {{ interaction.drug2 }}</strong><br>
+                        <small>{{ interaction.description }}</small>
+                        <div class="mt-1">
+                            <span class="badge bg-{{ interaction.severity|lower }}">{{ interaction.severity }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if ai_analysis.medication_analysis.recommendations %}
+                <div class="ai-insight">
+                    <h6><i class="fas fa-prescription-bottle-alt me-2"></i>Medication Recommendations</h6>
+                    <ul class="mb-0">
+                        {% for rec in ai_analysis.medication_analysis.recommendations %}
+                        <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Active Alerts -->
+            {% if active_alerts %}
+            <div class="analysis-card critical">
+                <h5 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Active Alerts
+                </h5>
+                
+                {% for alert in active_alerts %}
+                <div class="alert alert-{% if alert.severity == 'CRITICAL' %}danger{% elif alert.severity == 'HIGH' %}warning{% else %}info{% endif %} alert-dismissible">
+                    <h6 class="alert-heading">{{ alert.title }}</h6>
+                    <p class="mb-1">{{ alert.description|truncatechars:100 }}</p>
+                    <small class="text-muted">{{ alert.created_at|timesince }} ago</small>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-success" onclick="acknowledgeAlert({{ alert.id }})">
+                            Acknowledge
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- AI Recommendations -->
+            {% if recommendations %}
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-lightbulb"></i>
+                    AI Recommendations
+                </h5>
+                
+                {% for rec in recommendations %}
+                <div class="recommendation-item">
+                    <h6>{{ rec.get_recommendation_type_display }}</h6>
+                    <p class="small text-muted">{{ rec.recommendation_text|truncatechars:120 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-info">{{ rec.confidence_score }}% confident</span>
+                        <button class="btn btn-sm btn-primary" onclick="viewRecommendationDetails({{ rec.id }})">
+                            Details
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Recent Medical Records -->
+            {% if recent_records %}
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-file-medical"></i>
+                    Recent Records
+                </h5>
+                
+                {% for record in recent_records %}
+                <div class="mb-3 p-2 border-start border-3 border-info">
+                    <h6 class="mb-1">{{ record.record_date|date:"M d, Y" }}</h6>
+                    <p class="small text-muted mb-1">
+                        <strong>Chief Complaint:</strong> {{ record.chief_complaint|truncatechars:60 }}
+                    </p>
+                    {% if record.ai_diagnostic_suggestions %}
+                    <div class="ai-suggestions">
+                        <small class="text-primary">
+                            <i class="fas fa-robot me-1"></i>AI Suggestions: {{ record.ai_diagnostic_suggestions|truncatechars:50 }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="analysis-card">
+                <h5 class="section-title">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h5>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="generateTreatmentPlan()">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        Generate Treatment Plan
+                    </button>
+                    <button class="btn btn-info" onclick="checkMedicationInteractions()">
+                        <i class="fas fa-pills me-2"></i>
+                        Check Drug Interactions
+                    </button>
+                    <button class="btn btn-success" onclick="scheduleFollowUp()">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Schedule Follow-up
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportAnalysis()">
+                        <i class="fas fa-download me-2"></i>
+                        Export Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendation Details Modal -->
+<div class="modal fade" id="recommendationDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">AI Recommendation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recommendationDetailsContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="implementRecommendationBtn">
+                    Implement Recommendation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentRecommendationId = null;
+
+// Acknowledge alert
+function acknowledgeAlert(alertId) {
+    if (confirm('Acknowledge this alert?')) {
+        fetch(`/emr/alerts/${alertId}/action/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: 'action=acknowledge'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Alert acknowledged successfully', 'success');
+                location.reload();
+            } else {
+                showToast(data.error || 'Failed to acknowledge alert', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error acknowledging alert:', error);
+            showToast('Error acknowledging alert', 'error');
+        });
+    }
+}
+
+// View recommendation details
+function viewRecommendationDetails(recommendationId) {
+    currentRecommendationId = recommendationId;
+    
+    fetch(`/emr/api/recommendation/${recommendationId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('recommendationDetailsContent').innerHTML = `
+                <h6>${data.recommendation_type}</h6>
+                <div class="alert alert-info">
+                    <strong>Recommendation:</strong><br>
+                    ${data.recommendation_text}
+                </div>
+                <p><strong>Confidence Score:</strong> ${data.confidence_score}%</p>
+                <p><strong>Supporting Evidence:</strong></p>
+                <ul>
+                    ${data.supporting_evidence.map(evidence => `<li>${evidence}</li>`).join('')}
+                </ul>
+                <p><strong>Expected Outcome:</strong> ${data.expected_outcome || 'Improved patient care'}</p>
+            `;
+            
+            new bootstrap.Modal(document.getElementById('recommendationDetailsModal')).show();
+        })
+        .catch(error => {
+            console.error('Error fetching recommendation details:', error);
+            showToast('Error loading recommendation details', 'error');
+        });
+}
+
+// Implement recommendation
+document.getElementById('implementRecommendationBtn').addEventListener('click', function() {
+    if (currentRecommendationId && confirm('Implement this AI recommendation?')) {
+        fetch('/emr/clinical-decisions/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `recommendation_id=${currentRecommendationId}&action=implement`
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('Recommendation implemented successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('recommendationDetailsModal')).hide();
+                location.reload();
+            } else {
+                showToast('Failed to implement recommendation', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error implementing recommendation:', error);
+            showToast('Error implementing recommendation', 'error');
+        });
+    }
+});
+
+// Quick action functions
+function generateTreatmentPlan() {
+    window.location.href = `/emr/ai/treatment-plan/?patient_id={{ patient.id }}`;
+}
+
+function checkMedicationInteractions() {
+    window.location.href = `/emr/ai/drug-interactions/?patient_id={{ patient.id }}`;
+}
+
+function scheduleFollowUp() {
+    window.location.href = `/appointments/schedule/?patient_id={{ patient.id }}`;
+}
+
+function exportAnalysis() {
+    // Generate PDF export of the analysis
+    fetch(`/emr/ai/patient-analysis/{{ patient.id }}/export/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ai_analysis_{{ patient.get_full_name|slugify }}_{{ "now"|date:"Y-m-d" }}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        console.error('Error exporting analysis:', error);
+        showToast('Error exporting analysis', 'error');
+    });
+}
+
+// Utility functions
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
+
+// Initialize confidence bars animation
+document.addEventListener('DOMContentLoaded', function() {
+    const confidenceBars = document.querySelectorAll('.confidence-fill');
+    confidenceBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+});
+</script>
+{% endblock %}

@@ -12,11 +12,11 @@ from .models import (
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = [
-        'title', 'recipient', 'type', 'priority', 'is_read', 
-        'created_at', 'hospital'
+    'title', 'recipient', 'type', 'priority', 'is_read', 
+    'created_at'
     ]
     list_filter = [
-        'type', 'priority', 'is_read', 'hospital', 'created_at'
+    'type', 'priority', 'is_read', 'created_at'
     ]
     search_fields = [
         'title', 'message', 'recipient__first_name', 'recipient__last_name',
@@ -27,7 +27,7 @@ class NotificationAdmin(admin.ModelAdmin):
     
     fieldsets = (
         (None, {
-            'fields': ('recipient', 'sender', 'hospital')
+            'fields': ('recipient', 'sender')
         }),
         ('Notification Details', {
             'fields': ('type', 'priority', 'title', 'message', 'link', 'data')
@@ -55,10 +55,10 @@ class NotificationAdmin(admin.ModelAdmin):
 class ActivityLogAdmin(admin.ModelAdmin):
     list_display = [
         'user', 'action', 'model_name', 'object_repr', 
-        'ip_address', 'timestamp', 'hospital'
+        'ip_address', 'timestamp'
     ]
     list_filter = [
-        'action', 'model_name', 'hospital', 'timestamp'
+        'action', 'model_name', 'timestamp'
     ]
     search_fields = [
         'user__first_name', 'user__last_name', 'user__email',
@@ -66,7 +66,7 @@ class ActivityLogAdmin(admin.ModelAdmin):
     ]
     readonly_fields = [
         'user', 'action', 'model_name', 'object_id', 'object_repr',
-        'changes', 'ip_address', 'user_agent', 'timestamp', 'hospital'
+        'changes', 'ip_address', 'user_agent', 'timestamp'
     ]
     date_hierarchy = 'timestamp'
     
@@ -92,16 +92,16 @@ class ActivityLogAdmin(admin.ModelAdmin):
 @admin.register(SystemConfiguration)
 class SystemConfigurationAdmin(admin.ModelAdmin):
     list_display = [
-        'hospital', 'hospital_name', 'contact_email', 'currency_code',
+        'tenant_name', 'contact_email', 'currency_code',
         'appointment_duration', 'updated_at'
     ]
-    search_fields = ['hospital__name', 'hospital_name', 'contact_email']
+    search_fields = ['tenant_name', 'contact_email']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
-        ('Hospital Information', {
+        ('Tenant Information', {
             'fields': (
-                'hospital', 'hospital_name', 'hospital_logo',
+                'tenant_name', 'tenant_logo',
                 'contact_email', 'contact_phone', 'address'
             )
         }),
@@ -158,10 +158,10 @@ class SystemConfigurationAdmin(admin.ModelAdmin):
 class FileUploadAdmin(admin.ModelAdmin):
     list_display = [
         'original_name', 'uploaded_by', 'formatted_file_size', 
-        'content_type', 'is_public', 'created_at', 'hospital'
+        'content_type', 'is_public', 'created_at'
     ]
     list_filter = [
-        'content_type', 'is_public', 'hospital', 'created_at'
+        'content_type', 'is_public', 'created_at'
     ]
     search_fields = [
         'original_name', 'description', 
@@ -197,26 +197,18 @@ class FileUploadAdmin(admin.ModelAdmin):
     file_preview.short_description = 'Preview'
     
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        # Filter by user's hospital if not superuser
-        if hasattr(request.user, 'hospital') and request.user.hospital:
-            return qs.filter(hospital=request.user.hospital)
-        return qs.none()
+        return super().get_queryset(request)
     
     def save_model(self, request, obj, form, change):
         if not change:  # Only set on creation
             obj.uploaded_by = request.user
-            if hasattr(request.user, 'hospital'):
-                obj.hospital = request.user.hospital
         super().save_model(request, obj, form, change)
 
 
 @admin.register(SystemSetting)
 class SystemSettingAdmin(admin.ModelAdmin):
-    list_display = ['key', 'value_preview', 'hospital', 'is_active', 'updated_at']
-    list_filter = ['hospital', 'is_active', 'created_at']
+    list_display = ['key', 'value_preview', 'is_active', 'updated_at']
+    list_filter = ['is_active', 'created_at']
     search_fields = ['key', 'value', 'description']
     readonly_fields = ['created_at', 'updated_at']
     
@@ -229,9 +221,9 @@ class SystemSettingAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        # Filter by user's hospital if not superuser
-        if hasattr(request.user, 'hospital') and request.user.hospital:
-            return qs.filter(hospital=request.user.hospital)
+        # Filter by user's tenant if not superuser
+        if hasattr(request.user, 'tenant') and request.user.tenant:
+            return qs.filter(tenant=request.user.tenant)
         return qs.none()
 
 

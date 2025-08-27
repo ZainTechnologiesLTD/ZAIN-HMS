@@ -1,0 +1,530 @@
+<!-- Enhanced Base Template for ZAIN HMS -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZAIN HMS - Advanced Hospital Management System{% endblock %}</title>
+    
+    {% load static %}
+    
+    <!-- Enhanced Meta Tags -->
+    <meta name="description" content="{% block meta_description %}ZAIN HMS - Complete healthcare solution with advanced patient management, appointments, billing, and analytics{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}hospital management, healthcare, medical software, patient management, HMS, SaaS{% endblock %}">
+    <meta name="author" content="ZAIN Technologies">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Enhanced Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <!-- Enhanced PWA Support -->
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZAIN HMS">
+    
+    <!-- Enhanced Favicon and Icons -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Enhanced CSS Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" 
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Enhanced Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" 
+          integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous">
+    
+    <!-- Enhanced Web Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Enhanced JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.8" integrity="sha384-rgjA7mptc2ETQqXoYC3/zJvkU7K/aP44Y+z7xQuJiVnB/422P/Ak+F/AqFR7E4Fy" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    <!-- Enhanced Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/enhanced.css' %}">
+    
+    <!-- Block for additional CSS -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Enhanced Critical CSS for above-the-fold content -->
+    <style>
+        /* Critical CSS for faster initial paint */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            background-color: #f8fafc;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
+            z-index: 1000;
+            transition: width 0.25s ease-out;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            transition: margin-left 0.25s ease-out;
+            min-height: 100vh;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="{% block body_class %}{% endblock %}" data-user-role="{{ user.role|default:'GUEST' }}">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Enhanced Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <div class="sidebar-brand-container">
+                <img src="{% static 'images/logo-white.png' %}" alt="ZAIN HMS" class="sidebar-logo" width="40" height="40">
+                <div class="sidebar-brand-text">
+                    <h5 class="sidebar-title">ZAIN HMS</h5>
+                    <small class="sidebar-subtitle">Healthcare Management</small>
+                </div>
+            </div>
+            <button class="sidebar-toggle-btn d-lg-none" data-mobile-menu-toggle>
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+
+        <!-- Enhanced Navigation -->
+        <nav class="sidebar-nav">
+            {% if user.is_authenticated %}
+            <ul class="nav-list">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.view_name == 'core:home' %}active{% endif %}">
+                        <i class="nav-icon bi bi-speedometer2"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Patients Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,DOCTOR,NURSE,RECEPTIONIST' %}
+                <li class="nav-item">
+                    <a href="{% url 'patients:list' %}" class="nav-link {% if 'patients' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-people"></i>
+                        <span class="nav-text">Patients</span>
+                        <span class="nav-badge">{{ total_patients|default:0 }}</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Appointments Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,DOCTOR,NURSE,RECEPTIONIST' %}
+                <li class="nav-item">
+                    <a href="{% url 'appointments:appointment_list' %}" class="nav-link {% if 'appointments' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-calendar-check"></i>
+                        <span class="nav-text">Appointments</span>
+                        <span class="nav-badge">{{ today_appointments|default:0 }}</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Doctors Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,HR_MANAGER' %}
+                <li class="nav-item">
+                    <a href="{% url 'doctors:doctor_list' %}" class="nav-link {% if 'doctors' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-person-badge"></i>
+                        <span class="nav-text">Doctors</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Nurses Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,HR_MANAGER' %}
+                <li class="nav-item">
+                    <a href="{% url 'nurses:nurse_list' %}" class="nav-link {% if 'nurses' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-heart-pulse"></i>
+                        <span class="nav-text">Nurses</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Billing Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,ACCOUNTANT,BILLING_CLERK' %}
+                <li class="nav-item">
+                    <a href="{% url 'billing:bill_list' %}" class="nav-link {% if 'billing' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-receipt"></i>
+                        <span class="nav-text">Billing</span>
+                        <span class="nav-badge pending-bills">{{ pending_bills|default:0 }}</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Laboratory Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,LAB_TECHNICIAN,DOCTOR' %}
+                <li class="nav-item">
+                    <a href="{% url 'laboratory:dashboard' %}" class="nav-link {% if 'laboratory' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-flask"></i>
+                        <span class="nav-text">Laboratory</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Pharmacy Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,PHARMACIST,DOCTOR' %}
+                <li class="nav-item">
+                    <a href="{% url 'pharmacy:medicine_list' %}" class="nav-link {% if 'pharmacy' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-capsule"></i>
+                        <span class="nav-text">Pharmacy</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Emergency Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,DOCTOR,NURSE' %}
+                <li class="nav-item">
+                    <a href="{% url 'emergency:emergency_list' %}" class="nav-link {% if 'emergency' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-ambulance"></i>
+                        <span class="nav-text">Emergency</span>
+                        <span class="nav-badge emergency-count">{{ emergency_cases|default:0 }}</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Reports Section -->
+                {% if user.role in 'ADMIN,SUPERADMIN,MANAGER' %}
+                <li class="nav-item">
+                    <a href="{% url 'reports:report_list' %}" class="nav-link {% if 'reports' in request.path %}active{% endif %}">
+                        <i class="nav-icon bi bi-graph-up"></i>
+                        <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if user.role in 'ADMIN,SUPERADMIN' %}
+                <li class="nav-item">
+                    <a href="/admin/accounts/customuser/" class="nav-link">
+                        <i class="nav-icon bi bi-people-fill"></i>
+                        <span class="nav-text">Users</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Settings Section -->
+            <div class="sidebar-section">
+                <div class="section-title">Settings</div>
+                <ul class="nav-list">
+                    {% if accessible_hospitals %}
+                    <li class="nav-item">
+                        <form action="{% url 'accounts:select_hospital' hospital_id='__CODE__' %}" method="post" id="hospitalSelectForm">
+                            {% csrf_token %}
+                            <label for="hospitalSelect" class="nav-text d-block mb-1">Hospital</label>
+                            <select id="hospitalSelect" class="form-select form-select-sm">
+                                {% for h in accessible_hospitals %}
+                                    <option value="{{ h.code }}" {% if h.code == selected_hospital_code %}selected{% endif %}>{{ h.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </li>
+                    {% endif %}
+                    {% if user.role in 'ADMIN,SUPERADMIN' %}
+                    <li class="nav-item">
+                        <a href="{% url 'core:system_config' %}" class="nav-link">
+                            <i class="nav-icon bi bi-gear"></i>
+                            <span class="nav-text">System Config</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'accounts:user_management' %}" class="nav-link">
+                            <i class="nav-icon bi bi-people-fill"></i>
+                            <span class="nav-text">User Management</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a href="{% url 'accounts:profile' %}" class="nav-link">
+                            <i class="nav-icon bi bi-person-circle"></i>
+                            <span class="nav-text">Profile</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </nav>
+
+        <!-- Enhanced User Info -->
+        {% if user.is_authenticated %}
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}">
+                {% else %}
+                    <div class="avatar-placeholder">
+                        <i class="bi bi-person"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <div class="user-name">{{ user.get_display_name }}</div>
+                <div class="user-role">{{ user.get_role_display }}</div>
+                <div class="user-hospital">{{ user.hospital.name|default:"N/A" }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+
+    <!-- Enhanced Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Enhanced Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" data-sidebar-toggle>
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="header-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Dashboard</a></li>
+                            {% block breadcrumb %}{% endblock %}
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <div class="header-search">
+                    <form class="search-form" method="get">
+                        <div class="search-input-group">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="search" class="form-control search-input" 
+                                   placeholder="Search patients, appointments..." 
+                                   name="q" value="{{ request.GET.q }}">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <!-- Quick Actions -->
+                <div class="header-actions">
+                    <button class="btn btn-outline-primary btn-sm" data-quick-action="new-patient">
+                        <i class="bi bi-person-plus"></i>
+                        <span class="d-none d-md-inline">New Patient</span>
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" data-quick-action="new-appointment">
+                        <i class="bi bi-calendar-plus"></i>
+                        <span class="d-none d-md-inline">New Appointment</span>
+                    </button>
+                </div>
+
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary position-relative" type="button" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" 
+                              style="display: none;">0</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                        <div class="dropdown-header">
+                            <h6 class="mb-0">Notifications</h6>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                        <div class="dropdown-footer">
+                                <a href="{% url 'notifications:all' %}" class="btn btn-sm btn-outline-primary w-100">
+                                View All Notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <button class="btn btn-outline-secondary" data-dark-mode-toggle>
+                    <i class="bi bi-moon"></i>
+                </button>
+
+                <!-- User Menu -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" 
+                                 class="user-avatar-small">
+                        {% else %}
+                            <i class="bi bi-person-circle"></i>
+                        {% endif %}
+                        <span class="d-none d-md-inline ms-1">{{ user.get_display_name }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                            <i class="bi bi-person"></i> Profile
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:change_password' %}">
+                            <i class="bi bi-lock"></i> Change Password
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Enhanced Content Area -->
+        <div class="content-wrapper">
+            <!-- Enhanced Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <div class="page-actions">
+                        {% block page_actions %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Messages -->
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-enhanced alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <div class="alert-icon">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle"></i>
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}
+                            <i class="bi bi-exclamation-circle"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-triangle"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="alert-content">{{ message }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Main Content Area -->
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Enhanced Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <p>&copy; {% now "Y" %} ZAIN Technologies. All rights reserved.</p>
+            </div>
+            <div class="footer-right">
+                <span>Version 2.0.0</span>
+                <span class="mx-2">|</span>
+                <a href="/help" class="footer-link">Help</a>
+                <span class="mx-2">|</span>
+                <a href="/support" class="footer-link">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Enhanced JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Enhanced Custom JavaScript -->
+    <script src="{% static 'js/enhanced.js' %}"></script>
+    
+    <!-- Block for additional JavaScript -->
+    {% block extra_js %}{% endblock %}
+
+    <!-- Auto-save indicator -->
+    <div class="auto-save-indicator" style="display: none;"></div>
+
+    <!-- Enhanced Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{% static "sw.js" %}')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        }
+    </script>
+
+    <!-- Enhanced Analytics and Monitoring -->
+    {% if not debug %}
+    <script>
+        // Add your analytics tracking code here
+        // Example: Google Analytics, Mixpanel, etc.
+    </script>
+    {% endif %}
+
+<script>
+    (function(){
+        const sel = document.getElementById('hospitalSelect');
+        const form = document.getElementById('hospitalSelectForm');
+        if (sel && form) {
+            sel.addEventListener('change', function(){
+                const code = sel.value;
+                const action = form.getAttribute('action').replace('__CODE__', encodeURIComponent(code));
+                form.setAttribute('action', action);
+                form.submit();
+            });
+        }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,782 @@
+/* ZAIN HMS - IPD (In-Patient Department) Module Styles */
+
+/* IPD Ward Grid */
+.ipd-wards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Ward Card */
+.ward-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-fast);
+    overflow: hidden;
+    position: relative;
+}
+
+.ward-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.ward-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.ward-card.general::before {
+    background: var(--primary-color);
+}
+
+.ward-card.icu::before {
+    background: var(--danger-color);
+}
+
+.ward-card.private::before {
+    background: var(--success-color);
+}
+
+.ward-card.emergency::before {
+    background: var(--warning-color);
+}
+
+.ward-card.pediatric::before {
+    background: var(--info-color);
+}
+
+.ward-card.maternity::before {
+    background: #ec4899;
+}
+
+.ward-card.surgical::before {
+    background: #8b5cf6;
+}
+
+/* Ward Header */
+.ward-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ward-info {
+    flex: 1;
+}
+
+.ward-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 0.25rem;
+}
+
+.ward-type {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ward-capacity {
+    text-align: center;
+    min-width: 80px;
+}
+
+.capacity-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 0.25rem;
+}
+
+.capacity-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+}
+
+/* Ward Body */
+.ward-body {
+    padding: 1.5rem;
+}
+
+.ward-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.ward-stat {
+    text-align: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--gray-100);
+}
+
+.stat-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-number.occupied {
+    color: var(--danger-color);
+}
+
+.stat-number.available {
+    color: var(--success-color);
+}
+
+.stat-number.reserved {
+    color: var(--warning-color);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Occupancy Progress */
+.occupancy-progress {
+    margin-bottom: 1.5rem;
+}
+
+.occupancy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.occupancy-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.occupancy-percentage {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width var(--transition-fast);
+    border-radius: 4px;
+}
+
+.progress-fill.low {
+    background: var(--success-color);
+}
+
+.progress-fill.medium {
+    background: var(--warning-color);
+}
+
+.progress-fill.high {
+    background: var(--danger-color);
+}
+
+/* Ward Actions */
+.ward-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.ward-actions .btn {
+    flex: 1;
+    font-size: 0.875rem;
+}
+
+/* Bed Grid */
+.bed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+}
+
+/* Bed Card */
+.bed-card {
+    aspect-ratio: 1;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 1rem;
+    position: relative;
+    background: white;
+}
+
+.bed-card:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+.bed-card.available {
+    border-color: var(--success-color);
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.bed-card.occupied {
+    border-color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.bed-card.reserved {
+    border-color: var(--warning-color);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.bed-card.maintenance {
+    border-color: var(--gray-400);
+    background: rgba(156, 163, 175, 0.05);
+}
+
+.bed-number {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.bed-number.available {
+    color: var(--success-color);
+}
+
+.bed-number.occupied {
+    color: var(--danger-color);
+}
+
+.bed-number.reserved {
+    color: var(--warning-color);
+}
+
+.bed-number.maintenance {
+    color: var(--gray-500);
+}
+
+.bed-status {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+.bed-status.available {
+    color: var(--success-color);
+}
+
+.bed-status.occupied {
+    color: var(--danger-color);
+}
+
+.bed-status.reserved {
+    color: var(--warning-color);
+}
+
+.bed-status.maintenance {
+    color: var(--gray-500);
+}
+
+.bed-patient {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+/* Patient Cards in IPD */
+.ipd-patient-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.ipd-patient-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.patient-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.patient-basic-info {
+    flex: 1;
+}
+
+.patient-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 0.25rem;
+}
+
+.patient-id {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    margin-bottom: 0.5rem;
+}
+
+.admission-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.admission-date {
+    color: var(--gray-600);
+}
+
+.bed-assignment {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.patient-priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.patient-priority.critical {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.patient-priority.high {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.patient-priority.normal {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+}
+
+.patient-priority.stable {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+/* Patient Details */
+.patient-details {
+    padding: 1.5rem;
+}
+
+.patient-vitals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.vital-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--gray-100);
+}
+
+.vital-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.vital-value.normal {
+    color: var(--success-color);
+}
+
+.vital-value.warning {
+    color: var(--warning-color);
+}
+
+.vital-value.critical {
+    color: var(--danger-color);
+}
+
+.vital-label {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.vital-unit {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+/* Medical History */
+.medical-history {
+    margin-bottom: 1.5rem;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.history-title {
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.history-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.history-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--gray-200);
+}
+
+.history-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.history-item::before {
+    content: '';
+    position: absolute;
+    left: -0.375rem;
+    top: 0.375rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-color);
+}
+
+.history-item:last-child {
+    padding-bottom: 0;
+}
+
+.history-time {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+}
+
+.history-event {
+    font-weight: 500;
+    color: var(--gray-800);
+    margin-bottom: 0.25rem;
+}
+
+.history-note {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    line-height: 1.4;
+}
+
+/* Treatment Plan */
+.treatment-plan {
+    background: var(--gray-50);
+    border-radius: var(--border-radius-sm);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.treatment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.treatment-title {
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.treatment-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.treatment-status.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+}
+
+.treatment-status.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.treatment-status.completed {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.medication-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.medication-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.medication-item:last-child {
+    border-bottom: none;
+}
+
+.medication-name {
+    font-weight: 500;
+    color: var(--gray-800);
+    margin-bottom: 0.25rem;
+}
+
+.medication-dosage {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.medication-schedule {
+    text-align: right;
+    font-size: 0.875rem;
+}
+
+.next-dose {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.dose-time {
+    color: var(--gray-500);
+}
+
+/* Patient Actions */
+.patient-actions {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gray-100);
+    background: var(--gray-50);
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.patient-actions .btn {
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.875rem;
+}
+
+/* IPD Dashboard */
+.ipd-dashboard {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.ipd-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.ipd-stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+
+.ipd-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.ipd-stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+/* Admission Timeline */
+.admission-timeline {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    padding: 1.5rem;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.timeline-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ipd-wards {
+        grid-template-columns: 1fr;
+    }
+    
+    .ward-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .ward-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .bed-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .patient-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .patient-vitals {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .patient-actions {
+        flex-direction: column;
+    }
+    
+    .ipd-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .ipd-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .bed-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .patient-vitals {
+        grid-template-columns: 1fr;
+    }
+    
+    .ipd-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .admission-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .ward-actions,
+    .patient-actions {
+        display: none;
+    }
+    
+    .ward-card,
+    .ipd-patient-card {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+        break-inside: avoid;
+    }
+    
+    .bed-card {
+        transform: none;
+    }
+}

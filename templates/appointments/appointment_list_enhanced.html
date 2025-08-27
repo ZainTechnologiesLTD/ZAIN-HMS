@@ -1,0 +1,1031 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .appointments-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .search-filters {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .filter-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 20px 12px 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        outline: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .filter-select {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .filter-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        outline: none;
+    }
+
+    .appointment-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        border-left: 5px solid #e9ecef;
+    }
+
+    .appointment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .appointment-card.priority-high {
+        border-left-color: #ffc107;
+    }
+
+    .appointment-card.priority-urgent {
+        border-left-color: #dc3545;
+    }
+
+    .appointment-card.priority-normal {
+        border-left-color: #28a745;
+    }
+
+    .appointment-card.status-completed {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+
+    .appointment-card.status-cancelled {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    }
+
+    .appointment-card.status-in-progress {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    }
+
+    .appointment-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .appointment-body {
+        padding: 1.5rem;
+    }
+
+    .appointment-id {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .appointment-time {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .patient-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .patient-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+
+    .patient-details h6 {
+        margin-bottom: 0.25rem;
+        color: #495057;
+    }
+
+    .patient-details small {
+        color: #6c757d;
+    }
+
+    .doctor-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .doctor-badge {
+        background: #f8f9fa;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        color: #495057;
+        margin-right: 1rem;
+    }
+
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-scheduled {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .status-confirmed {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+
+    .status-completed {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+
+    .status-cancelled {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .status-in-progress {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .status-no-show {
+        background: #fce4ec;
+        color: #ad1457;
+    }
+
+    .priority-badge {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .priority-normal {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+
+    .priority-high {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .priority-urgent {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .action-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .btn-view {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .btn-view:hover {
+        background: #bbdefb;
+        color: #1976d2;
+    }
+
+    .btn-edit {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .btn-edit:hover {
+        background: #ffe0b2;
+        color: #ef6c00;
+    }
+
+    .btn-cancel {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .btn-cancel:hover {
+        background: #ffcdd2;
+        color: #c62828;
+    }
+
+    .complaint-preview {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: #495057;
+        border-left: 3px solid #667eea;
+    }
+
+    .quick-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .view-toggle {
+        display: flex;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 5px;
+        gap: 5px;
+    }
+
+    .view-toggle button {
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .view-toggle button.active {
+        background: #667eea;
+        color: white;
+    }
+
+    .calendar-view {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+
+    .calendar-view.active {
+        display: block;
+    }
+
+    .appointment-list.list-view {
+        display: block;
+    }
+
+    .appointment-list.calendar-view-active {
+        display: none;
+    }
+
+    .floating-add-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .floating-add-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .no-appointments {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+
+    .no-appointments i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+    }
+
+    .pagination {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+    }
+
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+
+    .filter-tag {
+        background: #667eea;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-tag .remove {
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .appointments-header {
+            padding: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .search-filters {
+            padding: 1.5rem;
+        }
+
+        .appointment-card {
+            margin-bottom: 1rem;
+        }
+
+        .floating-add-btn {
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Enhanced Header with Stats -->
+    <div class="appointments-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-2">📅 Appointment Management</h2>
+                <p class="mb-0 opacity-75">Manage and track all patient appointments</p>
+            </div>
+            <div class="view-toggle">
+                <button type="button" class="active" onclick="switchView('list')">
+                    <i class="bi bi-list-ul me-1"></i>List
+                </button>
+                <button type="button" onclick="switchView('calendar')">
+                    <i class="bi bi-calendar-week me-1"></i>Calendar
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ today_appointments }}</div>
+                <div class="stat-label">Today's Appointments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ pending_appointments }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ completed_today }}</div>
+                <div class="stat-label">Completed Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ appointments.paginator.count }}</div>
+                <div class="stat-label">Total Appointments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Search & Filters -->
+    <div class="search-filters">
+        <form method="get" id="filterForm">
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="filter-group">
+                        <label class="filter-label">🔍 Search Appointments</label>
+                        <div class="position-relative">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" 
+                                   name="search" 
+                                   class="search-input" 
+                                   placeholder="Search by patient, doctor, or appointment number..."
+                                   value="{{ search_form.search.value|default:'' }}"
+                                   id="searchInput">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2">
+                    <div class="filter-group">
+                        <label class="filter-label">📊 Status</label>
+                        <select name="status" class="filter-select" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            {% for value, label in search_form.status.field.choices %}
+                                {% if value %}
+                                    <option value="{{ value }}" {% if search_form.status.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-2">
+                    <div class="filter-group">
+                        <label class="filter-label">⚡ Priority</label>
+                        <select name="priority" class="filter-select" id="priorityFilter">
+                            <option value="">All Priorities</option>
+                            {% for value, label in search_form.priority.field.choices %}
+                                {% if value %}
+                                    <option value="{{ value }}" {% if search_form.priority.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-2">
+                    <div class="filter-group">
+                        <label class="filter-label">📅 From Date</label>
+                        <input type="date" 
+                               name="date_from" 
+                               class="filter-select" 
+                               value="{{ search_form.date_from.value|default:'' }}"
+                               id="dateFromFilter">
+                    </div>
+                </div>
+
+                <div class="col-lg-2">
+                    <div class="filter-group">
+                        <label class="filter-label">📅 To Date</label>
+                        <input type="date" 
+                               name="date_to" 
+                               class="filter-select" 
+                               value="{{ search_form.date_to.value|default:'' }}"
+                               id="dateToFilter">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+                <div class="col-lg-3">
+                    <div class="filter-group">
+                        <label class="filter-label">👨‍⚕️ Doctor</label>
+                        <select name="doctor" class="filter-select" id="doctorFilter">
+                            <option value="">All Doctors</option>
+                            {% for doctor in search_form.doctor.field.queryset %}
+                                <option value="{{ doctor.id }}" {% if search_form.doctor.value == doctor.id|stringformat:"s" %}selected{% endif %}>
+                                    Dr. {{ doctor.get_full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-9">
+                    <div class="filter-group">
+                        <div class="d-flex gap-2 align-items-end h-100">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel me-1"></i>Apply Filters
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                                <i class="bi bi-x-circle me-1"></i>Clear
+                            </button>
+                            <button type="button" class="btn btn-outline-info" onclick="exportAppointments()">
+                                <i class="bi bi-download me-1"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filter Tags -->
+            <div class="filter-tags" id="filterTags"></div>
+        </form>
+    </div>
+
+    <!-- Appointment List View -->
+    <div class="appointment-list list-view" id="listView">
+        {% if appointments %}
+            {% for appointment in appointments %}
+            <div class="appointment-card priority-{{ appointment.priority|lower }} status-{{ appointment.status|lower }}">
+                <div class="appointment-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="appointment-id">#{{ appointment.appointment_number }}</div>
+                            <div class="appointment-time">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ appointment.appointment_date|date:"M d, Y" }} at {{ appointment.appointment_time|time:"H:i" }}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge status-{{ appointment.status|lower }}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                            <div class="mt-1">
+                                <span class="priority-badge priority-{{ appointment.priority|lower }}">
+                                    {{ appointment.get_priority_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="appointment-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="patient-info">
+                                <div class="patient-avatar">
+                                    {{ appointment.patient.first_name.0 }}{{ appointment.patient.last_name.0 }}
+                                </div>
+                                <div class="patient-details">
+                                    <h6>{{ appointment.patient.get_full_name }}</h6>
+                                    <small>
+                                        <i class="bi bi-telephone me-1"></i>{{ appointment.patient.phone }}
+                                        {% if appointment.patient.email %}
+                                        <br><i class="bi bi-envelope me-1"></i>{{ appointment.patient.email }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="doctor-info">
+                                <span class="doctor-badge">
+                                    <i class="bi bi-person-badge me-1"></i>
+                                    Dr. {{ appointment.doctor.get_full_name }}
+                                </span>
+                                {% if appointment.appointment_type %}
+                                <span class="doctor-badge">
+                                    <i class="bi bi-tag me-1"></i>
+                                    {{ appointment.appointment_type.name }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if appointment.chief_complaint %}
+                    <div class="complaint-preview">
+                        <strong>Chief Complaint:</strong> {{ appointment.chief_complaint|truncatewords:15 }}
+                    </div>
+                    {% endif %}
+
+                    <div class="action-buttons">
+                        <a href="{% url 'appointments:appointment_detail' appointment.id %}" class="action-btn btn-view">
+                            <i class="bi bi-eye"></i>View
+                        </a>
+                        {% if appointment.status == 'SCHEDULED' or appointment.status == 'CONFIRMED' %}
+                        <a href="{% url 'appointments:appointment_edit' appointment.id %}" class="action-btn btn-edit">
+                            <i class="bi bi-pencil"></i>Edit
+                        </a>
+                        <button type="button" class="action-btn btn-cancel" onclick="cancelAppointment('{{ appointment.id }}')">
+                            <i class="bi bi-x-circle"></i>Cancel
+                        </button>
+                        {% endif %}
+                        {% if appointment.status == 'SCHEDULED' %}
+                        <button type="button" class="action-btn btn-edit" onclick="checkInAppointment('{{ appointment.id }}')">
+                            <i class="bi bi-check-circle"></i>Check In
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if appointments.has_other_pages %}
+            <div class="pagination-wrapper">
+                <nav aria-label="Appointment pagination">
+                    <ul class="pagination">
+                        {% if appointments.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ appointments.previous_page_number }}">
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in appointments.paginator.page_range %}
+                            {% if page_num == appointments.number %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% elif page_num > appointments.number|add:'-3' and page_num < appointments.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_num }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if appointments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ appointments.next_page_number }}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div class="no-appointments">
+                <i class="bi bi-calendar-x"></i>
+                <h4>No appointments found</h4>
+                <p>No appointments match your current filters. Try adjusting your search criteria or create a new appointment.</p>
+                <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Create New Appointment
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Calendar View -->
+    <div class="calendar-view" id="calendarView">
+        <div id="appointmentCalendar"></div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <a href="{% url 'appointments:appointment_create' %}" class="floating-add-btn" title="Add New Appointment">
+        <i class="bi bi-plus"></i>
+    </a>
+</div>
+
+<!-- Modals -->
+<!-- Cancel Appointment Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cancelForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="cancellationReason" class="form-label">Reason for Cancellation</label>
+                        <textarea class="form-control" id="cancellationReason" name="cancellation_reason" rows="3" required></textarea>
+                    </div>
+                    <input type="hidden" id="appointmentIdToCancel" name="appointment_id">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancelAppointment()">Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date pickers
+    flatpickr("#dateFromFilter", {
+        dateFormat: "Y-m-d",
+        onChange: function() {
+            updateFilterTags();
+        }
+    });
+
+    flatpickr("#dateToFilter", {
+        dateFormat: "Y-m-d",
+        onChange: function() {
+            updateFilterTags();
+        }
+    });
+
+    // Real-time search
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            this.form.submit();
+        }, 500);
+    });
+
+    // Filter change handlers
+    document.querySelectorAll('#statusFilter, #priorityFilter, #doctorFilter').forEach(select => {
+        select.addEventListener('change', function() {
+            updateFilterTags();
+            this.form.submit();
+        });
+    });
+
+    // Initialize filter tags
+    updateFilterTags();
+
+    // Initialize calendar if needed
+    if (document.getElementById('calendarView').style.display !== 'none') {
+        initializeCalendar();
+    }
+});
+
+function switchView(viewType) {
+    const listView = document.getElementById('listView');
+    const calendarView = document.getElementById('calendarView');
+    const buttons = document.querySelectorAll('.view-toggle button');
+
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    if (viewType === 'list') {
+        listView.style.display = 'block';
+        calendarView.style.display = 'none';
+        buttons[0].classList.add('active');
+    } else {
+        listView.style.display = 'none';
+        calendarView.style.display = 'block';
+        buttons[1].classList.add('active');
+        initializeCalendar();
+    }
+}
+
+function initializeCalendar() {
+    const calendarEl = document.getElementById('appointmentCalendar');
+    if (calendarEl && !calendarEl.hasChildNodes()) {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: function(fetchInfo, successCallback, failureCallback) {
+                fetch(`/appointments/api/calendar/?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`)
+                    .then(response => response.json())
+                    .then(data => successCallback(data.events))
+                    .catch(error => failureCallback(error));
+            },
+            eventClick: function(info) {
+                window.location.href = `/appointments/${info.event.id}/`;
+            },
+            eventClassNames: function(arg) {
+                return [`priority-${arg.event.extendedProps.priority}`, `status-${arg.event.extendedProps.status}`];
+            }
+        });
+        calendar.render();
+    }
+}
+
+function updateFilterTags() {
+    const container = document.getElementById('filterTags');
+    const tags = [];
+
+    // Check each filter
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    const priority = document.getElementById('priorityFilter').value;
+    const doctor = document.getElementById('doctorFilter').value;
+    const dateFrom = document.getElementById('dateFromFilter').value;
+    const dateTo = document.getElementById('dateToFilter').value;
+
+    if (search) tags.push({label: `Search: ${search}`, field: 'search'});
+    if (status) tags.push({label: `Status: ${status}`, field: 'status'});
+    if (priority) tags.push({label: `Priority: ${priority}`, field: 'priority'});
+    if (doctor) {
+        const doctorText = document.querySelector(`#doctorFilter option[value="${doctor}"]`).textContent;
+        tags.push({label: `Doctor: ${doctorText}`, field: 'doctor'});
+    }
+    if (dateFrom) tags.push({label: `From: ${dateFrom}`, field: 'date_from'});
+    if (dateTo) tags.push({label: `To: ${dateTo}`, field: 'date_to'});
+
+    container.innerHTML = tags.map(tag => 
+        `<span class="filter-tag">
+            ${tag.label}
+            <span class="remove" onclick="removeFilter('${tag.field}')">&times;</span>
+        </span>`
+    ).join('');
+}
+
+function removeFilter(field) {
+    const fieldMap = {
+        'search': 'searchInput',
+        'status': 'statusFilter',
+        'priority': 'priorityFilter',
+        'doctor': 'doctorFilter',
+        'date_from': 'dateFromFilter',
+        'date_to': 'dateToFilter'
+    };
+
+    const element = document.getElementById(fieldMap[field]);
+    if (element) {
+        element.value = '';
+        updateFilterTags();
+        element.form.submit();
+    }
+}
+
+function clearFilters() {
+    document.getElementById('filterForm').reset();
+    updateFilterTags();
+    window.location.href = window.location.pathname;
+}
+
+function cancelAppointment(appointmentId) {
+    document.getElementById('appointmentIdToCancel').value = appointmentId;
+    const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+    modal.show();
+}
+
+function confirmCancelAppointment() {
+    const appointmentId = document.getElementById('appointmentIdToCancel').value;
+    const reason = document.getElementById('cancellationReason').value;
+
+    if (!reason.trim()) {
+        alert('Please provide a reason for cancellation.');
+        return;
+    }
+
+    fetch(`/appointments/${appointmentId}/cancel/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            cancellation_reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('cancelModal')).hide();
+            location.reload();
+        } else {
+            alert(data.message || 'Error cancelling appointment');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error cancelling appointment');
+    });
+}
+
+function checkInAppointment(appointmentId) {
+    if (confirm('Mark this appointment as checked in?')) {
+        fetch(`/appointments/${appointmentId}/checkin/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error checking in appointment');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error checking in appointment');
+        });
+    }
+}
+
+function exportAppointments() {
+    const form = document.getElementById('filterForm');
+    const params = new URLSearchParams(new FormData(form));
+    window.open(`/appointments/export/?${params.toString()}`, '_blank');
+}
+</script>
+{% endblock %}

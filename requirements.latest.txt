@@ -1,0 +1,100 @@
+# Latest versions of all dependencies (unpinned)
+# Core Django
+asgiref
+Django
+sqlparse
+
+# Modern Admin Interface
+# admin-interface stack (optional, currently commented out in settings)
+django-admin-interface
+django-colorfield
+
+# Admin theme used in settings
+django-jazzmin
+
+# Forms
+django-crispy-forms
+crispy-bootstrap5
+
+# REST Framework and API
+djangorestframework
+django-filter
+django-cors-headers
+drf-spectacular
+
+# Authentication & Security
+django-otp
+qrcode
+django-ratelimit
+django-environ
+cryptography
+
+# Enhanced Security
+django-csp
+django-permissions-policy
+django-security
+
+# Background Tasks
+celery
+redis
+django-celery-beat
+django-celery-results
+
+# Enhanced Caching
+django-redis
+hiredis
+
+# Database (optional for Postgres)
+psycopg2-binary
+
+# File Handling & Storage
+django-storages
+boto3
+
+# Additional utilities
+django-extensions
+Pillow
+python-dateutil
+whitenoise
+django-widget-tweaks
+
+# Monitoring & Logging
+django-health-check
+sentry-sdk
+
+# Performance Optimization
+django-compressor
+django-htmlmin
+
+# Development tools
+django-debug-toolbar
+factory-boy
+faker
+
+# Testing
+pytest
+pytest-django
+pytest-cov
+coverage
+selenium
+
+# Backup
+django-dbbackup
+
+# Profiling / API Documentation
+django-silk
+
+# Form Enhancements
+django-formtools
+django-autocomplete-light
+
+# Internationalization
+django-rosetta
+
+# WebSocket Support (for real-time features)
+channels
+channels-redis
+
+# Additional Security
+bleach
+defusedxml

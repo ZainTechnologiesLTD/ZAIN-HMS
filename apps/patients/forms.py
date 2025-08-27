@@ -4,7 +4,6 @@ from .models import Patient, PatientDocument, PatientNote, PatientVitals
 
 class PatientForm(forms.ModelForm):
     """Main patient registration/update form"""
-    Assistant
     class Meta:
         model = Patient
         fields = [

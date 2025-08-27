@@ -1,0 +1,476 @@
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Hospital Administration - {{ hospital.name }} | ZAIN HMS{% endblock %}
+{% block page_title %}Hospital Administration Dashboard{% endblock %}
+{% block page_subtitle %}{{ hospital.name }} - Complete Management Overview{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .admin-stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid;
+        position: relative;
+        height: 100%;
+    }
+    
+    .admin-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .admin-stat-card.primary { border-left-color: #3b82f6; }
+    .admin-stat-card.success { border-left-color: #10b981; }
+    .admin-stat-card.warning { border-left-color: #f59e0b; }
+    .admin-stat-card.danger { border-left-color: #ef4444; }
+    .admin-stat-card.info { border-left-color: #06b6d4; }
+    
+    .admin-stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .admin-stat-icon.primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .admin-stat-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .admin-stat-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .admin-stat-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .admin-stat-icon.info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    
+    .quick-action-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        color: #374151;
+        text-decoration: none;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.3s ease;
+    }
+    
+    .activity-item:hover {
+        background-color: #f8fafc;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-inner">
+    <!-- Admin Hero Section -->
+    <div class="admin-hero" role="region" aria-label="Hospital administration overview">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Welcome back, {{ user.get_full_name|default:user.username }}</h2>
+                <p class="mb-3 opacity-90">Managing {{ hospital.name }} - Your hospital administration dashboard</p>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        <i class="bi bi-building me-1"></i>{{ hospital.name }}
+                    </span>
+                    <span class="badge bg-success px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>Active
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'tenants:hospital_profile' %}" class="btn btn-light">
+                        <i class="bi bi-gear me-1"></i>Hospital Settings
+                    </a>
+                    <a href="#" class="btn btn-outline-light">
+                        <i class="bi bi-graph-up me-1"></i>Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% comment %} Charts scripts {% endcomment %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function() {
+            try {
+                const revenueData = {{ revenue_chart|default:'[]'|safe }};
+                const appointmentsData = {{ appointments_chart|default:'[]'|safe }};
+                const labels = (function(){
+                    const arr = [];
+                    for (let i = 6; i >= 0; i--) {
+                        const d = new Date();
+                        d.setDate(d.getDate() - i);
+                        arr.push(d.toLocaleDateString());
+                    }
+                    return arr;
+                })();
+
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: revenueData,
+                            borderColor: 'rgba(102,126,234,1)',
+                            backgroundColor: 'rgba(102,126,234,0.15)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+
+                const apptCtx = document.getElementById('appointmentsChart').getContext('2d');
+                new Chart(apptCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Appointments',
+                            data: appointmentsData,
+                            backgroundColor: 'rgba(16,185,129,0.8)'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            } catch (e) {
+                console.warn('Chart init error', e);
+            }
+        })();
+    </script>
+
+    <!-- Key Statistics -->
+    <div class="row g-4 mb-4" role="region" aria-label="Key statistics">
+        <div class="col-xl-3 col-md-6">
+            <div class="admin-stat-card primary">
+                <div class="admin-stat-icon primary">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">{{ total_patients|default:0|floatformat:0 }}</div>
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-change text-success">
+                    <i class="bi bi-arrow-up"></i> +{{ new_patients_today|default:0 }} today
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="admin-stat-card success">
+                <div class="admin-stat-icon success">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ today_appointments|default:0 }}</div>
+                <div class="stat-label">Today's Appointments</div>
+                <div class="stat-change text-info">
+                    <i class="bi bi-clock"></i> {{ pending_appointments|default:0 }} pending
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="admin-stat-card warning">
+                <div class="admin-stat-icon warning">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-value">${{ revenue_today|default:0|floatformat:0 }}</div>
+                <div class="stat-label">Today's Revenue</div>
+                <div class="stat-change text-success">
+                    <i class="bi bi-arrow-up"></i> ${{ revenue_month|default:0|floatformat:0 }} this month
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="admin-stat-card info">
+                <div class="admin-stat-icon info">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="stat-value">{{ total_staff|default:0 }}</div>
+                <div class="stat-label">Staff Members</div>
+                <div class="stat-change text-muted">
+                    <i class="bi bi-people"></i> {{ total_doctors|default:0 }} doctors
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4" role="region" aria-label="Quick actions">
+        <div class="col-12">
+            <div class="card" role="region" aria-label="Quick actions card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'patients:create' %}" class="quick-action-card" role="button" aria-label="Add patient">
+                                <i class="bi bi-person-plus text-primary mb-2" style="font-size: 2rem;"></i>
+                                <h6>Add Patient</h6>
+                                <small class="text-muted">Register new patient</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'appointments:appointment_create' %}" class="quick-action-card" role="button" aria-label="Schedule appointment">
+                                <i class="bi bi-calendar-plus text-success mb-2" style="font-size: 2rem;"></i>
+                                <h6>Schedule</h6>
+                                <small class="text-muted">Book appointment</small>
+                            </a>
+                        </div>
+                        {% if 'billing' in enabled_modules and perms.billing.add_bill %}
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'billing:create' %}" class="quick-action-card" role="button" aria-label="Create bill">
+                                <i class="bi bi-receipt text-warning mb-2" style="font-size: 2rem;"></i>
+                                <h6>Create Bill</h6>
+                                <small class="text-muted">Generate invoice</small>
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'doctors:doctor_create' %}" class="quick-action-card" role="button" aria-label="Add doctor">
+                                <i class="bi bi-person-badge text-info mb-2" style="font-size: 2rem;"></i>
+                                <h6>Add Doctor</h6>
+                                <small class="text-muted">Register doctor</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'reports:report_list' %}" class="quick-action-card" role="button" aria-label="View reports">
+                                <i class="bi bi-graph-up text-danger mb-2" style="font-size: 2rem;"></i>
+                                <h6>Reports</h6>
+                                <small class="text-muted">View analytics</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'tenants:hospital_profile' %}" class="quick-action-card" role="button" aria-label="Open settings">
+                                <i class="bi bi-gear text-secondary mb-2" style="font-size: 2rem;"></i>
+                                <h6>Settings</h6>
+                                <small class="text-muted">Hospital config</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content Row -->
+    <div class="row">
+        <!-- Recent Activities -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity me-2"></i>Recent Activities
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_activities %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon bg-primary text-white">
+                                <i class="bi bi-{{ activity.icon|default:'activity' }}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <p class="mb-1 text-muted small">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="mt-2">No recent activities</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Tasks -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-task me-2"></i>Pending Tasks
+                    </h5>
+                    <span class="badge bg-warning" aria-live="polite">
+                        {% if pending_bills and pending_appointments %}
+                            {{ pending_bills|add:pending_appointments }}
+                        {% elif pending_bills %}
+                            {{ pending_bills }}
+                        {% elif pending_appointments %}
+                            {{ pending_appointments }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% if recent_pending_bills %}
+                            {% for bill in recent_pending_bills %}
+                                <a href="{% url 'billing:bill_detail' bill.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-receipt text-warning me-2"></i>
+                                        {{ bill.patient.get_full_name|default:bill.patient }} - ${{ bill.total_amount|floatformat:2 }}
+                                        <div class="small text-muted">{{ bill.created_at|naturaltime }}</div>
+                                    </div>
+                                    <span class="badge bg-warning rounded-pill">{{ bill.status }}</span>
+                                </a>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if recent_pending_appointments %}
+                            {% for appt in recent_pending_appointments %}
+                                <a href="{% url 'appointments:appointment_detail' appt.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-calendar-check text-info me-2"></i>
+                                        {{ appt.patient.get_full_name|default:appt.patient }} - {{ appt.appointment_date }}
+                                        <div class="small text-muted">{{ appt.created_at|naturaltime }}</div>
+                                    </div>
+                                    <span class="badge bg-info rounded-pill">{{ appt.status }}</span>
+                                </a>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Fallback quick items -->
+                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-person-check text-success me-2"></i>
+                                Staff Approvals
+                            </div>
+                            <span class="badge bg-success rounded-pill">2</span>
+                        </a>
+
+                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-clipboard-check text-primary me-2"></i>
+                                System Updates
+                            </div>
+                            <span class="badge bg-primary rounded-pill">1</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-currency-dollar me-2"></i>Revenue (last 7 days)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Appointments (last 7 days)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="appointmentsChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Admin Tools -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tools me-2"></i>Administrator Tools
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="#" class="btn btn-outline-primary">
+                                    <i class="bi bi-people me-2"></i>Manage Users
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="#" class="btn btn-outline-success">
+                                    <i class="bi bi-shield-check me-2"></i>Security Settings
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="#" class="btn btn-outline-info">
+                                    <i class="bi bi-database me-2"></i>Backup & Restore
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="#" class="btn btn-outline-warning">
+                                    <i class="bi bi-gear me-2"></i>System Logs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

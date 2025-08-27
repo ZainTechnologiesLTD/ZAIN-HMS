@@ -3,7 +3,7 @@ from django.utils import timezone
 import uuid
 from django.db import models
 from django.core.validators import RegexValidator
-from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class Doctor(models.Model):
@@ -13,7 +13,7 @@ class Doctor(models.Model):
         ('NEUROLOGY', 'Neurology'),
         ('ORTHOPEDICS', 'Orthopedics')
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     doctor_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -43,6 +43,9 @@ class Doctor(models.Model):
 
     def generate_unique_username(self):
         return f"{self.first_name.lower()}.{self.last_name.lower()}.{uuid.uuid4().hex[:6]}"
+    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
         
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.specialization}"

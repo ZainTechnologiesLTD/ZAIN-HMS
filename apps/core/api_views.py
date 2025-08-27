@@ -8,7 +8,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
-from apps.accounts.models import Hospital, Department
+# from tenants.models import  # Temporarily commented Tenant
+from apps.staff.models import Department
 from apps.patients.models import Patient
 from apps.appointments.models import Appointment
 from apps.billing.models import Bill
@@ -28,11 +29,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        hospital = getattr(self.request, 'hospital', None)
-        if hospital:
+        tenant = getattr(self.request, 'tenant', None)
+        if tenant:
             return Notification.objects.filter(
                 recipient=self.request.user,
-                hospital=hospital
+                tenant=tenant
             ).order_by('-created_at')
         return Notification.objects.none()
     
@@ -46,11 +47,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def mark_all_read(self, request):
         """Mark all notifications as read"""
-        hospital = getattr(request, 'hospital', None)
-        if hospital:
+        tenant = getattr(request, 'tenant', None)
+        if tenant:
             Notification.objects.filter(
                 recipient=request.user,
-                hospital=hospital,
+                tenant=tenant,
                 is_read=False
             ).update(is_read=True, read_at=timezone.now())
         return Response({'status': 'all notifications marked as read'})
@@ -58,11 +59,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def unread_count(self, request):
         """Get unread notifications count"""
-        hospital = getattr(request, 'hospital', None)
-        if hospital:
+        tenant = getattr(request, 'tenant', None)
+        if tenant:
             count = Notification.objects.filter(
                 recipient=request.user,
-                hospital=hospital,
+                tenant=tenant,
                 is_read=False
             ).count()
         else:
@@ -74,20 +75,28 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
     """Activity Log API ViewSet (Read-only)"""
     serializer_class = ActivityLogSerializer
     permission_classes = [permissions.IsAuthenticated]
+    queryset = ActivityLog.objects.none()  # Default empty queryset to prevent errors
     
     def get_queryset(self):
-        hospital = getattr(self.request, 'hospital', None)
+        # Check for swagger fake view to prevent schema generation errors
+        if getattr(self, 'swagger_fake_view', False):
+            return ActivityLog.objects.none()
+            
+        if not self.request.user.is_authenticated:
+            return ActivityLog.objects.none()
+            
+        tenant = getattr(self.request, 'tenant', None)
         user = self.request.user
         
         # Only admins can view all activity logs
-        if user.role in ['ADMIN', 'SUPERADMIN'] or user.is_superuser:
-            if hospital:
-                return ActivityLog.objects.filter(hospital=hospital).order_by('-timestamp')
+        if hasattr(user, 'role') and user.role in ['ADMIN', 'SUPERADMIN'] or user.is_superuser:
+            if tenant:
+                return ActivityLog.objects.filter(tenant=tenant).order_by('-timestamp')
         else:
             # Regular users can only view their own activity logs
-            if hospital:
+            if tenant:
                 return ActivityLog.objects.filter(
-                    hospital=hospital,
+                    tenant=tenant,
                     user=user
                 ).order_by('-timestamp')
         
@@ -99,9 +108,9 @@ class DashboardStatsAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
-        hospital = getattr(request, 'hospital', None)
-        if not hospital:
-            return Response({'error': 'Hospital not found'}, status=400)
+        tenant = getattr(request, 'tenant', None)
+        if not tenant:
+            return Response({'error': 'Tenant not found'}, status=400)
         
         user = request.user
         today = timezone.now().date()
@@ -109,25 +118,25 @@ class DashboardStatsAPIView(APIView):
         month_start = today.replace(day=1)
         
         # Base filters
-        hospital_filter = {'hospital': hospital}
-        today_filter = {**hospital_filter, 'created_at__date': today}
-        week_filter = {**hospital_filter, 'created_at__date__gte': week_start}
-        month_filter = {**hospital_filter, 'created_at__date__gte': month_start}
+        tenant_filter = {'tenant': tenant}
+        today_filter = {**tenant_filter, 'created_at__date': today}
+        week_filter = {**tenant_filter, 'created_at__date__gte': week_start}
+        month_filter = {**tenant_filter, 'created_at__date__gte': month_start}
         
         stats = {}
         
         if user.role in ['ADMIN', 'SUPERADMIN'] or user.is_superuser:
             stats = {
                 'overview': {
-                    'total_patients': Patient.objects.filter(**hospital_filter).count(),
-                    'total_doctors': User.objects.filter(**hospital_filter, role='DOCTOR', is_active=True).count(),
-                    'total_nurses': User.objects.filter(**hospital_filter, role='NURSE', is_active=True).count(),
-                    'total_appointments': Appointment.objects.filter(**hospital_filter).count(),
+                    'total_patients': Patient.objects.filter(**tenant_filter).count(),
+                    'total_doctors': User.objects.filter(**tenant_filter, role='DOCTOR', is_active=True).count(),
+                    'total_nurses': User.objects.filter(**tenant_filter, role='NURSE', is_active=True).count(),
+                    'total_appointments': Appointment.objects.filter(**tenant_filter).count(),
                 },
                 'today': {
                     'new_patients': Patient.objects.filter(**today_filter).count(),
                     'appointments': Appointment.objects.filter(
-                        hospital=hospital, appointment_date=today
+                        tenant=tenant, appointment_date=today
                     ).count(),
                     'emergency_cases': EmergencyCase.objects.filter(**today_filter).count(),
                     'revenue': Bill.objects.filter(**today_filter, status='PAID').aggregate(
@@ -137,7 +146,7 @@ class DashboardStatsAPIView(APIView):
                 'this_week': {
                     'new_patients': Patient.objects.filter(**week_filter).count(),
                     'appointments': Appointment.objects.filter(
-                        hospital=hospital, 
+                        tenant=tenant, 
                         appointment_date__gte=week_start
                     ).count(),
                     'revenue': Bill.objects.filter(**week_filter, status='PAID').aggregate(
@@ -147,7 +156,7 @@ class DashboardStatsAPIView(APIView):
                 'this_month': {
                     'new_patients': Patient.objects.filter(**month_filter).count(),
                     'appointments': Appointment.objects.filter(
-                        hospital=hospital,
+                        tenant=tenant,
                         appointment_date__gte=month_start
                     ).count(),
                     'revenue': Bill.objects.filter(**month_filter, status='PAID').aggregate(
@@ -155,15 +164,15 @@ class DashboardStatsAPIView(APIView):
                     )['total'] or 0,
                 },
                 'pending': {
-                    'appointments': Appointment.objects.filter(**hospital_filter, status='SCHEDULED').count(),
-                    'bills': Bill.objects.filter(**hospital_filter, status='PENDING').count(),
+                    'appointments': Appointment.objects.filter(**tenant_filter, status='SCHEDULED').count(),
+                    'bills': Bill.objects.filter(**tenant_filter, status='PENDING').count(),
                     'emergency_cases': EmergencyCase.objects.filter(
-                        **hospital_filter, status__in=['WAITING', 'IN_PROGRESS']
+                        **tenant_filter, status__in=['WAITING', 'IN_PROGRESS']
                     ).count(),
                 }
             }
         elif user.role == 'DOCTOR':
-            doctor_appointments = Appointment.objects.filter(doctor=user, **hospital_filter)
+            doctor_appointments = Appointment.objects.filter(doctor=user, **tenant_filter)
             stats = {
                 'my_stats': {
                     'total_appointments': doctor_appointments.count(),
@@ -186,15 +195,15 @@ class GlobalSearchAPIView(APIView):
         if not query or len(query) < 2:
             return Response({'results': []})
         
-        hospital = getattr(request, 'hospital', None)
-        if not hospital:
+        tenant = getattr(request, 'tenant', None)
+        if not tenant:
             return Response({'results': []})
         
         results = []
         
         # Search patients
         patients = Patient.objects.filter(
-            Q(hospital=hospital) & (
+            Q(tenant=tenant) & (
                 Q(first_name__icontains=query) |
                 Q(last_name__icontains=query) |
                 Q(patient_id__icontains=query) |
@@ -215,7 +224,7 @@ class GlobalSearchAPIView(APIView):
         # Search doctors if user has permission
         if request.user.has_module_permission('doctors'):
             doctors = User.objects.filter(
-                Q(hospital=hospital, role='DOCTOR') & (
+                Q(tenant=tenant, role='DOCTOR') & (
                     Q(first_name__icontains=query) |
                     Q(last_name__icontains=query) |
                     Q(email__icontains=query)
@@ -235,7 +244,7 @@ class GlobalSearchAPIView(APIView):
         # Search appointments if user has permission
         if request.user.has_module_permission('appointments'):
             appointments = Appointment.objects.filter(
-                Q(hospital=hospital) & (
+                Q(tenant=tenant) & (
                     Q(patient__first_name__icontains=query) |
                     Q(patient__last_name__icontains=query) |
                     Q(appointment_id__icontains=query)
@@ -260,9 +269,9 @@ class SystemConfigurationAPIView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
-        hospital = getattr(self.request, 'hospital', None)
-        if hospital:
-            obj, created = SystemConfiguration.objects.get_or_create(hospital=hospital)
+        tenant = getattr(self.request, 'tenant', None)
+        if tenant:
+            obj, created = SystemConfiguration.objects.get_or_create(tenant=tenant)
             return obj
         return None
     
@@ -301,9 +310,9 @@ class FileUploadAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     
     def post(self, request):
-        hospital = getattr(request, 'hospital', None)
-        if not hospital:
-            return Response({'error': 'Hospital not found'}, status=400)
+        tenant = getattr(request, 'tenant', None)
+        if not tenant:
+            return Response({'error': 'Tenant not found'}, status=400)
         
         file_obj = request.FILES.get('file')
         if not file_obj:
@@ -311,7 +320,7 @@ class FileUploadAPIView(APIView):
         
         # Create file upload record
         file_upload = FileUpload.objects.create(
-            hospital=hospital,
+            tenant=tenant,
             uploaded_by=request.user,
             file=file_obj,
             original_name=file_obj.name,
@@ -330,7 +339,7 @@ class MarkNotificationsReadAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request):
-        hospital = getattr(request, 'hospital', None)
+        tenant = getattr(request, 'tenant', None)
         notification_ids = request.data.get('notification_ids', [])
         
         if notification_ids:
@@ -338,7 +347,7 @@ class MarkNotificationsReadAPIView(APIView):
             notifications = Notification.objects.filter(
                 id__in=notification_ids,
                 recipient=request.user,
-                hospital=hospital
+                tenant=tenant
             )
             updated_count = 0
             for notification in notifications:
@@ -349,7 +358,7 @@ class MarkNotificationsReadAPIView(APIView):
             # Mark all as read
             updated_count = Notification.objects.filter(
                 recipient=request.user,
-                hospital=hospital,
+                tenant=tenant,
                 is_read=False
             ).update(is_read=True, read_at=timezone.now())
         
@@ -361,7 +370,7 @@ class BulkNotificationActionAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request):
-        hospital = getattr(request, 'hospital', None)
+        tenant = getattr(request, 'tenant', None)
         notification_ids = request.data.get('notification_ids', [])
         action = request.data.get('action', '')
         
@@ -371,7 +380,7 @@ class BulkNotificationActionAPIView(APIView):
         notifications = Notification.objects.filter(
             id__in=notification_ids,
             recipient=request.user,
-            hospital=hospital
+            tenant=tenant
         )
         
         updated_count = 0

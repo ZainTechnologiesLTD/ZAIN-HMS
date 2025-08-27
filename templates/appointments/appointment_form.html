@@ -1,0 +1,878 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Appointment{% else %}New Appointment{% endif %} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<style>
+    .appointment-form-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .appointment-form-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1.5rem;
+    }
+
+    .card-header.bg-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    }
+
+    .card-header.bg-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%) !important;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-outline-secondary {
+        border-radius: 25px;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .search-result-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f3f4;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .search-result-item:hover {
+        background: linear-gradient(135deg, rgba(74, 144, 226, 0.05), rgba(80, 200, 120, 0.05));
+    }
+
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .selected-item {
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        border: 2px solid #667eea;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .time-slot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .time-slot {
+        padding: 0.8rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .time-slot:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .time-slot.selected {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-color: #667eea;
+    }
+
+    .time-slot.unavailable {
+        background: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .availability-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    .available {
+        background-color: #28a745;
+    }
+
+    .unavailable {
+        background-color: #dc3545;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 10px !important;
+        border: 2px solid #e9ecef !important;
+        padding: 0.375rem 0.75rem !important;
+        min-height: calc(1.5em + 0.75rem + 2px) !important;
+    }
+
+    .flatpickr-input {
+        border-radius: 10px !important;
+        border: 2px solid #e9ecef !important;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .quick-select-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+
+    .quick-select-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+    }
+
+    .quick-select-btn:hover {
+        background: #e9ecef;
+        border-color: #667eea;
+    }
+
+    /* Time Slot Styling */
+    .time-slot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .time-slot {
+        position: relative;
+        padding: 0.75rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+
+    .time-slot:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+        transform: translateY(-1px);
+    }
+
+    .time-slot.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .time-slot.unavailable {
+        background: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .time-slot.unavailable:hover {
+        transform: none;
+        border-color: #dee2e6;
+        background: #f8f9fa;
+    }
+
+    .availability-indicator {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .availability-indicator.available {
+        background: #28a745;
+    }
+
+    .availability-indicator.unavailable {
+        background: #dc3545;
+    }
+
+    /* Sidebar Enhancements */
+    .guideline-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 6px;
+        background: #f8f9fa;
+    }
+
+    .stats-item {
+        padding: 0.5rem;
+        border-radius: 6px;
+        background: #f8f9fa;
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Appointment Summary */
+    .appointment-summary-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: bold;">
+                        <i class="fas fa-calendar-plus me-3"></i>
+                        {% if object %}Edit Appointment{% else %}Schedule New Appointment{% endif %}
+                    </h2>
+                    <p class="text-muted mb-0">Create and manage patient appointments with advanced scheduling</p>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'appointments:appointment_list' %}">Appointments</a></li>
+                        <li class="breadcrumb-item active">{% if object %}Edit{% else %}New{% endif %}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post" id="appointmentForm">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ form.non_field_errors }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+
+                <!-- Patient Selection -->
+                <div class="appointment-form-card mb-4">
+                    <div class="card-header text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user me-2"></i>Patient Selection
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-search me-1"></i>Search Patient *
+                                    </label>
+                                    <div class="search-container">
+                                        <input type="text" class="form-control" id="patientSearch" 
+                                               placeholder="Search by name, phone, or patient ID..." 
+                                               autocomplete="off">
+                                        <div class="search-results" id="patientSearchResults" style="display: none;"></div>
+                                    </div>
+                                    
+                                    <!-- Hidden field for selected patient -->
+                                    <input type="hidden" name="patient" id="selectedPatientId" value="{{ form.patient.value|default:'' }}">
+                                    
+                                    <!-- Selected patient display -->
+                                    <div id="selectedPatientDisplay" style="display: none;">
+                                        <div class="selected-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1" id="selectedPatientName"></h6>
+                                                    <small class="text-muted" id="selectedPatientDetails"></small>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearPatientSelection()">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if form.patient.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.patient.errors }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Quick actions -->
+                                    <div class="quick-select-buttons">
+                                        <span class="quick-select-btn" onclick="showRecentPatients()">
+                                            <i class="fas fa-history me-1"></i>Recent Patients
+                                        </span>
+                                        <a href="{% url 'patients:create' %}" class="quick-select-btn">
+                                            <i class="fas fa-plus me-1"></i>Add New Patient
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor Selection -->
+                <div class="appointment-form-card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-md me-2"></i>Doctor Selection
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-stethoscope me-1"></i>Filter by Specialty
+                                    </label>
+                                    <select class="form-select" id="specialtyFilter">
+                                        <option value="">All Specialties</option>
+                                        <option value="CARDIOLOGY">Cardiology</option>
+                                        <option value="NEUROLOGY">Neurology</option>
+                                        <option value="ORTHOPEDICS">Orthopedics</option>
+                                        <option value="PEDIATRICS">Pediatrics</option>
+                                        <option value="GENERAL">General Medicine</option>
+                                        <option value="DERMATOLOGY">Dermatology</option>
+                                        <option value="GYNECOLOGY">Gynecology</option>
+                                        <option value="SURGERY">Surgery</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-search me-1"></i>Search Doctor *
+                                    </label>
+                                    <div class="search-container">
+                                        <input type="text" class="form-control" id="doctorSearch" 
+                                               placeholder="Search doctor by name..." 
+                                               autocomplete="off">
+                                        <div class="search-results" id="doctorSearchResults" style="display: none;"></div>
+                                    </div>
+                                    
+                                    <!-- Hidden field for selected doctor -->
+                                    <input type="hidden" name="doctor" id="selectedDoctorId" value="{{ form.doctor.value|default:'' }}">
+                                    
+                                    {% if form.doctor.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.doctor.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Selected doctor display -->
+                        <div id="selectedDoctorDisplay" style="display: none;">
+                            <div class="selected-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1" id="selectedDoctorName"></h6>
+                                        <small class="text-muted" id="selectedDoctorDetails"></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearDoctorSelection()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date and Time Selection -->
+                <div class="appointment-form-card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Date & Time Selection
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-calendar me-1"></i>Appointment Date *
+                                    </label>
+                                    <input type="date" class="form-control" name="appointment_date" 
+                                           id="appointmentDate" value="{{ form.appointment_date.value|default:'' }}" 
+                                           required>
+                                    {% if form.appointment_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.appointment_date.errors }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Quick date selection -->
+                                    <div class="quick-select-buttons">
+                                        <span class="quick-select-btn" onclick="setDate('today')">
+                                            <i class="fas fa-calendar-day me-1"></i>Today
+                                        </span>
+                                        <span class="quick-select-btn" onclick="setDate('tomorrow')">
+                                            <i class="fas fa-calendar-plus me-1"></i>Tomorrow
+                                        </span>
+                                        <span class="quick-select-btn" onclick="setDate('next_week')">
+                                            <i class="fas fa-calendar-week me-1"></i>Next Week
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-clock me-1"></i>Available Time Slots *
+                                    </label>
+                                    <div id="timeSlotsContainer">
+                                        <div class="text-muted text-center py-3">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Select a doctor and date to view available time slots
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Hidden field for selected time -->
+                                    <input type="hidden" name="appointment_time" id="selectedTimeSlot" 
+                                           value="{{ form.appointment_time.value|default:'' }}">
+                                    
+                                    {% if form.appointment_time.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.appointment_time.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Appointment Type and Duration -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.appointment_type.id_for_label }}" class="form-label">
+                                        <i class="fas fa-tag me-1"></i>Appointment Type *
+                                    </label>
+                                    {{ form.appointment_type }}
+                                    {% if form.appointment_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.appointment_type.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.duration_minutes.id_for_label }}" class="form-label">
+                                        <i class="fas fa-hourglass-half me-1"></i>Duration (minutes)
+                                    </label>
+                                    {{ form.duration_minutes }}
+                                    {% if form.duration_minutes.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.duration_minutes.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Appointment Status and Priority -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">
+                                        <i class="fas fa-flag me-1"></i>Status
+                                    </label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.status.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Priority
+                                    </label>
+                                    {{ form.priority }}
+                                    {% if form.priority.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.priority.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Availability Check -->
+                        <div id="availabilityCheck" class="mt-3" style="display: none;">
+                            <span id="availabilityMessage"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Information -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-stethoscope me-2"></i>Medical Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.chief_complaint.id_for_label }}" class="form-label">
+                                <i class="fas fa-clipboard-list me-1"></i>Chief Complaint *
+                            </label>
+                            {{ form.chief_complaint }}
+                            {% if form.chief_complaint.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.chief_complaint.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.chief_complaint.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.symptoms.id_for_label }}" class="form-label">
+                                <i class="fas fa-thermometer me-1"></i>Symptoms
+                            </label>
+                            {{ form.symptoms }}
+                            {% if form.symptoms.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.symptoms.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.symptoms.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-notes-medical me-1"></i>Additional Notes
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.notes.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.notes.help_text }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Follow-up & Financial Information -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-dollar-sign me-2"></i>Additional Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.consultation_fee.id_for_label }}" class="form-label">
+                                        <i class="fas fa-money-bill me-1"></i>Consultation Fee
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        {{ form.consultation_fee }}
+                                    </div>
+                                    {% if form.consultation_fee.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.consultation_fee.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.previous_appointment.id_for_label }}" class="form-label">
+                                        <i class="fas fa-history me-1"></i>Previous Appointment
+                                    </label>
+                                    {{ form.previous_appointment }}
+                                    {% if form.previous_appointment.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.previous_appointment.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_follow_up }}
+                                <label class="form-check-label" for="{{ form.is_follow_up.id_for_label }}">
+                                    <i class="fas fa-redo me-1"></i>This is a follow-up appointment
+                                </label>
+                            </div>
+                            {% if form.is_follow_up.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_follow_up.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="appointment-form-card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary me-2">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                                </a>
+                                <button type="button" class="btn btn-outline-info" id="previewBtn">
+                                    <i class="fas fa-eye me-2"></i>Preview
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-warning me-2" onclick="resetForm()">
+                                    <i class="fas fa-undo me-2"></i>Reset
+                                </button>
+                                <button type="submit" class="btn btn-gradient-primary" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if object %}Update Appointment{% else %}Schedule Appointment{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Enhanced Sidebar -->
+        <div class="col-lg-4">
+            <!-- Appointment Summary -->
+            <div class="appointment-form-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Appointment Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="appointmentSummary">
+                        <div class="text-muted text-center py-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Fill in the form to see appointment summary
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Guidelines -->
+            <div class="appointment-form-card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Scheduling Guidelines
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="guideline-item">
+                        <i class="fas fa-user-check text-primary me-2"></i>
+                        <small>Select patient first to enable appointment creation</small>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-stethoscope text-success me-2"></i>
+                        <small>Choose doctor based on patient's medical needs</small>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-calendar-check text-info me-2"></i>
+                        <small>Select available date and time slot</small>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-clipboard-list text-warning me-2"></i>
+                        <small>Provide clear chief complaint and symptoms</small>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-dollar-sign text-danger me-2"></i>
+                        <small>Set appropriate consultation fee</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="appointment-form-card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Today's Stats
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stats-item">
+                                <h5 class="text-primary mb-1">{{ today_appointments|default:"0" }}</h5>
+                                <small class="text-muted">Today's Appointments</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-item">
+                                <h5 class="text-success mb-1">{{ available_slots|default:"0" }}</h5>
+                                <small class="text-muted">Available Slots</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="fas fa-eye me-2"></i>Appointment Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <!-- Preview content will be generated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">
+                    <i class="fas fa-save me-2"></i>Confirm & Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Reset form function
+function resetForm() {
+    if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+        document.getElementById('appointmentForm').reset();
+        clearPatientSelection();
+        clearDoctorSelection();
+        document.getElementById('timeSlotsContainer').innerHTML = `
+            <div class="text-muted text-center py-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Select a doctor and date to view available time slots
+            </div>
+        `;
+        updateAppointmentSummary();
+    }
+}
+</script>
+
+{% include 'appointments/appointment_form_enhanced_js.html' %}
+{% endblock %}

@@ -1,0 +1,100 @@
+<!-- templates/components/language_switcher.html -->
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
+
+<div class="language-switcher dropdown">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-globe me-1"></i>
+        <span class="d-none d-sm-inline">
+            {% for code, name in LANGUAGES %}
+                {% if code == LANGUAGE_CODE %}{{ name }}{% endif %}
+            {% endfor %}
+        </span>
+    </button>
+    
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+        {% for code, name in LANGUAGES %}
+            <li>
+                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.get_full_path }}" />
+                    <input name="language" type="hidden" value="{{ code }}" />
+                    <button type="submit" class="dropdown-item {% if code == LANGUAGE_CODE %}active{% endif %}">
+                        <span class="me-2">
+                            {% if code == 'en' %}🇬🇧{% elif code == 'es' %}🇪🇸{% elif code == 'fr' %}🇫🇷{% elif code == 'ar' %}🇸🇦{% elif code == 'hi' %}🇮🇳{% elif code == 'pt' %}🇵🇹{% elif code == 'de' %}🇩🇪{% elif code == 'it' %}🇮🇹{% else %}🌐{% endif %}
+                        </span>
+                        {{ name }}
+                        {% if code == LANGUAGE_CODE %}
+                            <i class="fas fa-check ms-auto text-success"></i>
+                        {% endif %}
+                    </button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    </ul>
+</div>
+
+<style>
+.language-switcher .dropdown-item {
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items-center;
+    transition: background-color 0.2s ease;
+}
+
+.language-switcher .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.language-switcher .dropdown-item.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.language-switcher .dropdown-item.active .fa-check {
+    color: #1976d2;
+}
+}
+
+.language-switcher .dropdown-item.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.flag-icon {
+    width: 20px;
+    height: 15px;
+    background-size: cover;
+    display: inline-block;
+    border-radius: 2px;
+}
+
+/* Flag icons using Unicode flags */
+.flag-icon-en::before { content: "🇺🇸"; }
+.flag-icon-es::before { content: "🇪🇸"; }
+.flag-icon-fr::before { content: "🇫🇷"; }
+.flag-icon-ar::before { content: "🇸🇦"; }
+.flag-icon-zh::before { content: "🇨🇳"; }
+.flag-icon-hi::before { content: "🇮🇳"; }
+.flag-icon-pt::before { content: "🇵🇹"; }
+.flag-icon-de::before { content: "🇩🇪"; }
+.flag-icon-it::before { content: "🇮🇹"; }
+.flag-icon-ja::before { content: "🇯🇵"; }
+
+/* RTL support for Arabic */
+[dir="rtl"] .language-switcher {
+    direction: ltr; /* Keep dropdown LTR for better UX */
+}
+
+[dir="rtl"] .dropdown-menu-end {
+    left: 0;
+    right: auto;
+}
+</style>

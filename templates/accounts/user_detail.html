@@ -1,0 +1,72 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card card-primary card-outline">
+                <div class="card-body box-profile">
+                    <div class="text-center">
+                        {% if user_detail.profile_picture %}
+                        <img class="profile-user-img img-fluid img-circle" src="{{ user_detail.profile_picture.url }}" alt="User profile picture">
+                        {% else %}
+                        <img class="profile-user-img img-fluid img-circle" src="{% static 'images/default-avatar.png' %}" alt="Default profile picture">
+                        {% endif %}
+                    </div>
+                    <h3 class="profile-username text-center">{{ user_detail.get_full_name }}</h3>
+                    <p class="text-muted text-center">{{ user_detail.get_role_display }}</p>
+
+                    <ul class="list-group list-group-unbordered mb-3">
+                        <li class="list-group-item">
+                            <b>Username</b> <a class="float-right">{{ user_detail.username }}</a>
+                        </li>
+                        <li class="list-group-item">
+                            <b>Email</b> <a class="float-right">{{ user_detail.email }}</a>
+                        </li>
+                        <li class="list-group-item">
+                            <b>Status</b>
+                            <span class="float-right">
+                                {% if user_detail.is_active %}
+                                <span class="badge badge-success">Active</span>
+                                {% else %}
+                                <span class="badge badge-danger">Inactive</span>
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+
+                    <a href="{% url 'accounts:user_edit' user_detail.pk %}" class="btn btn-primary btn-block">
+                        <b>Edit User</b>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header p-2">
+                    <h3 class="card-title">User Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Department:</strong> {{ user_detail.department|default:"Not Assigned" }}</p>
+                            <p><strong>Employee ID:</strong> {{ user_detail.employee_id|default:"N/A" }}</p>
+                            <p><strong>Phone:</strong> {{ user_detail.phone|default:"N/A" }}</p>
+                            <p><strong>Address:</strong> {{ user_detail.address|default:"N/A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date Joined:</strong> {{ user_detail.date_joined|date:"M d, Y" }}</p>
+                            <p><strong>Last Login:</strong> {{ user_detail.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
+                            <p><strong>Approved By:</strong> {{ user_detail.approved_by|default:"N/A" }}</p>
+                            <p><strong>Approved At:</strong> {{ user_detail.approved_at|date:"M d, Y H:i"|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

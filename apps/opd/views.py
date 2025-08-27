@@ -1,6 +1,7 @@
 # opd/views.py
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from apps.core.mixins import RequireHospitalSelectionMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.contrib import messages
@@ -42,7 +43,7 @@ class OPDListView(LoginRequiredMixin, ListView):
         context['current_priority'] = self.request.GET.get('priority', '')
         return context
 
-class OPDCreateView(LoginRequiredMixin, CreateView):
+class OPDCreateView(RequireHospitalSelectionMixin, LoginRequiredMixin, CreateView):
     model = OPD
     form_class = OPDForm
     template_name = 'opd/opd_form.html'

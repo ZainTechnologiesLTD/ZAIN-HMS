@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}ZAIN HMS - Hospital Management System{% endblock %}</title>
     
     {% load static %}
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
     <style>
@@ -40,6 +50,35 @@
             line-height: 1.6;
         }
 
+        /* RTL Support */
+        [dir="rtl"] {
+            direction: rtl;
+        }
+        
+        [dir="rtl"] .sidebar {
+            left: auto;
+            right: 0;
+        }
+        
+        [dir="rtl"] .main-content {
+            margin-left: 0;
+            margin-right: var(--sidebar-width);
+        }
+        
+        [dir="rtl"] .sidebar.collapsed ~ .main-content {
+            margin-right: 80px;
+        }
+        
+        [dir="rtl"] .sidebar-nav a {
+            border-left: none;
+            border-right: 3px solid transparent;
+        }
+        
+        [dir="rtl"] .sidebar-nav a:hover,
+        [dir="rtl"] .sidebar-nav a.active {
+            border-right-color: white;
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -49,13 +88,19 @@
             width: var(--sidebar-width);
             background: linear-gradient(180deg, #2c5aa0 0%, #1e3d72 100%);
             color: white;
-            transition: all 0.3s ease;
+            transition: width 0.3s ease, transform 0.3s ease;
             z-index: 1000;
             overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
 
         .sidebar.collapsed {
             width: 80px;
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
         }
 
         .sidebar-header {
@@ -105,16 +150,52 @@
         .sidebar.collapsed .sidebar-nav a span {
             display: none;
         }
+        
+        /* Navigation section headers */
+        .nav-section-header {
+            padding: 0.75rem 1rem 0.5rem 1rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-section-header:first-child {
+            border-top: none;
+            margin-top: 0;
+        }
+        
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .sidebar.collapsed .nav-section-header {
+            display: none;
+        }
 
         /* Main Content */
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
-            transition: all 0.3s ease;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
         .sidebar.collapsed + .main-content {
             margin-left: 80px;
+        }
+
+        /* RTL Support for main content */
+        [dir="rtl"] .main-content {
+            margin-left: 0;
+            margin-right: var(--sidebar-width);
+        }
+
+        [dir="rtl"] .sidebar.collapsed + .main-content {
+            margin-right: 80px;
         }
 
         /* Header */
@@ -129,6 +210,14 @@
             position: sticky;
             top: 0;
             z-index: 999;
+            border-bottom: 1px solid #e2e8f0;
+            margin-left: 0;
+            width: 100%;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar + .main-content .main-header {
+            margin-left: 0;
         }
 
         .header-left {
@@ -173,6 +262,90 @@
         /* Content Area */
         .content-wrapper {
             padding: 30px;
+            min-height: calc(100vh - 120px);
+            position: relative;
+            z-index: 1;
+            clear: both;
+        }
+
+        /* Ensure proper spacing for hospital admin content */
+        .content-wrapper > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Fix for any overlapping elements */
+        .card, .alert, .hospital-info-bar {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Ensure footer stays at bottom */
+        .main-footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            margin-top: auto;
+            position: relative;
+            z-index: 1;
+            clear: both;
+        }
+        
+        /* Hospital Info Bar */
+        .hospital-info-bar {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+            clear: both;
+        }
+
+        .hospital-info-bar .d-flex {
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+        }
+        
+        /* Quick Actions Improvements */
+        .quick-actions .btn {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .quick-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .quick-actions .btn-outline-primary:hover {
+            border-color: #0d6efd;
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .quick-actions .btn-outline-success:hover {
+            border-color: #198754;
+            background-color: #198754;
+            color: white;
+        }
+        
+        .quick-actions .btn-outline-info:hover {
+            border-color: #0dcaf0;
+            background-color: #0dcaf0;
+            color: white;
+        }
+        
+        .quick-actions .btn-outline-secondary:hover {
+            border-color: #6c757d;
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .quick-actions .btn-outline-warning:hover {
+            border-color: #ffc107;
+            background-color: #ffc107;
+            color: black;
         }
 
         /* Cards */
@@ -237,18 +410,61 @@
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
+                width: var(--sidebar-width) !important;
             }
-            
+
             .sidebar.active {
                 transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.2);
             }
-            
+
             .main-content {
-                margin-left: 0;
+                margin-left: 0 !important;
             }
-            
+
             .content-wrapper {
                 padding: 20px 15px;
+            }
+
+            .main-header {
+                padding: 0 15px;
+                margin-left: 0 !important;
+            }
+
+            .hospital-info-bar .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .hospital-info-bar .d-flex > div {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content-wrapper {
+                padding: 15px 10px;
+            }
+
+            .main-header {
+                padding: 0 10px;
+                height: auto;
+                min-height: var(--header-height);
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .header-left, .header-right {
+                gap: 10px;
+            }
+
+            .brand-text h1 {
+                font-size: 20px;
+            }
+
+            .sidebar {
+                width: calc(100% - 60px);
             }
         }
 
@@ -301,23 +517,50 @@
         
         <nav class="sidebar-nav">
             <ul class="list-unstyled">
+                <!-- Dashboard Section -->
                 <li>
-                    <a href="{% url 'core:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                         <i class="bi bi-speedometer2"></i>
-                        <span>Dashboard</span>
+                        <span>{% trans "Dashboard" %}</span>
                     </a>
                 </li>
                 
-                {% if user.has_module_permission.patients %}
+                <!-- Doctor Dashboard - Only for doctors -->
+                {% if user.role == 'DOCTOR' %}
                 <li>
-                    <a href="{% url 'patients:patient_list' %}" class="{% if 'patients' in request.path %}active{% endif %}">
+                    <a href="{% url 'doctors:doctor_dashboard' %}" class="{% if 'doctors/dashboard' in request.path %}active{% endif %}">
+                        <i class="fas fa-user-md"></i>
+                        <span>My Doctor Dashboard</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                <!-- Core Modules Section Header -->
+                <li class="nav-section-header">
+                    <div class="nav-section-title">Core Modules</div>
+                </li>
+                
+                <!-- Barcode Scanner - Available to all users -->
+                <li>
+                    <a href="{% url 'core:barcode_scanner' %}" class="{% if 'barcode-scanner' in request.path %}active{% endif %}">
+                        <i class="fas fa-barcode"></i>
+                        <span>{% trans "Barcode Scanner" %}</span>
+                    </a>
+                </li>
+                
+                {% load permission_tags %}
+                
+                <!-- Main Modules with Permission Checks -->
+                {% if user|can_access_module:"patients" %}
+                <li>
+                    <a href="{% url 'patients:list' %}" class="{% if 'patients' in request.path %}active{% endif %}">
                         <i class="bi bi-people"></i>
                         <span>Patients</span>
                     </a>
                 </li>
                 {% endif %}
-                
-                {% if user.has_module_permission.appointments %}
+
+                {% if user|can_access_module:"appointments" %}
                 <li>
                     <a href="{% url 'appointments:appointment_list' %}" class="{% if 'appointments' in request.path %}active{% endif %}">
                         <i class="bi bi-calendar-check"></i>
@@ -326,7 +569,7 @@
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.doctors %}
+                {% if user|can_access_module:"doctors" %}
                 <li>
                     <a href="{% url 'doctors:doctor_list' %}" class="{% if 'doctors' in request.path %}active{% endif %}">
                         <i class="bi bi-person-badge"></i>
@@ -335,7 +578,7 @@
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.nurses %}
+                {% if user|can_access_module:"nurses" %}
                 <li>
                     <a href="{% url 'nurses:nurse_list' %}" class="{% if 'nurses' in request.path %}active{% endif %}">
                         <i class="bi bi-person-heart"></i>
@@ -344,25 +587,25 @@
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.emergency %}
+                {% if user|can_access_module:"emergency" %}
                 <li>
-                    <a href="{% url 'emergency:dashboard' %}" class="{% if 'emergency' in request.path %}active{% endif %}">
+                    <a href="{% url 'emergency:emergency_list' %}" class="{% if 'emergency' in request.path %}active{% endif %}">
                         <i class="bi bi-exclamation-triangle"></i>
                         <span>Emergency</span>
                     </a>
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.billing %}
+                {% if user|can_access_module:"billing" %}
                 <li>
-                    <a href="{% url 'billing:bill_list' %}" class="{% if 'billing' in request.path %}active{% endif %}">
+                    <a href="{% url 'billing:dashboard' %}" class="{% if 'billing' in request.path %}active{% endif %}">
                         <i class="bi bi-receipt"></i>
                         <span>Billing</span>
                     </a>
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.pharmacy %}
+                {% if user|can_access_module:"pharmacy" %}
                 <li>
                     <a href="{% url 'pharmacy:medicine_list' %}" class="{% if 'pharmacy' in request.path %}active{% endif %}">
                         <i class="bi bi-capsule"></i>
@@ -371,16 +614,25 @@
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.laboratory %}
+                {% if user|can_access_module:"laboratory" %}
                 <li>
-                    <a href="{% url 'laboratory:test_list' %}" class="{% if 'laboratory' in request.path %}active{% endif %}">
+                    <a href="{% url 'laboratory:dashboard' %}" class="{% if 'laboratory' in request.path %}active{% endif %}">
                         <i class="bi bi-clipboard-pulse"></i>
                         <span>Laboratory</span>
                     </a>
                 </li>
                 {% endif %}
                 
-                {% if user.has_module_permission.reports %}
+                {% if user|can_access_module:"radiology" %}
+                <li>
+                    <a href="{% url 'radiology:dashboard' %}" class="{% if 'radiology' in request.path %}active{% endif %}">
+                        <i class="bi bi-camera"></i>
+                        <span>Radiology</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% if user|can_access_module:"reports" %}
                 <li>
                     <a href="{% url 'reports:report_list' %}" class="{% if 'reports' in request.path %}active{% endif %}">
                         <i class="bi bi-graph-up"></i>
@@ -389,18 +641,34 @@
                 </li>
                 {% endif %}
                 
-                {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' or user.is_superuser %}
-                <li class="mt-3">
-                    <div class="px-3 py-2">
-                        <small class="text-white-50 text-uppercase">Administration</small>
-                    </div>
+                <!-- Administrative Section - Role based -->
+                {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' or user.role == 'HOSPITAL_ADMIN' or user.is_superuser %}
+                <li class="nav-section-header">
+                    <div class="nav-section-title">Administration</div>
                 </li>
+                
+                <!-- Hospital Settings - For Hospital Admins -->
+                {% if user.role == 'HOSPITAL_ADMIN' %}
                 <li>
-                    <a href="{% url 'accounts:user_management' %}" class="{% if 'users' in request.path %}active{% endif %}">
+                    <a href="{% url 'tenants:hospital_profile' %}" class="{% if 'hospital-profile' in request.path %}active{% endif %}">
+                        <i class="bi bi-building-gear"></i>
+                        <span>Hospital Settings</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                <!-- User Management - For all admin roles -->
+                {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' or user.role == 'HOSPITAL_ADMIN' or user.is_superuser %}
+                <li>
+                    <a href="{% url 'accounts:user_list' %}" class="{% if 'users' in request.path %}active{% endif %}">
                         <i class="bi bi-person-gear"></i>
                         <span>User Management</span>
                     </a>
                 </li>
+                {% endif %}
+                
+                <!-- System Settings - For system admins only -->
+                {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' or user.is_superuser %}
                 <li>
                     <a href="{% url 'core:system_config' %}" class="{% if 'settings' in request.path %}active{% endif %}">
                         <i class="bi bi-gear"></i>
@@ -413,6 +681,7 @@
                         <span>Activity Logs</span>
                     </a>
                 </li>
+                {% endif %}
                 {% endif %}
             </ul>
         </nav>
@@ -433,10 +702,23 @@
             </div>
             
             <div class="header-right">
+                <!-- Barcode Scanner -->
+                <div class="me-2">
+                    <a href="{% url 'core:barcode_scanner' %}" class="btn btn-outline-primary btn-sm" title="{% trans 'Barcode Scanner' %}">
+                        <i class="fas fa-barcode"></i>
+                        <span class="d-none d-lg-inline ms-1">{% trans "Barcode Scanner" %}</span>
+                    </a>
+                </div>
+                
+                <!-- Language Switcher -->
+                <div class="me-3">
+                    {% include 'components/language_switcher.html' %}
+                </div>
+                
                 <!-- Global Search -->
-                <div class="search-box d-none d-md-block">
+                <div class="search-box d-none d-md-block me-3">
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search patients, doctors..." id="globalSearch">
+                        <input type="text" class="form-control" placeholder="{% trans 'Search patients, doctors...' %}" id="globalSearch">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="bi bi-search"></i>
                         </button>
@@ -489,8 +771,14 @@
                                 </div>
                             {% endif %}
                             <div class="d-none d-md-block text-start">
-                                <div class="fw-semibold">{{ user.get_display_name }}</div>
-                                <small class="text-muted">{{ user.get_role_display }}</small>
+                                <div class="fw-semibold small">
+                                    {% if user.get_full_name %}
+                                        {{ user.get_full_name }}
+                                    {% else %}
+                                        {{ user.username }}
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">{{ user.get_role_display }}</small>
                             </div>
                         </div>
                     </button>
@@ -502,9 +790,14 @@
                             <i class="bi bi-key me-2"></i>Change Password
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                        </a></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -521,8 +814,47 @@
                 {% endfor %}
             {% endif %}
             
+            <!-- Hospital Context Display - Simplified to avoid duplication -->
+            {% if user.is_authenticated and user.role == 'HOSPITAL_ADMIN' and user.hospital %}
+            <div class="hospital-info-bar mb-3">
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded border">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-hospital me-2 text-primary fs-5"></i>
+                        <div>
+                            <span class="fw-semibold">{{ user.hospital.name }}</span>
+                            {% if user.hospital.address %}
+                                <br><small class="text-muted">{{ user.hospital.address }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'tenants:hospital_profile' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-cog me-1"></i>Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             {% block content %}
             {% endblock %}
+            
+            <!-- Footer -->
+            <footer class="main-footer mt-4">
+                <div class="d-flex justify-content-between align-items-center py-3 border-top">
+                    <div class="text-muted small">
+                        © {% now "Y" %} ZAIN HMS. All rights reserved.
+                    </div>
+                    <div class="text-muted small">
+                        Version 2.0 | 
+                        {% if user.hospital %}
+                            {{ user.hospital.name }}
+                        {% else %}
+                            System Dashboard
+                        {% endif %}
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
@@ -531,19 +863,61 @@
     
     <!-- Custom JS -->
     <script>
-        // Sidebar Toggle
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
+        // Sidebar Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
-        });
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mainContent = document.querySelector('.main-content');
 
-        // Mobile Sidebar Toggle
-        if (window.innerWidth <= 768) {
-            document.getElementById('sidebarToggle').addEventListener('click', function() {
-                const sidebar = document.getElementById('sidebar');
-                sidebar.classList.toggle('active');
-            });
-        }
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Toggle collapsed class on sidebar
+                    sidebar.classList.toggle('collapsed');
+
+                    // Update main content margin
+                    if (mainContent) {
+                        if (sidebar.classList.contains('collapsed')) {
+                            mainContent.style.marginLeft = '80px';
+                        } else {
+                            mainContent.style.marginLeft = 'var(--sidebar-width)';
+                        }
+                    }
+
+                    // Store sidebar state in localStorage
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                });
+            }
+
+            // Mobile Sidebar Toggle
+            if (window.innerWidth <= 768) {
+                if (sidebarToggle && sidebar) {
+                    sidebarToggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        sidebar.classList.toggle('active');
+                    });
+                }
+
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', function(e) {
+                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        sidebar.classList.remove('active');
+                    }
+                });
+            }
+
+            // Restore sidebar state from localStorage
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
+            if (sidebarCollapsed === 'true') {
+                sidebar.classList.add('collapsed');
+                if (mainContent) {
+                    mainContent.style.marginLeft = '80px';
+                }
+            }
+        });
 
         // Global Search
         document.getElementById('globalSearch')?.addEventListener('keyup', function(e) {
@@ -577,6 +951,31 @@
         function getCsrfToken() {
             return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         }
+
+        // Handle window resize for responsive behavior
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (window.innerWidth <= 768) {
+                // Mobile: reset sidebar state
+                if (sidebar) {
+                    sidebar.classList.remove('collapsed');
+                }
+                if (mainContent) {
+                    mainContent.style.marginLeft = '0';
+                }
+            } else {
+                // Desktop: restore sidebar state
+                const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
+                if (sidebar && sidebarCollapsed === 'true') {
+                    sidebar.classList.add('collapsed');
+                    if (mainContent) {
+                        mainContent.style.marginLeft = '80px';
+                    }
+                }
+            }
+        });
     </script>
     
     {% block extra_js %}{% endblock %}

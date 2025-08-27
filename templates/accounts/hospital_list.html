@@ -1,0 +1,230 @@
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+
+{% block title %}Hospital Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="fas fa-hospital text-primary"></i>
+                    Hospital Management
+                </h1>
+                <a href="/admin/accounts/hospital/add/" class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Hospital
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="get" class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search }}" placeholder="Name, code, or city">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="">All Statuses</option>
+                                {% for value, label in subscription_statuses %}
+                                <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="plan" class="form-label">Plan</label>
+                            <select class="form-control" id="plan" name="plan">
+                                <option value="">All Plans</option>
+                                {% for value, label in subscription_plans %}
+                                <option value="{{ value }}" {% if value == plan_filter %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary mr-2">
+                                <i class="fas fa-search mr-1"></i>
+                                Filter
+                            </button>
+                            <a href="{% url 'accounts:hospital_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times mr-1"></i>
+                                Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospitals Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        Hospitals ({{ page_obj.paginator.count }} total)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if page_obj.object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Location</th>
+                                        <th>Plan</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Expires</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for hospital in page_obj.object_list %}
+                                    <tr>
+                                        <td>
+                                            {% if hospital.logo %}
+                                                <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" 
+                                                     class="rounded" style="width: 30px; height: 30px; object-fit: cover;">
+                                            {% endif %}
+                                            <strong>{{ hospital.name }}</strong>
+                                        </td>
+                                        <td><code>{{ hospital.code }}</code></td>
+                                        <td>{{ hospital.city }}, {{ hospital.country }}</td>
+                                        <td>
+                                            <span class="badge badge-{% if hospital.subscription_plan == 'ENTERPRISE' %}success{% elif hospital.subscription_plan == 'PROFESSIONAL' %}info{% elif hospital.subscription_plan == 'BASIC' %}warning{% else %}secondary{% endif %}">
+                                                {{ hospital.get_subscription_plan_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{% if hospital.subscription_status == 'ACTIVE' %}success{% elif hospital.subscription_status == 'EXPIRED' %}danger{% else %}warning{% endif %}">
+                                                {{ hospital.get_subscription_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ hospital.created_at|naturaltime }}</td>
+                                        <td>
+                                            {% if hospital.subscription_end %}
+                                                {{ hospital.subscription_end|naturalday }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'accounts:hospital_detail' hospital.id %}" 
+                                                   class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="/admin/accounts/hospital/{{ hospital.id }}/change/" 
+                                                   class="btn btn-sm btn-outline-secondary" title="Edit" target="_blank">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-success" 
+                                                        title="Create Database" onclick="createDatabase('{{ hospital.id }}', '{{ hospital.name }}')">
+                                                    <i class="fas fa-database"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                        <nav aria-label="Hospital pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if plan_filter %}plan={{ plan_filter }}&{% endif %}page=1">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if plan_filter %}plan={{ plan_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if plan_filter %}plan={{ plan_filter }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if plan_filter %}plan={{ plan_filter }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-hospital fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hospitals found</h5>
+                            <p class="text-muted">
+                                {% if search or status_filter or plan_filter %}
+                                    Try adjusting your filters or search terms.
+                                {% else %}
+                                    Get started by creating your first hospital.
+                                {% endif %}
+                            </p>
+                            <a href="/admin/accounts/hospital/add/" class="btn btn-primary">
+                                <i class="fas fa-plus mr-2"></i>
+                                Add First Hospital
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function createDatabase(hospitalId, hospitalName) {
+    if (confirm(`Create database for ${hospitalName}? This action cannot be undone.`)) {
+        fetch(`/auth/hospitals/${hospitalId}/create-database/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Database created successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while creating the database.');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,8 +1,8 @@
 # ipd/models.py
 
 from django.db import models
-from patients.models import Patient
-from doctors.models import Doctor
+from apps.patients.models import Patient
+from apps.doctors.models import Doctor
 
 class Room(models.Model):
     number = models.CharField(max_length=10)

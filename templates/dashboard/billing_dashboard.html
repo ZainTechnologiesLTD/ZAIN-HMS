@@ -1,0 +1,210 @@
+<!-- Billing Dashboard Content -->
+<div class="row g-4">
+    <!-- Financial Overview -->
+    <div class="col-12">
+        <div class="chart-container">
+            <h5 class="mb-3">
+                <i class="bi bi-graph-up me-2"></i>Financial Overview
+            </h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="p-3 bg-success text-white rounded text-center">
+                        <div class="h4 mb-1">${{ daily_revenue|default:0|floatformat:2 }}</div>
+                        <small>Today's Revenue</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-primary text-white rounded text-center">
+                        <div class="h4 mb-1">${{ monthly_revenue|default:0|floatformat:0 }}</div>
+                        <small>Monthly Revenue</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-warning text-white rounded text-center">
+                        <div class="h4 mb-1">${{ pending_amount|default:0|floatformat:2 }}</div>
+                        <small>Pending Payments</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-info text-white rounded text-center">
+                        <div class="h4 mb-1">{{ bills_today|default:0 }}</div>
+                        <small>Bills Generated</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Bills -->
+    <div class="col-lg-8">
+        <div class="activity-feed">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt me-2"></i>Pending Bills
+                </h5>
+                <span class="badge bg-warning">{{ pending_bills.count|default:0 }} pending</span>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #ef4444;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Bill #12345 - Maria Garcia</div>
+                            <div class="text-muted small">General Consultation - Dr. Johnson</div>
+                            <div class="text-danger small">Overdue: 5 days</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-danger">$125.00</div>
+                            <button class="btn btn-sm btn-outline-primary">Send Reminder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #f59e0b;">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Bill #12346 - Robert Lee</div>
+                            <div class="text-muted small">Specialist Consultation - Dr. Wilson</div>
+                            <div class="text-warning small">Due: 2 days</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-warning">$250.00</div>
+                            <button class="btn btn-sm btn-outline-success">Process Payment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #3b82f6;">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Bill #12347 - Sarah Johnson</div>
+                            <div class="text-muted small">Laboratory Tests</div>
+                            <div class="text-info small">New: Today</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-primary">$75.00</div>
+                            <button class="btn btn-sm btn-primary">Send Invoice</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="col-lg-4">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="p-3 bg-success text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">${{ payments_today|default:0|floatformat:2 }}</div>
+                            <small>Payments Received</small>
+                        </div>
+                        <i class="bi bi-cash-coin fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-danger text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ overdue_bills|default:0 }}</div>
+                            <small>Overdue Bills</small>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-primary text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ insurance_claims|default:0 }}</div>
+                            <small>Insurance Claims</small>
+                        </div>
+                        <i class="bi bi-shield-check fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="col-12">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-arrow-left-right me-2"></i>Recent Transactions
+            </h5>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Patient</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#TXN001</td>
+                            <td>Maria Garcia</td>
+                            <td class="text-success fw-bold">$125.00</td>
+                            <td>Credit Card</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                            <td>{% now "M d, Y" %}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary">View</button>
+                                <button class="btn btn-sm btn-outline-secondary">Print</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#TXN002</td>
+                            <td>Robert Lee</td>
+                            <td class="text-warning fw-bold">$250.00</td>
+                            <td>Cash</td>
+                            <td><span class="badge bg-warning">Pending</span></td>
+                            <td>{% now "M d, Y" %}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success">Process</button>
+                                <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#TXN003</td>
+                            <td>Sarah Johnson</td>
+                            <td class="text-primary fw-bold">$75.00</td>
+                            <td>Insurance</td>
+                            <td><span class="badge bg-info">Processing</span></td>
+                            <td>{% now "M d, Y" %}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary">View</button>
+                                <button class="btn btn-sm btn-outline-info">Track</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

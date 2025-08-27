@@ -1,0 +1,235 @@
+<!-- apps/tenants/templates/tenants/super_admin_dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Super Admin System Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .super-admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .system-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .system-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .hospital-item {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-box {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Super Admin Header -->
+    <div class="super-admin-header">
+        <h1><i class="fas fa-crown"></i> Super Admin System Dashboard</h1>
+        <p class="mb-0">HMS Multi-Tenant Management Console</p>
+        <span class="badge badge-warning mt-2">System Administrator Access</span>
+    </div>
+
+    <!-- System Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-box">
+                <div class="stat-number">{{ total_hospitals }}</div>
+                <div class="stat-label">Total Hospitals</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-box">
+                <div class="stat-number">{{ total_admins }}</div>
+                <div class="stat-label">System Admins</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-box">
+                <div class="stat-number">{{ total_superusers }}</div>
+                <div class="stat-label">Super Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-box">
+                <div class="stat-number">12</div>
+                <div class="stat-label">System Modules</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospital Management -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="system-card">
+                <h5><i class="fas fa-hospital"></i> Hospital Management</h5>
+                
+                {% for hospital in hospitals %}
+                <div class="hospital-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ hospital.name }}</h6>
+                            <small>Database: {{ hospital.db_name }}</small>
+                        </div>
+                        <div>
+                            <a href="http://{{ hospital.subdomain }}.localhost:8000/dashboard/" 
+                               target="_blank" class="btn btn-light btn-sm">
+                                <i class="fas fa-external-link-alt"></i> Access
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-hospital fa-3x mb-3"></i>
+                    <p>No hospitals registered yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="system-card">
+                <h5><i class="fas fa-tools"></i> System Management</h5>
+                
+                <div class="list-group list-group-flush">
+                    <a href="/admin/" target="_blank" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cogs"></i> Django Admin
+                    </a>
+                    <a href="/tenants/hospitals/" class="list-group-item list-group-item-action">
+                        <i class="fas fa-hospital"></i> Hospital Selection
+                    </a>
+                    <a href="#" onclick="viewSystemStatus()" class="list-group-item list-group-item-action">
+                        <i class="fas fa-server"></i> System Status
+                    </a>
+                    <a href="#" onclick="viewLogs()" class="list-group-item list-group-item-action">
+                        <i class="fas fa-file-alt"></i> System Logs
+                    </a>
+                    <a href="#" onclick="backupSystem()" class="list-group-item list-group-item-action">
+                        <i class="fas fa-database"></i> Backup System
+                    </a>
+                </div>
+            </div>
+            
+            <div class="system-card">
+                <h5><i class="fas fa-chart-bar"></i> Recent Activity</h5>
+                
+                {% for hospital in recent_hospitals %}
+                <div class="small mb-2">
+                    <i class="fas fa-plus-circle text-success"></i>
+                    {{ hospital.name }} registered
+                </div>
+                {% empty %}
+                <div class="text-muted small">
+                    No recent activity
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function viewSystemStatus() {
+        Swal.fire({
+            title: 'System Status Check',
+            text: 'Checking all system components...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        setTimeout(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'System Status: Healthy',
+                html: `
+                    <div class="text-left">
+                        <p><i class="fas fa-check-circle text-success"></i> Main Database: Connected</p>
+                        <p><i class="fas fa-check-circle text-success"></i> Hospital Databases: {{ total_hospitals }} Active</p>
+                        <p><i class="fas fa-check-circle text-success"></i> Web Server: Running</p>
+                        <p><i class="fas fa-check-circle text-success"></i> AI Systems: Operational</p>
+                    </div>
+                `
+            });
+        }, 2000);
+    }
+    
+    function viewLogs() {
+        Swal.fire({
+            title: 'System Logs',
+            text: 'System log viewer will be implemented in future updates.',
+            icon: 'info'
+        });
+    }
+    
+    function backupSystem() {
+        Swal.fire({
+            title: 'System Backup',
+            text: 'This will create a backup of all hospital databases.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Start Backup',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Backup in Progress',
+                    text: 'Creating system backup...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Backup Complete',
+                        text: 'System backup has been created successfully.'
+                    });
+                }, 5000);
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="fas fa-crown text-warning"></i>
+                Super Admin Dashboard
+            </h1>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Hospitals
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_hospitals|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hospital fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Hospitals
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ active_hospitals|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Trial Hospitals
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ trial_hospitals|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_users|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'accounts:hospital_list' %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-hospital mr-2"></i>
+                                Manage Hospitals
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/admin/" class="btn btn-success btn-block">
+                                <i class="fas fa-cogs mr-2"></i>
+                                Admin Panel
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-info btn-block" onclick="showCreateHospitalModal()">
+                                <i class="fas fa-plus mr-2"></i>
+                                Add Hospital
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'accounts:user_list' %}" class="btn btn-warning btn-block">
+                                <i class="fas fa-users mr-2"></i>
+                                Manage Users
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Hospitals -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Hospitals</h6>
+                    <a href="{% url 'accounts:hospital_list' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_hospitals %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Plan</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for hospital in recent_hospitals %}
+                                    <tr>
+                                        <td>{{ hospital.name }}</td>
+                                        <td><code>{{ hospital.code }}</code></td>
+                                        <td>
+                                            <span class="badge badge-{% if hospital.subscription_plan == 'ENTERPRISE' %}success{% elif hospital.subscription_plan == 'PROFESSIONAL' %}info{% elif hospital.subscription_plan == 'BASIC' %}warning{% else %}secondary{% endif %}">
+                                                {{ hospital.get_subscription_plan_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{% if hospital.subscription_status == 'ACTIVE' %}success{% elif hospital.subscription_status == 'EXPIRED' %}danger{% else %}warning{% endif %}">
+                                                {{ hospital.get_subscription_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ hospital.created_at|naturaltime }}</td>
+                                        <td>
+                                            <a href="{% url 'accounts:hospital_detail' hospital.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No hospitals registered yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">Alerts & Notifications</h6>
+                </div>
+                <div class="card-body">
+                    {% if expiring_soon %}
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Expiring Soon</h6>
+                            <ul class="mb-0">
+                                {% for hospital in expiring_soon %}
+                                <li>{{ hospital.name }} - expires {{ hospital.subscription_end|naturalday }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if expired_hospitals > 0 %}
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-times-circle"></i> Expired Subscriptions</h6>
+                            <p class="mb-0">{{ expired_hospitals }} hospital{{ expired_hospitals|pluralize }} with expired subscriptions.</p>
+                        </div>
+                    {% endif %}
+
+                    {% if trial_hospitals > 0 %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Trial Hospitals</h6>
+                            <p class="mb-0">{{ trial_hospitals }} hospital{{ trial_hospitals|pluralize }} on trial period.</p>
+                        </div>
+                    {% endif %}
+
+                    {% if not expiring_soon and expired_hospitals == 0 and trial_hospitals == 0 %}
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle"></i> All Good!</h6>
+                            <p class="mb-0">No immediate alerts or issues to address.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Hospital Modal -->
+<div class="modal fade" id="createHospitalModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Hospital</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    Use the command line or admin panel to create new hospitals:
+                </p>
+                <pre><code>python manage.py setup_hospital \
+  --name "Hospital Name" \
+  --code "HOS001" \
+  --email "admin@hospital.com" \
+  --phone "+1234567890" \
+  --address "Hospital Address" \
+  --city "City" \
+  --admin-username "admin" \
+  --admin-email "admin@hospital.com" \
+  --admin-password "secure_password" \
+  --admin-first-name "Admin" \
+  --admin-last-name "User"</code></pre>
+                <p class="text-muted mt-3">
+                    Or use the <a href="/admin/accounts/hospital/add/" target="_blank">Admin Panel</a> for a graphical interface.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <a href="/admin/accounts/hospital/add/" class="btn btn-primary" target="_blank">
+                    Open Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showCreateHospitalModal() {
+    $('#createHospitalModal').modal('show');
+}
+</script>
+{% endblock %}

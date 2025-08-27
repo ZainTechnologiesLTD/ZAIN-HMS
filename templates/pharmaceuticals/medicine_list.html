@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Pharmaceutical Bills</h2>
+    <h2 class="mb-4">Pharmacy Sales</h2>
     <table class="table table-bordered table-hover">
         <thead>
             <tr>
@@ -23,7 +23,7 @@
                     <td>{{ bill.total_amount }}</td>
                     <td>{{ bill.created_at|date:"Y-m-d H:i" }}</td>
                     <td>
-                        <a href="{% url 'pharmaceutical:bill_detail' bill.id %}" class="btn btn-info btn-sm">View</a>
+                        <a href="{% url 'pharmacy:bill_detail' bill.id %}" class="btn btn-info btn-sm">View</a>
                     </td>
                 </tr>
             {% empty %}

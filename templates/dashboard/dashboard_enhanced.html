@@ -1,0 +1,674 @@
+<!-- Enhanced Dashboard Template with Real-time Analytics -->
+{% extends 'base_enhanced.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Enhanced Dashboard - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card-enhanced {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card-enhanced:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card-enhanced.primary { border-left-color: #3b82f6; }
+    .stat-card-enhanced.success { border-left-color: #10b981; }
+    .stat-card-enhanced.warning { border-left-color: #f59e0b; }
+    .stat-card-enhanced.danger { border-left-color: #ef4444; }
+    .stat-card-enhanced.info { border-left-color: #06b6d4; }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .stat-icon.primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .stat-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .stat-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .stat-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .stat-icon.info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stat-change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    
+    .stat-change.positive { color: #059669; }
+    .stat-change.negative { color: #dc2626; }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        height: 400px;
+    }
+    
+    .activity-feed {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.2s ease;
+    }
+    
+    .activity-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .real-time-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    
+    .emergency-alert {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border: 1px solid #f87171;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        animation: alertPulse 2s infinite;
+    }
+    
+    @keyframes alertPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .quick-action-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .quick-action-btn:hover {
+        border-color: #3b82f6;
+        background: #f8fafc;
+        color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        text-decoration: none;
+    }
+    
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}
+    {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' %}
+        Hospital Dashboard
+    {% elif user.role == 'DOCTOR' %}
+        Doctor Dashboard
+    {% elif user.role == 'NURSE' %}
+        Nurse Dashboard
+    {% elif user.role == 'RECEPTIONIST' %}
+        Reception Dashboard
+    {% else %}
+        Dashboard
+    {% endif %}
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <button class="btn btn-outline-primary" onclick="refreshDashboard()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickActionsModal">
+        <i class="bi bi-lightning"></i> Quick Actions
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Real-time Status Bar -->
+<div class="dashboard-stats">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h3 class="mb-1">Welcome back, {{ user.first_name|default:user.username }}!</h3>
+            <p class="mb-0 opacity-75">
+                {% now "l, F j, Y" %} - {{ hospital.name|default:"ZAIN HMS" }}
+                <span class="real-time-indicator" title="Live Data"></span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end gap-3">
+                <div class="text-center">
+                    <div class="h4 mb-0" id="currentTime">{% now "H:i" %}</div>
+                    <small class="opacity-75">Current Time</small>
+                </div>
+                <div class="text-center">
+                    <div class="h4 mb-0">{{ user.role|title }}</div>
+                    <small class="opacity-75">Your Role</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Alerts -->
+{% if emergency_active > 0 %}
+<div class="emergency-alert">
+    <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+        <div>
+            <h6 class="mb-1 text-danger">Emergency Alert</h6>
+            <p class="mb-0">{{ emergency_active }} active emergency case{{ emergency_active|pluralize }} require immediate attention.</p>
+        </div>
+        <a href="#" class="btn btn-danger ms-auto">
+            View Emergency Cases
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    {% if user.role in 'ADMIN,SUPERADMIN,RECEPTIONIST' %}
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-person-plus quick-action-icon"></i>
+        <span>New Patient</span>
+    </a>
+    {% endif %}
+    
+    {% if user.role in 'ADMIN,SUPERADMIN,DOCTOR,RECEPTIONIST' %}
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-calendar-plus quick-action-icon"></i>
+        <span>New Appointment</span>
+    </a>
+    {% endif %}
+    
+    {% if user.role in 'ADMIN,SUPERADMIN,BILLING_CLERK,ACCOUNTANT' %}
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-receipt quick-action-icon"></i>
+        <span>Create Bill</span>
+    </a>
+    {% endif %}
+    
+    <a href="#" class="quick-action-btn">
+        <i class="bi bi-graph-up quick-action-icon"></i>
+        <span>View Reports</span>
+    </a>
+</div>
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card-enhanced primary">
+            <div class="stat-icon primary">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-value" id="patients-today">{{ total_patients|default:0 }}</div>
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i>
+                +{{ new_patients_today|default:0 }} today
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card-enhanced success">
+            <div class="stat-icon success">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="stat-value" id="appointments-today">{{ appointments_today|default:0 }}</div>
+            <div class="stat-label">Today's Appointments</div>
+            <div class="stat-change positive">
+                <i class="bi bi-clock"></i>
+                {{ pending_appointments|default:0 }} pending
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card-enhanced warning">
+            <div class="stat-icon warning">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div class="stat-value" id="active-doctors">{{ active_doctors|default:0 }}</div>
+            <div class="stat-label">Active Doctors</div>
+            <div class="stat-change positive">
+                <i class="bi bi-stethoscope"></i>
+                {{ doctors_on_duty|default:0 }} on duty
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card-enhanced danger">
+            <div class="stat-icon danger">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value" id="emergency-active">{{ emergency_active|default:0 }}</div>
+            <div class="stat-label">Emergency Cases</div>
+            <div class="stat-change">
+                <i class="bi bi-activity"></i>
+                Active now
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-xl-8">
+        <!-- Role-specific Dashboard Content -->
+        {% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' %}
+            {% include 'dashboard/admin_dashboard.html' %}
+        {% elif user.role == 'DOCTOR' %}
+            {% include 'dashboard/doctor_dashboard.html' %}
+        {% elif user.role == 'NURSE' %}
+            {% include 'dashboard/nurse_dashboard.html' %}
+        {% elif user.role == 'RECEPTIONIST' %}
+            {% include 'dashboard/receptionist_dashboard.html' %}
+        {% elif user.role in 'ACCOUNTANT,BILLING_CLERK' %}
+            {% include 'dashboard/billing_dashboard.html' %}
+        {% else %}
+            {% include 'dashboard/default_dashboard.html' %}
+        {% endif %}
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-xl-4">
+        <!-- Today's Schedule -->
+        <div class="activity-feed mb-4">
+            <h5 class="mb-3">
+                <i class="bi bi-calendar-day me-2"></i>Today's Schedule
+            </h5>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #06b6d4;">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">9:00 AM - Consultation</div>
+                    <div class="text-muted small">Patient: Maria Garcia</div>
+                    <div class="text-muted small">Dr. Johnson</div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #8b5cf6;">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">11:30 AM - Follow-up</div>
+                    <div class="text-muted small">Patient: Robert Lee</div>
+                    <div class="text-muted small">Dr. Wilson</div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #ef4444;">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">2:00 PM - Emergency</div>
+                    <div class="text-muted small">Urgent consultation required</div>
+                    <div class="text-muted small">Available slot</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Widget -->
+        <div class="p-3 rounded" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white;">
+            <div class="text-center">
+                <h5 class="mb-2">
+                    <i class="bi bi-sun me-2"></i>Today's Weather
+                </h5>
+                <div class="h2 mb-1">25°C</div>
+                <div class="mb-2">Sunny</div>
+                <small class="opacity-75">Perfect day for outdoor activities</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Modal -->
+<div class="modal fade" id="quickActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="#" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                            <i class="bi bi-person-plus fs-2 mb-2"></i>
+                            <span>Register New Patient</span>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <a href="#" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                            <i class="bi bi-calendar-plus fs-2 mb-2"></i>
+                            <span>Schedule Appointment</span>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <a href="#" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                            <i class="bi bi-search fs-2 mb-2"></i>
+                            <span>Search Patient</span>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" onclick="window.print()">
+                            <i class="bi bi-printer fs-2 mb-2"></i>
+                            <span>Print Reports</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Real-time Dashboard Updates
+class RealTimeDashboard {
+    constructor() {
+        this.refreshInterval = 30000; // 30 seconds
+        this.initializeRealTimeUpdates();
+        this.updateClock();
+        this.initializeChart();
+    }
+    
+    initializeRealTimeUpdates() {
+        // Update stats every 30 seconds
+        setInterval(() => {
+            this.updateDashboardStats();
+        }, this.refreshInterval);
+        
+        // Update clock every second
+        setInterval(() => {
+            this.updateClock();
+        }, 1000);
+        
+        // Check for notifications every minute
+        setInterval(() => {
+            this.checkNotifications();
+        }, 60000);
+    }
+    
+    async updateDashboardStats() {
+        try {
+            const response = await fetch('/dashboard/api/stats/');
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Update stat values with animation
+                this.animateStatUpdate('patients-today', data.total_patients || 0);
+                this.animateStatUpdate('appointments-today', data.appointments_today || 0);
+                this.animateStatUpdate('active-doctors', data.active_doctors || 0);
+                this.animateStatUpdate('emergency-active', data.emergency_active || 0);
+                
+                // Show last updated time
+                const lastUpdated = new Date(data.timestamp || Date.now());
+                const indicator = document.querySelector('.real-time-indicator');
+                if (indicator) {
+                    indicator.title = `Last updated: ${lastUpdated.toLocaleTimeString()}`;
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to update dashboard stats:', error);
+        }
+    }
+    
+    animateStatUpdate(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const currentValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+        if (currentValue !== newValue) {
+            // Add pulse animation
+            element.style.animation = 'pulse 0.5s ease-in-out';
+            
+            // Update value
+            element.textContent = newValue.toLocaleString();
+            
+            // Remove animation after completion
+            setTimeout(() => {
+                element.style.animation = '';
+            }, 500);
+        }
+    }
+    
+    updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        
+        const clockElement = document.getElementById('currentTime');
+        if (clockElement) {
+            clockElement.textContent = timeString;
+        }
+    }
+    
+    async checkNotifications() {
+        try {
+            const response = await fetch('/dashboard/api/notifications/');
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.notifications && data.notifications.length > 0) {
+                    this.showNotifications(data.notifications);
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to check notifications:', error);
+        }
+    }
+    
+    showNotifications(notifications) {
+        notifications.forEach(notification => {
+            if (notification.priority === 'high') {
+                this.showToast(notification.message, 'error', 10000);
+            } else {
+                this.showToast(notification.message, 'info', 5000);
+            }
+        });
+    }
+    
+    showToast(message, type, duration) {
+        // Create a simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after duration
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, duration);
+    }
+    
+    initializeChart() {
+        const ctx = document.getElementById('appointmentChart');
+        if (!ctx) return;
+        
+        // Sample data - in real app this would come from the backend
+        const sampleData = {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Appointments',
+                data: [12, 19, 8, 15, 25, 13, 7],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        };
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: sampleData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Initialize real-time dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    window.realTimeDashboard = new RealTimeDashboard();
+});
+
+// Global refresh function
+function refreshDashboard() {
+    if (window.realTimeDashboard) {
+        window.realTimeDashboard.updateDashboardStats();
+        window.realTimeDashboard.checkNotifications();
+    }
+    // Optional: reload the page for full refresh
+    // window.location.reload();
+}
+</script>
+{% endblock %}

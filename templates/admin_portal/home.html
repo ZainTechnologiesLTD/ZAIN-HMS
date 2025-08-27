@@ -1,0 +1,73 @@
+{% extends 'base_enhanced.html' %}
+{% load static %}
+
+{% block title %}Admin Portal - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">Admin Portal</li>
+{% endblock %}
+
+{% block content %}
+<div class="content-inner">
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="bi bi-people"></i></div>
+                <div class="stat-value">{{ total_patients|default:0 }}</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-value">{{ today_appointments|default:0 }}</div>
+                <div class="stat-label">Today's Appointments</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="bi bi-receipt"></i></div>
+                <div class="stat-value">{{ pending_bills|default:0 }}</div>
+                <div class="stat-label">Pending Bills</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="bi bi-ambulance"></i></div>
+                <div class="stat-value">{{ emergency_cases|default:0 }}</div>
+                <div class="stat-label">Emergency Cases</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Quick Admin Links</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                Looking for model management? Use the Django admin at <a class="ms-1" href="/django-admin/">/django-admin/</a>.
+            </div>
+            <div class="row g-3">
+                <div class="col-sm-6 col-lg-3">
+                    <a class="btn btn-outline-primary w-100" href="/patients/">Manage Patients</a>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <a class="btn btn-outline-primary w-100" href="/appointments/">Manage Appointments</a>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <a class="btn btn-outline-primary w-100" href="/billing/">Billing</a>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <a class="btn btn-outline-primary w-100" href="/reports/">Reports</a>
+                </div>
+            </div>
+                            <div class="quick-links">
+                                <a class="btn" href="/admin/users/">Users</a>
+                                <a class="btn" href="/django-admin/">Django Admin</a>
+                            </div>
+                    </div>
+    </div>
+</div>
+{% endblock %}

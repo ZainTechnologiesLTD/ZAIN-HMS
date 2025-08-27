@@ -1,0 +1,789 @@
+<!-- templates/emr/ai_clinical_dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Clinical Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ai_dashboard.css' %}">
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+<style>
+    .ai-clinical-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .dashboard-header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    .ai-metric-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .ai-metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .ai-metric-card.critical {
+        border-left-color: #f44336;
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+    
+    .ai-metric-card.warning {
+        border-left-color: #ff9800;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+    
+    .ai-metric-card.info {
+        border-left-color: #2196F3;
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .alert-item {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 4px solid #e74c3c;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .alert-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .alert-severity-critical {
+        border-left-color: #e74c3c;
+        background: linear-gradient(90deg, rgba(231, 76, 60, 0.05) 0%, white 100%);
+    }
+    
+    .alert-severity-high {
+        border-left-color: #f39c12;
+        background: linear-gradient(90deg, rgba(243, 156, 18, 0.05) 0%, white 100%);
+    }
+    
+    .alert-severity-medium {
+        border-left-color: #f1c40f;
+        background: linear-gradient(90deg, rgba(241, 196, 15, 0.05) 0%, white 100%);
+    }
+    
+    .recommendation-item {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 4px solid #3498db;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .recommendation-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .patient-risk-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #e74c3c;
+    }
+    
+    .risk-score {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .risk-high { color: #e74c3c; }
+    .risk-medium { color: #f39c12; }
+    .risk-low { color: #27ae60; }
+    
+    .ai-performance-chart {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #3498db;
+    }
+    
+    .ai-status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    
+    .ai-online { background-color: #27ae60; }
+    .ai-offline { background-color: #e74c3c; }
+    
+    .real-time-update {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .btn-ai-action {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 16px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-ai-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-clinical-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-brain text-primary me-3"></i>
+                    AI Clinical Dashboard
+                </h1>
+                <p class="text-muted mb-0">
+                    <span class="ai-status-indicator ai-online"></span>
+                    AI Systems Online • Real-time Clinical Intelligence
+                    <span class="badge bg-success ms-2 real-time-update">Live</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-ai-action">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                    <button class="btn btn-ai-action">
+                        <i class="fas fa-cog me-1"></i> Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- AI Performance Metrics -->
+        <div class="col-lg-8">
+            <div class="row">
+                <!-- Key Metrics Cards -->
+                <div class="col-md-3">
+                    <div class="ai-metric-card critical">
+                        <div class="metric-value">{{ clinical_metrics.critical_alerts_week|default:0 }}</div>
+                        <div class="metric-label">Critical Alerts</div>
+                        <small class="text-muted">This week</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="ai-metric-card warning">
+                        <div class="metric-value">{{ clinical_metrics.total_alerts_week|default:0 }}</div>
+                        <div class="metric-label">Total Alerts</div>
+                        <small class="text-muted">7 days</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="ai-metric-card info">
+                        <div class="metric-value">{{ clinical_metrics.implementation_rate|default:0 }}%</div>
+                        <div class="metric-label">AI Adoption</div>
+                        <small class="text-muted">Recommendations</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="ai-metric-card">
+                        <div class="metric-value">{{ ai_performance.diagnostic_accuracy|default:0 }}%</div>
+                        <div class="metric-label">AI Accuracy</div>
+                        <small class="text-muted">Diagnostics</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Performance Chart -->
+            <div class="ai-performance-chart">
+                <h5 class="section-title">
+                    <i class="fas fa-chart-line me-2"></i>AI System Performance
+                </h5>
+                <canvas id="aiPerformanceChart" height="300"></canvas>
+            </div>
+
+            <!-- Recent Alerts -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="section-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Active Clinical Alerts
+                        <span class="badge bg-danger ms-2">{{ active_alerts|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for alert in active_alerts %}
+                    <div class="alert-item alert-severity-{{ alert.severity|lower }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-{{ alert.alert_type|default:'bell' }} me-2"></i>
+                                    {{ alert.title }}
+                                </h6>
+                                <p class="mb-1 text-muted">{{ alert.description|truncatechars:100 }}</p>
+                                <small class="text-muted">
+                                    Patient: <strong>{{ alert.patient.get_full_name }}</strong> • 
+                                    {{ alert.created_at|timesince }} ago •
+                                    <span class="badge bg-{{ alert.severity|lower }}">{{ alert.get_severity_display }}</span>
+                                </small>
+                            </div>
+                            <div class="ms-3">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="viewAlert({{ alert.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" 
+                                        onclick="acknowledgeAlert({{ alert.id }})">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                        <p>No active clinical alerts. All systems normal.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if active_alerts %}
+                    <div class="p-3 border-top">
+                        <a href="{% url 'emr:ai_clinical_alerts' %}" class="btn btn-ai-action btn-sm">
+                            View All Alerts <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with Recommendations & High-Risk Patients -->
+        <div class="col-lg-4">
+            <!-- AI Recommendations -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="section-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        AI Recommendations
+                        <span class="badge bg-primary ms-2">{{ pending_recommendations|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for recommendation in pending_recommendations %}
+                    <div class="recommendation-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ recommendation.recommendation_type|title }}</h6>
+                                <p class="mb-1 text-muted small">{{ recommendation.recommendation_text|truncatechars:80 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        {{ recommendation.patient.get_full_name }}
+                                    </small>
+                                    <div>
+                                        <span class="badge bg-info">{{ recommendation.confidence_score }}% confident</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-success me-1" 
+                                    onclick="implementRecommendation({{ recommendation.id }})">
+                                <i class="fas fa-check-circle me-1"></i>Implement
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" 
+                                    onclick="viewRecommendation({{ recommendation.id }})">
+                                <i class="fas fa-eye me-1"></i>Details
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                        <p class="mb-0">No pending recommendations</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if pending_recommendations %}
+                    <div class="p-3 border-top">
+                        <a href="{% url 'emr:ai_clinical_decisions' %}" class="btn btn-ai-action btn-sm w-100">
+                            View All Recommendations
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- High-Risk Patients -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="section-title mb-0">
+                        <i class="fas fa-user-injured me-2"></i>
+                        High-Risk Patients
+                        <span class="badge bg-warning ms-2">{{ high_risk_patients|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for patient_data in high_risk_patients %}
+                    <div class="patient-risk-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ patient_data.patient.get_full_name }}</h6>
+                                <div class="risk-score risk-{{ patient_data.overall_risk.risk_level|lower }}">
+                                    Risk Score: {{ patient_data.risk_score }}/100
+                                </div>
+                                <div class="mb-2">
+                                    <span class="badge bg-{{ patient_data.overall_risk.risk_level|lower }}">
+                                        {{ patient_data.overall_risk.risk_level }} Risk
+                                    </span>
+                                    <span class="badge bg-secondary ms-1">
+                                        {{ patient_data.alert_count }} alert{{ patient_data.alert_count|pluralize }}
+                                    </span>
+                                </div>
+                                <div class="risk-factors">
+                                    {% for factor in patient_data.overall_risk.risk_factors %}
+                                    <small class="text-muted d-block">• {{ factor }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-primary me-1" 
+                                    onclick="viewPatientAnalysis({{ patient_data.patient.id }})">
+                                <i class="fas fa-analytics me-1"></i>AI Analysis
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" 
+                                    onclick="viewPatientRecord({{ patient_data.patient.id }})">
+                                <i class="fas fa-file-medical me-1"></i>Record
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-shield-alt fa-2x mb-2 text-success"></i>
+                        <p class="mb-0">No high-risk patients identified</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Bar -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-bolt me-2"></i>AI Quick Actions
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-ai-action w-100 mb-2" onclick="runVitalSignsAnalysis()">
+                                <i class="fas fa-heartbeat me-2"></i>
+                                Analyze Vital Signs
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-ai-action w-100 mb-2" onclick="checkDrugInteractions()">
+                                <i class="fas fa-pills me-2"></i>
+                                Check Drug Interactions
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-ai-action w-100 mb-2" onclick="analyzeLabResults()">
+                                <i class="fas fa-vial me-2"></i>
+                                Analyze Lab Results
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-ai-action w-100 mb-2" onclick="generateTreatmentPlan()">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                Generate Treatment Plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Action Modal -->
+<div class="modal fade" id="alertActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Clinical Alert Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="alertDetails"></div>
+                <div class="mt-3">
+                    <label for="alertNotes" class="form-label">Notes:</label>
+                    <textarea class="form-control" id="alertNotes" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="processAlertAction('acknowledge')">
+                    Acknowledge
+                </button>
+                <button type="button" class="btn btn-primary" onclick="processAlertAction('resolve')">
+                    Resolve
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendation Action Modal -->
+<div class="modal fade" id="recommendationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">AI Recommendation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recommendationDetails"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" onclick="implementRecommendationFromModal()">
+                    Implement Recommendation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Global variables
+let currentAlertId = null;
+let currentRecommendationId = null;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAIPerformanceChart();
+    setupRealTimeUpdates();
+});
+
+// Initialize AI Performance Chart
+function initializeAIPerformanceChart() {
+    const ctx = document.getElementById('aiPerformanceChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Diagnostic Accuracy',
+                data: [87, 89, 91, 85, 88, 92, 87],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Alert Precision',
+                data: [89, 91, 88, 93, 90, 89, 92],
+                borderColor: '#764ba2',
+                backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'AI System Performance (Last 7 Days)'
+                }
+            }
+        }
+    });
+}
+
+// Alert Management Functions
+function viewAlert(alertId) {
+    currentAlertId = alertId;
+    
+    // Fetch alert details
+    fetch(`/emr/api/alert/${alertId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('alertDetails').innerHTML = `
+                <h6>${data.title}</h6>
+                <p><strong>Patient:</strong> ${data.patient_name}</p>
+                <p><strong>Severity:</strong> <span class="badge bg-${data.severity.toLowerCase()}">${data.severity}</span></p>
+                <p><strong>Description:</strong> ${data.description}</p>
+                <p><strong>Created:</strong> ${data.created_at}</p>
+            `;
+            
+            new bootstrap.Modal(document.getElementById('alertActionModal')).show();
+        })
+        .catch(error => {
+            console.error('Error fetching alert details:', error);
+            showToast('Error loading alert details', 'error');
+        });
+}
+
+function acknowledgeAlert(alertId) {
+    if (confirm('Acknowledge this alert?')) {
+        processAlertAction('acknowledge', alertId);
+    }
+}
+
+function processAlertAction(action, alertId = null) {
+    const id = alertId || currentAlertId;
+    const notes = document.getElementById('alertNotes')?.value || '';
+    
+    fetch(`/emr/alerts/${id}/action/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `action=${action}&notes=${encodeURIComponent(notes)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Alert ${action}d successfully`, 'success');
+            location.reload(); // Refresh to update UI
+        } else {
+            showToast(data.error || 'Action failed', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error processing alert action:', error);
+        showToast('Error processing action', 'error');
+    });
+    
+    // Close modal if open
+    const modal = bootstrap.Modal.getInstance(document.getElementById('alertActionModal'));
+    if (modal) modal.hide();
+}
+
+// Recommendation Management Functions
+function viewRecommendation(recommendationId) {
+    currentRecommendationId = recommendationId;
+    
+    // Fetch recommendation details
+    fetch(`/emr/api/recommendation/${recommendationId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('recommendationDetails').innerHTML = `
+                <h6>${data.recommendation_type}</h6>
+                <p><strong>Patient:</strong> ${data.patient_name}</p>
+                <p><strong>Confidence:</strong> ${data.confidence_score}%</p>
+                <div class="alert alert-info">
+                    <strong>Recommendation:</strong><br>
+                    ${data.recommendation_text}
+                </div>
+                <p><strong>Supporting Evidence:</strong></p>
+                <ul>
+                    ${data.supporting_evidence.map(evidence => `<li>${evidence}</li>`).join('')}
+                </ul>
+            `;
+            
+            new bootstrap.Modal(document.getElementById('recommendationModal')).show();
+        })
+        .catch(error => {
+            console.error('Error fetching recommendation details:', error);
+            showToast('Error loading recommendation details', 'error');
+        });
+}
+
+function implementRecommendation(recommendationId) {
+    if (confirm('Implement this AI recommendation?')) {
+        fetch(`/emr/clinical-decisions/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `recommendation_id=${recommendationId}&action=implement`
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('Recommendation implemented successfully', 'success');
+                location.reload();
+            } else {
+                showToast('Failed to implement recommendation', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error implementing recommendation:', error);
+            showToast('Error implementing recommendation', 'error');
+        });
+    }
+}
+
+function implementRecommendationFromModal() {
+    implementRecommendation(currentRecommendationId);
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('recommendationModal'));
+    if (modal) modal.hide();
+}
+
+// Patient Analysis Functions
+function viewPatientAnalysis(patientId) {
+    window.location.href = `/emr/ai/patient-analysis/${patientId}/`;
+}
+
+function viewPatientRecord(patientId) {
+    window.location.href = `/patients/${patientId}/`;
+}
+
+// Quick Action Functions
+function runVitalSignsAnalysis() {
+    window.location.href = '/emr/ai/vital-signs-analysis/';
+}
+
+function checkDrugInteractions() {
+    window.location.href = '/emr/ai/drug-interactions/';
+}
+
+function analyzeLabResults() {
+    window.location.href = '/emr/ai/lab-analysis/';
+}
+
+function generateTreatmentPlan() {
+    window.location.href = '/emr/ai/treatment-plan/';
+}
+
+// Real-time Updates
+function setupRealTimeUpdates() {
+    // Refresh dashboard data every 30 seconds
+    setInterval(function() {
+        fetch(window.location.href, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Update specific sections without full page reload
+            // This would require more sophisticated partial update logic
+        })
+        .catch(error => {
+            console.error('Error updating dashboard:', error);
+        });
+    }, 30000);
+}
+
+// Utility Functions
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showToast(message, type = 'info') {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

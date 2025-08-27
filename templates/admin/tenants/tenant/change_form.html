@@ -1,0 +1,119 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .hospital-creation-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .hospital-creation-info h3 {
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .hospital-creation-info h3 i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .module-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .database-status {
+            background: #e8f5e8;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .database-actions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block after_field_sets %}
+    {{ block.super }}
+    
+    {% if not original %}
+        <!-- Show for new hospitals -->
+        <div class="hospital-creation-info">
+            <h3>🏥 Automatic Database Setup</h3>
+            <p>When you save this hospital, the system will automatically:</p>
+            <ul>
+                <li><strong>Create a dedicated database</strong> for complete data isolation</li>
+                <li><strong>Migrate all necessary modules</strong> to make the hospital fully functional</li>
+                <li><strong>Configure database routing</strong> for seamless multi-tenant operation</li>
+                <li><strong>Set up the admin user</strong> with proper permissions</li>
+            </ul>
+            
+            <h4 style="margin-top: 20px;">📋 Modules That Will Be Available:</h4>
+            <div class="modules-grid">
+                <div class="module-item">👥 Patient Management</div>
+                <div class="module-item">📅 Appointments</div>
+                <div class="module-item">👨‍⚕️ Doctor Management</div>
+                <div class="module-item">👩‍⚕️ Nurse Management</div>
+                <div class="module-item">💰 Billing & Invoicing</div>
+                <div class="module-item">🧪 Laboratory</div>
+                <div class="module-item">🚑 Emergency Care</div>
+                <div class="module-item">📦 Inventory</div>
+                <div class="module-item">📊 Analytics</div>
+                <div class="module-item">👔 Human Resources</div>
+                <div class="module-item">🔧 Surgery Management</div>
+                <div class="module-item">💻 Telemedicine</div>
+                <div class="module-item">🏨 Room Management</div>
+                <div class="module-item">🏥 OPD/IPD</div>
+                <div class="module-item">📢 Notifications</div>
+                <div class="module-item">📞 Contact Management</div>
+            </div>
+            
+            <p style="margin-top: 20px; font-weight: bold;">
+                💡 After saving, you'll receive a confirmation message with a direct link to the hospital dashboard.
+            </p>
+        </div>
+    {% else %}
+        <!-- Show for existing hospitals -->
+        <div class="database-status">
+            <h3 style="color: #155724; margin: 0 0 10px 0;">📊 Hospital Database Status</h3>
+            <p><strong>Database Name:</strong> hospital_{{ original.subdomain }}</p>
+            <p><strong>Hospital URL:</strong> 
+                <a href="http://{{ original.subdomain }}.localhost:8000/" target="_blank">
+                    http://{{ original.subdomain }}.localhost:8000/
+                </a>
+            </p>
+            
+            {% if original.admin %}
+                <p><strong>Administrator:</strong> {{ original.admin.get_full_name|default:original.admin.username }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="database-actions">
+            <h3 style="color: #856404; margin: 0 0 10px 0;">🔧 Database Management Actions</h3>
+            <p>If you're experiencing database issues, you can use these admin actions from the hospital list:</p>
+            <ul>
+                <li><strong>Create Database:</strong> Create a new database if it doesn't exist</li>
+                <li><strong>Verify Database:</strong> Check database status and table count</li>
+                <li><strong>Recreate Database:</strong> Delete and recreate the database (⚠️ destroys all data)</li>
+            </ul>
+            <p><em>Go to the hospital list and select this hospital to use these actions.</em></p>
+        </div>
+    {% endif %}
+{% endblock %}

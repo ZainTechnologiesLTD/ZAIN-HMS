@@ -104,7 +104,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Recent Appointments</h5>
-                <a href="{% url 'appointments:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -134,7 +134,7 @@
                                     </div>
                                 </td>
                                 <td>Dr. {{ appointment.doctor.get_full_name }}</td>
-                                <td>{{ appointment.time|time:"g:i A" }}</td>
+                                <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
                                 <td>
                                     <span class="badge bg-{{ appointment.get_status_color }}">
                                         {{ appointment.get_status_display }}
@@ -196,7 +196,7 @@
                                         <a href="{% url 'patients:detail' patient.id %}" class="btn btn-outline-primary">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{% url 'appointments:create' %}?patient={{ patient.id }}" class="btn btn-outline-success">
+                                        <a href="{% url 'appointments:appointment_create' %}?patient={{ patient.id }}" class="btn btn-outline-success">
                                             <i class="bi bi-calendar-plus"></i>
                                         </a>
                                     </div>
@@ -228,16 +228,16 @@
                     <a href="{% url 'patients:create' %}" class="btn btn-outline-primary">
                         <i class="bi bi-person-plus me-2"></i> Register New Patient
                     </a>
-                    <a href="{% url 'appointments:create' %}" class="btn btn-outline-success">
+                    <a href="{% url 'appointments:appointment_create' %}" class="btn btn-outline-success">
                         <i class="bi bi-calendar-plus me-2"></i> Schedule Appointment
                     </a>
-                    <a href="{% url 'emergency:create' %}" class="btn btn-outline-danger">
+                    <a href="{% url 'emergency:case_create' %}" class="btn btn-outline-danger">
                         <i class="bi bi-ambulance me-2"></i> Register Emergency Case
                     </a>
                     <a href="{% url 'billing:create' %}" class="btn btn-outline-warning">
                         <i class="bi bi-receipt me-2"></i> Create Bill
                     </a>
-                    <a href="{% url 'laboratory:create' %}" class="btn btn-outline-info">
+                    <a href="{% url 'laboratory:lab_order_create' %}" class="btn btn-outline-info">
                         <i class="bi bi-flask me-2"></i> Request Lab Test
                     </a>
                 </div>

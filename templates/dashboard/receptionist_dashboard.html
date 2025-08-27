@@ -1,0 +1,188 @@
+<!-- Receptionist Dashboard Content -->
+<div class="row g-4">
+    <!-- Today's Appointments -->
+    <div class="col-lg-8">
+        <div class="activity-feed">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-day me-2"></i>Appointment Management
+                </h5>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-primary">{{ total_appointments|default:0 }} Total</span>
+                    <span class="badge bg-success">{{ confirmed_appointments|default:0 }} Confirmed</span>
+                    <span class="badge bg-warning">{{ pending_appointments|default:0 }} Pending</span>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #3b82f6;">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Maria Garcia - 9:00 AM</div>
+                            <div class="text-muted small">Dr. Johnson - General Consultation</div>
+                            <div class="text-muted small">Phone: (555) 123-4567</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success">Check In</button>
+                            <button class="btn btn-sm btn-outline-primary">Reschedule</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #f59e0b;">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Robert Lee - 10:30 AM</div>
+                            <div class="text-muted small">Dr. Wilson - Follow-up</div>
+                            <div class="text-warning small">Waiting for confirmation</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-warning">Call Patient</button>
+                            <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #10b981;">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Sarah Johnson - 11:15 AM</div>
+                            <div class="text-muted small">Dr. Smith - Specialist Consultation</div>
+                            <div class="text-success small">Checked In</div>
+                        </div>
+                        <span class="badge bg-success">In Progress</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reception Tasks -->
+    <div class="col-lg-4">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="p-3 bg-primary text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ walk_ins|default:0 }}</div>
+                            <small>Walk-in Patients</small>
+                        </div>
+                        <i class="bi bi-person-walking fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-warning text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ waiting_patients|default:0 }}</div>
+                            <small>Waiting Patients</small>
+                        </div>
+                        <i class="bi bi-hourglass-split fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-info text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ calls_today|default:0 }}</div>
+                            <small>Calls Handled</small>
+                        </div>
+                        <i class="bi bi-telephone fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-12">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-lightning me-2"></i>Quick Actions
+            </h5>
+            
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a href="#" class="quick-action-btn">
+                        <i class="bi bi-person-plus quick-action-icon text-primary"></i>
+                        <span>Register Patient</span>
+                    </a>
+                </div>
+                
+                <div class="col-md-3">
+                    <a href="#" class="quick-action-btn">
+                        <i class="bi bi-calendar-plus quick-action-icon text-success"></i>
+                        <span>Book Appointment</span>
+                    </a>
+                </div>
+                
+                <div class="col-md-3">
+                    <a href="#" class="quick-action-btn">
+                        <i class="bi bi-search quick-action-icon text-info"></i>
+                        <span>Search Patient</span>
+                    </a>
+                </div>
+                
+                <div class="col-md-3">
+                    <a href="#" class="quick-action-btn">
+                        <i class="bi bi-receipt quick-action-icon text-warning"></i>
+                        <span>Generate Bill</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Registrations -->
+    <div class="col-12">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-person-plus-fill me-2"></i>Recent Registrations
+            </h5>
+            
+            <div class="row">
+                {% for patient in recent_registrations %}
+                <div class="col-md-4 mb-3">
+                    <div class="border rounded p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="fw-medium">{{ patient.get_full_name|default:"New Patient" }}</div>
+                                <div class="text-muted small">{{ patient.phone|default:"No phone" }}</div>
+                            </div>
+                            <span class="badge bg-primary">New</span>
+                        </div>
+                        <div class="text-muted small mb-2">
+                            Registered: {{ patient.created_at|timesince|default:"Just now" }} ago
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary w-100">View Details</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-person-x fs-2"></i>
+                        <p class="mb-0">No recent registrations today</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

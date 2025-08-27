@@ -1,12 +1,28 @@
 # apps/core/urls.py
 from django.urls import path
 from . import views
+from .qr_views import QRScannerView, QRSearchView
+from .barcode_views import BarcodeScannerView, barcode_search, manual_search, generate_barcode
+from .admin_views import admin_logout_view
 
 app_name = 'core'
 
 urlpatterns = [
+    # Admin Logout (for proper admin interface logout redirect)
+    path('admin-logout/', admin_logout_view, name='admin_logout'),
+    
     # Dashboard
-    path('', views.DashboardView.as_view(), name='dashboard'),
+    path('', views.DashboardView.as_view(), name='home'),
+    
+    # QR Code Scanner (legacy)
+    path('qr-scanner/', QRScannerView.as_view(), name='qr_scanner'),
+    path('qr-search/', QRSearchView.as_view(), name='qr_search'),
+    
+    # Barcode Scanner (new hospital standard)
+    path('barcode-scanner/', BarcodeScannerView.as_view(), name='barcode_scanner'),
+    path('barcode-search/', barcode_search, name='barcode_search'),
+    path('generate-barcode/', generate_barcode, name='generate_barcode'),
+    path('manual-search/', manual_search, name='manual_search'),
     
     # Notifications
     path('notifications/', views.NotificationListView.as_view(), name='notifications'),

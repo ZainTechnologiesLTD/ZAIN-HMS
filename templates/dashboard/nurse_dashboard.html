@@ -1,0 +1,154 @@
+<!-- Nurse Dashboard Content -->
+<div class="row g-4">
+    <!-- Patient Care Tasks -->
+    <div class="col-lg-8">
+        <div class="activity-feed">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-clipboard-heart me-2"></i>Patient Care Tasks
+                </h5>
+                <span class="badge bg-primary">{{ pending_tasks.count|default:0 }} pending</span>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #ef4444;">
+                    <i class="bi bi-thermometer"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Vital Signs Check</div>
+                            <div class="text-muted small">Room 101 - Maria Rodriguez</div>
+                            <div class="text-danger small">Due: 10:00 AM</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary">Complete</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #f59e0b;">
+                    <i class="bi bi-capsule"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Medication Administration</div>
+                            <div class="text-muted small">Room 205 - John Smith</div>
+                            <div class="text-warning small">Due: 11:30 AM</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary">Administer</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #10b981;">
+                    <i class="bi bi-bandaid"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Wound Dressing</div>
+                            <div class="text-muted small">Room 302 - Sarah Johnson</div>
+                            <div class="text-success small">Completed</div>
+                        </div>
+                        <i class="bi bi-check-circle text-success"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #3b82f6;">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">Patient Monitoring</div>
+                            <div class="text-muted small">ICU - Critical patients</div>
+                            <div class="text-info small">Ongoing</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary">Monitor</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-lg-4">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="p-3 bg-primary text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ assigned_patients|default:0 }}</div>
+                            <small>Assigned Patients</small>
+                        </div>
+                        <i class="bi bi-person-heart fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-warning text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ pending_medications|default:0 }}</div>
+                            <small>Pending Medications</small>
+                        </div>
+                        <i class="bi bi-capsule fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-success text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ completed_tasks|default:0 }}</div>
+                            <small>Tasks Completed</small>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Alerts -->
+    <div class="col-12">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-exclamation-triangle me-2"></i>Patient Alerts
+            </h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="border rounded p-3 border-danger">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-exclamation-triangle text-danger"></i>
+                            <span class="fw-medium text-danger">Critical Alert</span>
+                        </div>
+                        <div class="fw-medium">Room 105 - Emergency</div>
+                        <div class="text-muted small">Patient requires immediate attention</div>
+                        <button class="btn btn-sm btn-danger mt-2">Respond</button>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="border rounded p-3 border-warning">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-clock text-warning"></i>
+                            <span class="fw-medium text-warning">Reminder</span>
+                        </div>
+                        <div class="fw-medium">Room 203 - Medication Due</div>
+                        <div class="text-muted small">Next dose in 15 minutes</div>
+                        <button class="btn btn-sm btn-warning mt-2">Acknowledge</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

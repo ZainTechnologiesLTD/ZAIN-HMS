@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}Patient List{% endblock %}
 
@@ -8,7 +8,7 @@
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Patient List</h5>
-                <a href="{% url 'patients:patient_create' %}" class="btn btn-primary">
+                <a href="{% url 'patients:create' %}" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Add New Patient
                 </a>
             </div>
@@ -26,7 +26,7 @@
                                 <i class="bi bi-search"></i> Search
                             </button>
                             {% if request.GET.q %}
-                                <a href="{% url 'patients:patient_list' %}" class="btn btn-outline-secondary">
+                                <a href="{% url 'patients:list' %}" class="btn btn-outline-secondary">
                                     <i class="bi bi-x-circle"></i> Clear
                                 </a>
                             {% endif %}
@@ -54,37 +54,36 @@
                         <tr>
                             <td>{{ patient.patient_id }}</td>
                             <td>
-                                {% if patient.image %}
-                                    <img src="{{ patient.image.url }}" class="rounded-circle me-2" width="30" height="30">
+                                {% if patient.profile_picture %}
+                                    <img src="{{ patient.profile_picture.url }}" class="rounded-circle me-2" width="30" height="30">
                                 {% endif %}
                                 {{ patient.first_name }} {{ patient.last_name }}
                             </td>
-                            <td>{{ patient.age }}</td>
+                            <td>{{ patient.get_age }}</td>
                             <td>{{ patient.get_gender_display }}</td>
                             <td>
-                                <div>{{ patient.phone_number }}</div>
+                                <div>{{ patient.phone }}</div>
                                 <small class="text-muted">{{ patient.email }}</small>
                             </td>
-                            <td>{{ patient.blood_type|default:"-" }}</td>
+                            <td>{{ patient.blood_group|default:"-" }}</td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{% url 'patients:patient_detail' patient.id %}" 
+                                    <a href="{% url 'patients:detail' patient.id %}" 
                                        class="btn btn-sm btn-outline-primary" 
                                        title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{% url 'patients:patient_update' patient.id %}" 
+                                    <a href="{% url 'patients:update' patient.id %}" 
                                        class="btn btn-sm btn-outline-success" 
                                        title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <button class="btn btn-sm btn-outline-danger" 
-                                            title="Delete"
-                                            hx-get="{% url 'patients:patient_delete_modal' patient.id %}"
-                                            hx-target="#deleteModal"
-                                            hx-trigger="click">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    <a href="{% url 'patients:delete' patient.id %}" 
+                                       class="btn btn-sm btn-outline-warning" 
+                                       title="Deactivate Patient"
+                                       onclick="return confirm('Are you sure you want to deactivate this patient? This will hide them from active lists but preserve all medical records.')">
+                                        <i class="bi bi-person-dash"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

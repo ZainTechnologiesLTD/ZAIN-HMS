@@ -1,0 +1,516 @@
+<!-- Unified Dashboard Template - Best of all dashboards -->
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} - ZAIN HMS{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_subtitle %}
+    {% if user.role == 'SUPERADMIN' %}
+        {% trans "System Administrator Dashboard" %}
+    {% elif user.role == 'ADMIN' %}
+        {% trans "Hospital Administrator Dashboard" %}
+    {% elif user.role == 'DOCTOR' %}
+        {% trans "Doctor Dashboard" %}
+    {% elif user.role == 'NURSE' %}
+        {% trans "Nurse Dashboard" %}
+    {% elif user.role == 'RECEPTIONIST' %}
+        {% trans "Reception Dashboard" %}
+    {% else %}
+        {% trans "Welcome to ZAIN HMS" %}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card-unified {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid;
+        position: relative;
+        height: 100%;
+    }
+    
+    .stat-card-unified:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card-unified.primary { border-left-color: #3b82f6; }
+    .stat-card-unified.success { border-left-color: #10b981; }
+    .stat-card-unified.warning { border-left-color: #f59e0b; }
+    .stat-card-unified.danger { border-left-color: #ef4444; }
+    .stat-card-unified.info { border-left-color: #06b6d4; }
+    
+    .stat-icon-unified {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .stat-icon-unified.primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .stat-icon-unified.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .stat-icon-unified.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .stat-icon-unified.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .stat-icon-unified.info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stat-change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    
+    .stat-change.positive { color: #059669; }
+    .stat-change.negative { color: #dc2626; }
+    
+    .quick-actions {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .activity-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1rem;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Hero Section -->
+<div class="dashboard-hero">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-2">{% trans "Welcome back" %}, {{ user.get_full_name|default:user.username }}!</h1>
+            <p class="mb-0 opacity-75">
+                {% if hospital %}
+                    {% trans "Managing" %} {{ hospital.name }}
+                {% else %}
+                    {% trans "ZAIN Hospital Management System" %}
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end align-items-center">
+                <i class="bi bi-calendar me-2"></i>
+                <span>{{ today|date:"l, F j, Y" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role-based Statistics -->
+{% if user.role in 'ADMIN,SUPERADMIN' or user.is_superuser %}
+    <!-- Admin/SuperAdmin Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified primary">
+                <div class="stat-icon-unified primary">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">{{ total_patients|default:0|intcomma }}</div>
+                <div class="stat-label">{% trans "Total Patients" %}</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i> +{{ new_patients_today|default:0 }} {% trans "today" %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified success">
+                <div class="stat-icon-unified success">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ today_appointments|default:0 }}</div>
+                <div class="stat-label">{% trans "Today's Appointments" %}</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i> {{ pending_appointments|default:0 }} {% trans "pending" %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified info">
+                <div class="stat-icon-unified info">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="stat-value">{{ total_staff|default:0 }}</div>
+                <div class="stat-label">{% trans "Staff Members" %}</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-people"></i> {{ total_doctors|default:0 }} {% trans "doctors" %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified warning">
+                <div class="stat-icon-unified warning">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-value">${{ revenue_today|default:0|floatformat:0 }}</div>
+                <div class="stat-label">{% trans "Today's Revenue" %}</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-graph-up"></i> ${{ revenue_month|default:0|floatformat:0 }} {% trans "this month" %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'DOCTOR' %}
+    <!-- Doctor Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified primary">
+                <div class="stat-icon-unified primary">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ my_appointments_today|default:0 }}</div>
+                <div class="stat-label">{% trans "My Appointments Today" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified success">
+                <div class="stat-icon-unified success">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">{{ my_patients|default:0 }}</div>
+                <div class="stat-label">{% trans "My Patients" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified info">
+                <div class="stat-icon-unified info">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-value">{{ my_pending_appointments|default:0 }}</div>
+                <div class="stat-label">{% trans "Pending Appointments" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-unified success">
+                <div class="stat-icon-unified success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-value">{{ my_completed_appointments|default:0 }}</div>
+                <div class="stat-label">{% trans "Completed Today" %}</div>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'NURSE' %}
+    <!-- Nurse Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="stat-card-unified primary">
+                <div class="stat-icon-unified primary">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">{{ patients_assigned|default:0 }}</div>
+                <div class="stat-label">{% trans "Assigned Patients" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="stat-card-unified danger">
+                <div class="stat-icon-unified danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-value">{{ emergency_cases|default:0 }}</div>
+                <div class="stat-label">{% trans "Emergency Cases" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="stat-card-unified info">
+                <div class="stat-icon-unified info">
+                    <i class="bi bi-clipboard-pulse"></i>
+                </div>
+                <div class="stat-value">{{ vitals_recorded|default:0 }}</div>
+                <div class="stat-label">{% trans "Vitals Recorded Today" %}</div>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'RECEPTIONIST' %}
+    <!-- Receptionist Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="stat-card-unified primary">
+                <div class="stat-icon-unified primary">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value">{{ appointments_today|default:0 }}</div>
+                <div class="stat-label">{% trans "Appointments Today" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="stat-card-unified success">
+                <div class="stat-icon-unified success">
+                    <i class="bi bi-person-plus"></i>
+                </div>
+                <div class="stat-value">{{ new_registrations|default:0 }}</div>
+                <div class="stat-label">{% trans "New Registrations" %}</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="stat-card-unified warning">
+                <div class="stat-icon-unified warning">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-value">{{ waiting_patients|default:0 }}</div>
+                <div class="stat-label">{% trans "Waiting Patients" %}</div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Quick Actions Section -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="quick-actions">
+            <h5 class="mb-3">
+                <i class="bi bi-lightning me-2"></i>{% trans "Quick Actions" %}
+            </h5>
+            <div class="row g-3">
+                {% if user.role in 'ADMIN,SUPERADMIN,RECEPTIONIST,HOSPITAL_ADMIN' %}
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'patients:create' %}" class="btn btn-outline-primary w-100 p-3 text-center">
+                        <i class="bi bi-person-plus d-block mb-1 fs-4"></i>
+                        <small>{% trans "Add Patient" %}</small>
+                    </a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'appointments:appointment_create' %}" class="btn btn-outline-success w-100 p-3 text-center">
+                        <i class="bi bi-calendar-plus d-block mb-1 fs-4"></i>
+                        <small>{% trans "Book Appointment" %}</small>
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if user.role in 'ADMIN,SUPERADMIN,HOSPITAL_ADMIN' %}
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'doctors:doctor_create' %}" class="btn btn-outline-success w-100 p-3 text-center">
+                        <i class="fas fa-user-md d-block mb-1 fs-4"></i>
+                        <small>{% trans "Add Doctor" %}</small>
+                    </a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'nurses:nurse_create' %}" class="btn btn-outline-info w-100 p-3 text-center">
+                        <i class="fas fa-user-nurse d-block mb-1 fs-4"></i>
+                        <small>{% trans "Add Nurse" %}</small>
+                    </a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'staff:staff_create' %}" class="btn btn-outline-secondary w-100 p-3 text-center">
+                        <i class="bi bi-people-fill d-block mb-1 fs-4"></i>
+                        <small>{% trans "Add Staff" %}</small>
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if user.role in 'ADMIN,SUPERADMIN,BILLING_CLERK,ACCOUNTANT,HOSPITAL_ADMIN' %}
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'billing:create' %}" class="btn btn-outline-warning w-100 p-3 text-center">
+                        <i class="bi bi-receipt d-block mb-1 fs-4"></i>
+                        <small>{% trans "Create Bill" %}</small>
+                    </a>
+                </div>
+                {% endif %}
+                
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'core:barcode_scanner' %}" class="btn btn-outline-info w-100 p-3 text-center">
+                        <i class="fas fa-barcode d-block mb-1 fs-4"></i>
+                        <small>{% trans "Scan Barcode" %}</small>
+                    </a>
+                </div>
+                
+                {% if user.role in 'ADMIN,SUPERADMIN,HOSPITAL_ADMIN' %}
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary w-100 p-3 text-center">
+                        <i class="bi bi-graph-up d-block mb-1 fs-4"></i>
+                        <small>{% trans "Reports" %}</small>
+                    </a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{% url 'core:activity_logs' %}" class="btn btn-outline-dark w-100 p-3 text-center">
+                        <i class="fas fa-history d-block mb-1 fs-4"></i>
+                        <small>{% trans "Activity Logs" %}</small>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Section -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="activity-card">
+            <h5 class="mb-3">
+                <i class="bi bi-activity me-2"></i>{% trans "Recent Activity" %}
+            </h5>
+            <div class="row">
+            
+            {% if recent_activities %}
+                {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="activity-icon bg-primary">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div>
+                        <div class="fw-medium">{{ activity.description }}</div>
+                        <small class="text-muted">{{ activity.timestamp|timesince }} {% trans "ago" %}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                    {% trans "No recent activities" %}
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role-specific Additional Content -->
+{% if user.role == 'DOCTOR' and upcoming_appointments %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-event me-2"></i>{% trans "Upcoming Appointments" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Patient" %}</th>
+                                <th>{% trans "Time" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in upcoming_appointments %}
+                            <tr>
+                                <td>{{ appointment.patient.full_name }}</td>
+                                <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                <td>{{ appointment.appointment_type }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ appointment.status }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'appointments:detail' appointment.pk %}" class="btn btn-sm btn-outline-primary">
+                                        {% trans "View" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh dashboard data every 5 minutes
+    setInterval(function() {
+        // Only refresh if the user is still on this page
+        if (document.hasFocus()) {
+            location.reload();
+        }
+    }, 300000); // 5 minutes
+
+    // Add click tracking for quick actions
+    document.querySelectorAll('.quick-actions .btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            // Track quick action usage
+            console.log('Quick action used:', this.textContent.trim());
+        });
+    });
+</script>
+{% endblock %}

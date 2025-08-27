@@ -1,0 +1,803 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patients - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">Patients</li>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/enhanced-common.css' %}">
+<link rel="stylesheet" href="{% static 'css/patients.css' %}">
+{# <style>
+    .patient-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-fast);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .patient-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .patient-card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .patient-card-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .patient-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 2rem;
+        margin: 0 auto 1rem auto;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .patient-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .patient-id {
+        text-align: center;
+        opacity: 0.8;
+        font-size: 0.875rem;
+    }
+
+    .patient-card-body {
+        padding: 1.5rem;
+    }
+
+    .patient-info-grid {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--gray-50);
+        border-radius: var(--border-radius-sm);
+        transition: background-color var(--transition-fast);
+    }
+
+    .info-item:hover {
+        background: var(--gray-100);
+    }
+
+    .info-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .info-content {
+        flex: 1;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .patient-status-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.9);
+    }
+
+    .status-inactive {
+        background: rgba(239, 68, 68, 0.9);
+    }
+
+    .status-discharged {
+        background: rgba(107, 114, 128, 0.9);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .search-filters-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+    }
+
+    .search-input-wrapper input {
+        padding-left: 2.75rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+        z-index: 2;
+    }
+
+    .patients-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--primary-color);
+        transition: all var(--transition-fast);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--gray-600);
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-change {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+
+    .table-view {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .patient-list-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        transition: background-color var(--transition-fast);
+    }
+
+    .patient-list-item:hover {
+        background: var(--gray-50);
+    }
+
+    .patient-list-item:last-child {
+        border-bottom: none;
+    }
+
+    .patient-list-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .patient-list-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .patient-list-name {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .patient-list-details {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .patient-list-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .quick-stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .quick-stat {
+        background: var(--gray-100);
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .emergency-indicator {
+        background: var(--danger-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        animation: pulse 2s infinite;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .export-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .patients-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .patient-list-details {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .patient-list-actions {
+            flex-direction: column;
+        }
+        
+        .stats-overview {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .loading-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--gray-500);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    } #}
+{% endblock %}
+
+{% block content %}
+<div x-data="patientManager()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="fas fa-users me-3 text-primary"></i>Patient Management
+            </h1>
+            <p class="text-muted mb-0">Manage and track all patient records</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="view-toggle">
+                <button class="btn btn-outline-primary" 
+                        :class="{ 'active': currentView === 'grid' }"
+                        @click="switchView('grid')">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="btn btn-outline-primary" 
+                        :class="{ 'active': currentView === 'list' }"
+                        @click="switchView('list')">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            
+            <div class="export-options">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="?export=excel">
+                            <i class="fas fa-file-excel me-2"></i>Excel
+                        </a></li>
+                        <li><a class="dropdown-item" href="?export=pdf">
+                            <i class="fas fa-file-pdf me-2"></i>PDF
+                        </a></li>
+                        <li><a class="dropdown-item" href="?export=csv">
+                            <i class="fas fa-file-csv me-2"></i>CSV
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <a href="{% url 'patients:create' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Add Patient
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_patients|default:0 }}</div>
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-change">
+                <i class="fas fa-arrow-up text-success"></i>
+                +{{ new_patients_today|default:0 }} today
+            </div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--success-color);">
+            <div class="stat-number" style="color: var(--success-color);">{{ active_patients|default:0 }}</div>
+            <div class="stat-label">Active Patients</div>
+            <div class="stat-change">Currently registered</div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--warning-color);">
+            <div class="stat-number" style="color: var(--warning-color);">{{ appointments_today|default:0 }}</div>
+            <div class="stat-label">Today's Appointments</div>
+            <div class="stat-change">Scheduled for today</div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--danger-color);">
+            <div class="stat-number" style="color: var(--danger-color);">{{ emergency_cases|default:0 }}</div>
+            <div class="stat-label">Emergency Cases</div>
+            <div class="stat-change">Active emergencies</div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-filters-section">
+        <form method="GET" class="filters-grid" hx-get="{% url 'patients:list' %}" hx-target="#patientsList" hx-trigger="submit, change">
+            <div class="search-input-wrapper">
+                <input type="text" 
+                       name="q" 
+                       class="form-control" 
+                       placeholder="Search by name, ID, phone..."
+                       value="{{ request.GET.q }}"
+                       hx-get="{% url 'patients:list' %}"
+                       hx-target="#patientsList"
+                       hx-trigger="keyup changed delay:300ms">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <div>
+                <label class="form-label">Age Range</label>
+                <select name="age_range" class="form-select">
+                    <option value="">All Ages</option>
+                    <option value="0-18" {% if request.GET.age_range == '0-18' %}selected{% endif %}>0-18 years</option>
+                    <option value="19-35" {% if request.GET.age_range == '19-35' %}selected{% endif %}>19-35 years</option>
+                    <option value="36-55" {% if request.GET.age_range == '36-55' %}selected{% endif %}>36-55 years</option>
+                    <option value="56+" {% if request.GET.age_range == '56+' %}selected{% endif %}>56+ years</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-select">
+                    <option value="">All Genders</option>
+                    <option value="M" {% if request.GET.gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if request.GET.gender == 'F' %}selected{% endif %}>Female</option>
+                    <option value="O" {% if request.GET.gender == 'O' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE" {% if request.GET.status == 'ACTIVE' %}selected{% endif %}>Active</option>
+                    <option value="INACTIVE" {% if request.GET.status == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+                    <option value="DISCHARGED" {% if request.GET.status == 'DISCHARGED' %}selected{% endif %}>Discharged</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Blood Group</label>
+                <select name="blood_group" class="form-select">
+                    <option value="">All Blood Groups</option>
+                    <option value="A+" {% if request.GET.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                    <option value="A-" {% if request.GET.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                    <option value="B+" {% if request.GET.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                    <option value="B-" {% if request.GET.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                    <option value="O+" {% if request.GET.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                    <option value="O-" {% if request.GET.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                    <option value="AB+" {% if request.GET.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                    <option value="AB-" {% if request.GET.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                </select>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="{% url 'patients:list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Patients List -->
+    <div id="patientsList">
+        <!-- Grid View -->
+        <div x-show="currentView === 'grid'" class="patients-grid">
+            {% for patient in patients %}
+            <div class="patient-card" data-patient-id="{{ patient.id }}">
+                <div class="patient-card-header">
+                    <div class="patient-status-badge status-{{ patient.status|lower }}">
+                        {{ patient.get_status_display }}
+                    </div>
+                    <div class="patient-avatar">
+                        {{ patient.first_name.0 }}{{ patient.last_name.0 }}
+                    </div>
+                    <div class="patient-name">{{ patient.get_full_name }}</div>
+                    <div class="patient-id">ID: {{ patient.patient_id }}</div>
+                </div>
+                
+                <div class="patient-card-body">
+                    <div class="quick-stats">
+                        <span class="quick-stat">
+                            <i class="fas fa-birthday-cake me-1"></i>{{ patient.age }} years
+                        </span>
+                        <span class="quick-stat">
+                            <i class="fas fa-tint me-1"></i>{{ patient.blood_group|default:"Unknown" }}
+                        </span>
+                        {% if patient.is_emergency %}
+                        <span class="emergency-indicator">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Emergency
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="patient-info-grid">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Phone</div>
+                                <div class="info-value">{{ patient.phone|default:"Not provided" }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">{{ patient.email|default:"Not provided"|truncatechars:20 }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Last Visit</div>
+                                <div class="info-value">{{ patient.last_visit|date:"M d, Y"|default:"Never" }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Appointments</div>
+                                <div class="info-value">{{ patient.appointment_count|default:0 }} total</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="{% url 'patients:detail' patient.id %}" class="btn btn-sm btn-outline-primary btn-action">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        <a href="{% url 'patients:edit' patient.id %}" class="btn btn-sm btn-outline-secondary btn-action">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                        <a href="{% url 'appointments:create' %}?patient={{ patient.id }}" class="btn btn-sm btn-outline-success btn-action">
+                            <i class="fas fa-calendar-plus me-1"></i>Appointment
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h5>No Patients Found</h5>
+                    <p>Try adjusting your search criteria or add a new patient</p>
+                    <a href="{% url 'patients:create' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Add First Patient
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- List View -->
+        <div x-show="currentView === 'list'" class="table-view">
+            {% for patient in patients %}
+            <div class="patient-list-item" data-patient-id="{{ patient.id }}">
+                <div class="patient-list-avatar">
+                    {{ patient.first_name.0 }}{{ patient.last_name.0 }}
+                </div>
+                
+                <div class="patient-list-info">
+                    <div class="patient-list-name">{{ patient.get_full_name }}</div>
+                    <div class="patient-list-details">
+                        <span><i class="fas fa-id-card me-1"></i>{{ patient.patient_id }}</span>
+                        <span><i class="fas fa-phone me-1"></i>{{ patient.phone|default:"N/A" }}</span>
+                        <span><i class="fas fa-birthday-cake me-1"></i>{{ patient.age }} years</span>
+                        <span><i class="fas fa-tint me-1"></i>{{ patient.blood_group|default:"Unknown" }}</span>
+                        <span><i class="fas fa-calendar me-1"></i>{{ patient.last_visit|date:"M d, Y"|default:"Never" }}</span>
+                    </div>
+                </div>
+                
+                <div class="patient-list-actions">
+                    <a href="{% url 'patients:detail' patient.id %}" 
+                       class="btn btn-sm btn-outline-primary"
+                       data-bs-toggle="tooltip" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'patients:edit' patient.id %}" 
+                       class="btn btn-sm btn-outline-secondary"
+                       data-bs-toggle="tooltip" title="Edit Patient">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'appointments:create' %}?patient={{ patient.id }}" 
+                       class="btn btn-sm btn-outline-success"
+                       data-bs-toggle="tooltip" title="Book Appointment">
+                        <i class="fas fa-calendar-plus"></i>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'patients:medical_history' patient.id %}">
+                                <i class="fas fa-history me-2"></i>Medical History
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'billing:patient_bills' patient.id %}">
+                                <i class="fas fa-file-invoice me-2"></i>Bills
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-print me-2"></i>Print Card
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#">
+                                <i class="fas fa-trash me-2"></i>Archive
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h5>No Patients Found</h5>
+                <p>Try adjusting your search criteria or add a new patient</p>
+                <a href="{% url 'patients:create' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Add First Patient
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Patients pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function patientManager() {
+        return {
+            currentView: 'grid',
+            selectedPatients: [],
+            
+            init() {
+                // Load view preference from localStorage
+                this.currentView = localStorage.getItem('patientViewMode') || 'grid';
+                this.setupEventListeners();
+            },
+            
+            switchView(viewType) {
+                this.currentView = viewType;
+                localStorage.setItem('patientViewMode', viewType);
+            },
+            
+            setupEventListeners() {
+                // Patient card click handling
+                document.addEventListener('click', (e) => {
+                    const patientCard = e.target.closest('.patient-card, .patient-list-item');
+                    if (patientCard && !e.target.closest('.btn, .dropdown')) {
+                        const patientId = patientCard.dataset.patientId;
+                        window.location.href = `/patients/${patientId}/`;
+                    }
+                });
+            }
+        }
+    }
+
+    // Real-time search and filtering
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh patient data every 2 minutes
+        setInterval(() => {
+            if (document.querySelector('input[name="q"]').value === '') {
+                htmx.trigger('#patientsList', 'refresh');
+            }
+        }, 120000);
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // Export functionality
+    function exportPatients(format) {
+        const searchParams = new URLSearchParams(window.location.search);
+        searchParams.set('export', format);
+        window.location.href = '?' + searchParams.toString();
+    }
+</script>
+
+{% block extra_js %}
+<script src="{% static 'js/enhanced-common.js' %}"></script>
+<script src="{% static 'js/patients.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize patients functionality
+        if (typeof initPatients === 'function') {
+            initPatients();
+        }
+    });
+</script>
+{% endblock %}

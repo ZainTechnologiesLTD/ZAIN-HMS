@@ -1,27 +1,399 @@
-{% extends 'base.html' %}
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Doctors{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doctor-card {
+        transition: transform 0.2s;
+    }
+    .doctor-card:hover {
+        transform: translateY(-2px);
+    }
+    .doctor-avatar {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+    }
+    .status-badge {
+        font-size: 0.85em;
+    }
+    .btn-action {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    .search-form {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    .table td {
+        vertical-align: middle;
+        border-top: 1px solid #e9ecef;
+    }
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-  <h2>Doctor List</h2>
-    <table class="table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Specialization</th>
-        <th>Email</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for doctor in doctors %}
-        <tr>
-          <td>{{ doctor.doctor_id }}</td>
-          <td>{{ doctor.first_name }} {{ doctor.last_name }}</td>
-          <td>{{ doctor.specialization }}</td>
-          <td>{{ doctor.email }}</td>
-          
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="page-header text-center">
+    <div class="container">
+        <h1 class="display-4 mb-3">
+            <i class="fas fa-user-md me-3"></i>Doctors Management
+        </h1>
+        <p class="lead">Manage hospital doctors and specialists</p>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Search and Filter Section -->
+    <div class="search-form">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label for="search" class="form-label">
+                    <i class="fas fa-search me-2"></i>Search Doctors
+                </label>
+                {{ search_form.q }}
+            </div>
+            <div class="col-md-4">
+                <label for="specialization" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Specialization
+                </label>
+                {{ search_form.specialization }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+                <a href="{% url 'doctors:doctor_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ doctors.paginator.count }}</h4>
+                            <p class="card-text">Total Doctors</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-md fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ active_count|default:0 }}</h4>
+                            <p class="card-text">Active Doctors</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ specialization_count|default:0 }}</h4>
+                            <p class="card-text">Specializations</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-stethoscope fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ new_this_month|default:0 }}</h4>
+                            <p class="card-text">New This Month</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-plus fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-0">
+                <i class="fas fa-list me-2"></i>Doctors List
+                {% if search_form.q.value %}
+                    <small class="text-muted">- Search results for "{{ search_form.q.value }}"</small>
+                {% endif %}
+            </h3>
+        </div>
+        <div>
+            <a href="{% url 'doctors:doctor_create' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add New Doctor
+            </a>
+            {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+                <a href="{% url 'doctors:doctors_without_users' %}" class="btn btn-warning ms-2">
+                    <i class="fas fa-user-times me-2"></i>Doctors Without Accounts
+                </a>
+            {% endif %}
+            <a href="#" class="btn btn-outline-primary ms-2" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Print List
+            </a>
+        </div>
+    </div>
+
+    <!-- Doctors Table -->
+    {% if doctors %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Specialization</th>
+                        <th>License #</th>
+                        <th>Contact</th>
+                        <th>User Account</th>
+                        <th>Joining Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doctor in doctors %}
+                        <tr>
+                            <td>
+                                {% if doctor.image %}
+                                    <img src="{{ doctor.image.url }}" alt="{{ doctor.get_full_name }}" 
+                                         class="rounded-circle doctor-avatar">
+                                {% else %}
+                                    <div class="rounded-circle doctor-avatar bg-primary d-flex align-items-center justify-content-center text-white">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ doctor.get_full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ doctor.email }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ doctor.get_specialization_display }}</span>
+                            </td>
+                            <td>
+                                <code>{{ doctor.license_number }}</code>
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="fas fa-phone me-1"></i>{{ doctor.phone_number|default:"N/A" }}
+                                    <br>
+                                    <i class="fas fa-envelope me-1"></i>{{ doctor.email }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if doctor.user %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-user-check me-1"></i>Linked
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">{{ doctor.user.username }}</small>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-user-times me-1"></i>No Account
+                                    </span>
+                                    {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+                                        <br>
+                                        <small>
+                                            <a href="{% url 'doctors:create_user_for_doctor' doctor.pk %}" 
+                                               class="text-decoration-none">Create</a>
+                                        </small>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ doctor.joining_date|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                {% if doctor.is_active %}
+                                    <span class="badge bg-success status-badge">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger status-badge">
+                                        <i class="fas fa-times-circle me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'doctors:doctor_detail' doctor.id %}" 
+                                       class="btn btn-outline-info btn-action" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'doctors:doctor_update' doctor.id %}" 
+                                       class="btn btn-outline-warning btn-action" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-action" 
+                                            title="Delete" onclick="confirmDelete('{{ doctor.id }}', '{{ doctor.get_full_name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if doctors.has_other_pages %}
+            <nav aria-label="Doctors pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if doctors.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i> First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ doctors.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                <i class="fas fa-angle-left"></i> Previous
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ doctors.number }} of {{ doctors.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if doctors.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ doctors.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                Next <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ doctors.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                Last <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-user-md fa-5x text-muted"></i>
+            </div>
+            <h3 class="text-muted">No Doctors Found</h3>
+            <p class="text-muted mb-4">
+                {% if search_form.q.value or search_form.specialization.value %}
+                    No doctors match your search criteria. Try adjusting your filters.
+                {% else %}
+                    No doctors have been added to the system yet.
+                {% endif %}
+            </p>
+            <a href="{% url 'doctors:doctor_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add First Doctor
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="doctorName"></strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete Doctor
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(doctorId, doctorName) {
+    document.getElementById('doctorName').textContent = doctorName;
+    document.getElementById('deleteForm').action = '{% url "doctors:doctor_delete" "0" %}'.replace('0', doctorId);
+    
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+// Auto-hide alerts
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            if (alert.classList.contains('alert-dismissible')) {
+                var closeBtn = alert.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.click();
+                }
+            }
+        });
+    }, 5000);
+});
+</script>
 {% endblock %}

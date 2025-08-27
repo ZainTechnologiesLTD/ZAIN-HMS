@@ -1,7 +1,7 @@
 # apps/reports/models.py
 from django.db import models
 from django.contrib.auth import get_user_model
-from apps.accounts.models import Hospital
+# # from tenants.models import  # Temporarily commented Tenant  # Temporarily commented
 import uuid
 
 User = get_user_model()
@@ -35,7 +35,7 @@ class Report(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='reports')
+    # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='reports')
     generated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='generated_reports')
     
     name = models.CharField(max_length=200)
@@ -64,13 +64,44 @@ class Report(models.Model):
     class Meta:
         ordering = ['-created_at']
     
+    def save(self, *args, **kwargs):
+        """Override save to handle cross-database relationships"""
+        using = kwargs.get('using', 'default')
+        
+        # If saving to a tenant database, temporarily disable foreign key checks
+        if using and using != 'default':
+            from django.db import connections
+            connection = connections[using]
+            with connection.cursor() as cursor:
+                cursor.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    super().save(*args, **kwargs)
+                finally:
+                    cursor.execute("PRAGMA foreign_keys=ON")
+        else:
+            super().save(*args, **kwargs)
+    
+    def delete(self, using=None, keep_parents=False):
+        """Override delete to handle cross-database relationships"""
+        if using and using != 'default':
+            from django.db import connections
+            connection = connections[using]
+            with connection.cursor() as cursor:
+                cursor.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    super().delete(using=using, keep_parents=keep_parents)
+                finally:
+                    cursor.execute("PRAGMA foreign_keys=ON")
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
+    
     def __str__(self):
         return f"{self.name} - {self.get_report_type_display()}"
 
 
 class ReportTemplate(models.Model):
     """Predefined report templates"""
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='report_templates')
+    # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='report_templates')
     name = models.CharField(max_length=200)
     report_type = models.CharField(max_length=20, choices=Report.REPORT_TYPES)
     description = models.TextField(blank=True)
@@ -86,8 +117,38 @@ class ReportTemplate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['hospital', 'name']
         ordering = ['name']
     
+    def save(self, *args, **kwargs):
+        """Override save to handle cross-database relationships"""
+        using = kwargs.get('using', 'default')
+        
+        # If saving to a tenant database, temporarily disable foreign key checks
+        if using and using != 'default':
+            from django.db import connections
+            connection = connections[using]
+            with connection.cursor() as cursor:
+                cursor.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    super().save(*args, **kwargs)
+                finally:
+                    cursor.execute("PRAGMA foreign_keys=ON")
+        else:
+            super().save(*args, **kwargs)
+    
+    def delete(self, using=None, keep_parents=False):
+        """Override delete to handle cross-database relationships"""
+        if using and using != 'default':
+            from django.db import connections
+            connection = connections[using]
+            with connection.cursor() as cursor:
+                cursor.execute("PRAGMA foreign_keys=OFF")
+                try:
+                    super().delete(using=using, keep_parents=keep_parents)
+                finally:
+                    cursor.execute("PRAGMA foreign_keys=ON")
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
+
     def __str__(self):
         return self.name

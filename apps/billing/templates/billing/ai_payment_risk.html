@@ -1,0 +1,306 @@
+<!-- apps/billing/templates/billing/ai_payment_risk.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Payment Risk Analysis - {{ request.tenant.name }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<style>
+    .risk-card {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .risk-very-high {
+        background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        color: white;
+    }
+    
+    .risk-high {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        color: #333;
+    }
+    
+    .risk-medium {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        color: #333;
+    }
+    
+    .risk-low {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #333;
+    }
+    
+    .risk-very-low {
+        background: linear-gradient(135deg, #48ca9b 0%, #a8edea 100%);
+        color: white;
+    }
+    
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .risk-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .strategy-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .strategy-list li {
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .strategy-list li:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-shield-alt text-danger"></i> AI Payment Risk Analysis</h2>
+                    <p class="text-muted">Intelligent payment prediction and collection optimization</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshRiskAnalysis()">
+                        <i class="fas fa-sync"></i> Refresh Analysis
+                    </button>
+                    <button class="btn btn-success" onclick="exportRiskReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="summary-card">
+                <h4>{{ risk_summary.total_assessments }}</h4>
+                <p class="mb-0">Total Assessments</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-card">
+                <h4>{{ risk_summary.high_risk_count }}</h4>
+                <p class="mb-0">High Risk Cases</p>
+                <small>{{ risk_summary.high_risk_percentage|floatformat:1 }}% of total</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-card">
+                <h4>{{ risk_summary.avg_risk_score|floatformat:3 }}</h4>
+                <p class="mb-0">Average Risk Score</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-card">
+                <h4>${{ risk_summary.total_at_risk_amount|floatformat:0 }}</h4>
+                <p class="mb-0">Amount at Risk</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Assessments List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Payment Risk Assessments</h5>
+                    <div class="float-right">
+                        <select class="form-control form-control-sm" id="riskFilter" onchange="filterRiskAssessments()">
+                            <option value="">All Risk Levels</option>
+                            <option value="VERY_HIGH">Very High</option>
+                            <option value="HIGH">High</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="LOW">Low</option>
+                            <option value="VERY_LOW">Very Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for assessment in risk_assessments %}
+                    <div class="risk-card risk-{{ assessment.overall_risk_level|lower|replace:'_','-' }}" data-risk="{{ assessment.overall_risk_level }}">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ assessment.patient.get_full_name }}</h6>
+                                        {% if assessment.invoice %}
+                                        <p class="mb-1">
+                                            <strong>Invoice:</strong> {{ assessment.invoice.invoice_number }} 
+                                            <strong>|</strong> 
+                                            <strong>Amount:</strong> ${{ assessment.invoice.balance_amount|floatformat:2 }}
+                                        </p>
+                                        {% endif %}
+                                        <small>
+                                            <strong>Risk Score:</strong> {{ assessment.risk_score|floatformat:3 }}
+                                            <strong>|</strong>
+                                            <strong>Payment Probability:</strong> {{ assessment.payment_probability|floatformat:1 }}%
+                                            <strong>|</strong>
+                                            <strong>Predicted Days:</strong> {{ assessment.predicted_payment_days }}
+                                        </small>
+                                    </div>
+                                    <span class="risk-badge badge-{{ assessment.overall_risk_level|lower|replace:'_','-' }}">
+                                        {{ assessment.get_overall_risk_level_display }}
+                                    </span>
+                                </div>
+                                
+                                {% if assessment.risk_factors %}
+                                <div class="mb-2">
+                                    <small><strong>Risk Factors:</strong></small>
+                                    <div class="risk-factors">
+                                        {% for factor, value in assessment.risk_factors.items %}
+                                        <span class="badge badge-secondary mr-1">{{ factor }}: {{ value }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                {% if assessment.collection_strategy_recommendations %}
+                                <div>
+                                    <small><strong>AI Recommendations:</strong></small>
+                                    <ul class="strategy-list">
+                                        {% for recommendation in assessment.collection_strategy_recommendations %}
+                                        <li><i class="fas fa-arrow-right"></i> {{ recommendation }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-light" onclick="viewPatientHistory('{{ assessment.patient.id }}')">
+                                        <i class="fas fa-history"></i> History
+                                    </button>
+                                    {% if assessment.invoice %}
+                                    <button class="btn btn-sm btn-outline-light" onclick="viewInvoice('{{ assessment.invoice.id }}')">
+                                        <i class="fas fa-file-invoice"></i> Invoice
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-shield-check fa-3x mb-3 text-success"></i>
+                        <h5>No High-Risk Payments</h5>
+                        <p>All payments are within acceptable risk levels.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="card-footer">
+                    <nav aria-label="Risk assessments pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterRiskAssessments() {
+        const filter = document.getElementById('riskFilter').value;
+        const riskCards = document.querySelectorAll('.risk-card');
+        
+        riskCards.forEach(card => {
+            const riskLevel = card.getAttribute('data-risk');
+            if (!filter || riskLevel === filter) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function refreshRiskAnalysis() {
+        Swal.fire({
+            title: 'Refreshing Risk Analysis...',
+            text: 'AI is recalculating payment risk assessments',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        setTimeout(() => {
+            location.reload();
+        }, 3000);
+    }
+
+    function exportRiskReport() {
+        // Export risk analysis report
+        window.open('/billing/api/export-risk-report/', '_blank');
+    }
+
+    function viewPatientHistory(patientId) {
+        // Open patient payment history
+        window.open(`/patients/${patientId}/payment-history/`, '_blank');
+    }
+
+    function viewInvoice(invoiceId) {
+        // Open invoice details
+        window.open(`/billing/bill/${invoiceId}/`, '_blank');
+    }
+
+    // Auto-refresh every 10 minutes
+    setInterval(() => {
+        if (confirm('Refresh payment risk analysis with latest data?')) {
+            location.reload();
+        }
+    }, 600000);
+</script>
+{% endblock %}

@@ -1,0 +1,1112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}IPD Management - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">IPD Management</li>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/enhanced-common.css' %}">
+<link rel="stylesheet" href="{% static 'css/ipd.css' %}">
+{# <style>
+    .ward-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .ward-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: all var(--transition-fast);
+    }
+
+    .ward-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .ward-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .ward-header.general {
+        background: linear-gradient(135deg, var(--info-color) 0%, #0284c7 100%);
+    }
+
+    .ward-header.icu {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+    }
+
+    .ward-header.pediatric {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+    }
+
+    .ward-header.maternity {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    }
+
+    .ward-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .ward-capacity {
+        opacity: 0.9;
+        font-size: 0.875rem;
+    }
+
+    .occupancy-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+
+    .occupancy-high {
+        background: rgba(239, 68, 68, 0.9) !important;
+        animation: pulse 2s infinite;
+    }
+
+    .ward-body {
+        padding: 1.5rem;
+    }
+
+    .bed-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .bed-item {
+        aspect-ratio: 1;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        position: relative;
+    }
+
+    .bed-available {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .bed-occupied {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .bed-maintenance {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .bed-reserved {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .bed-item:hover {
+        transform: scale(1.1);
+        z-index: 2;
+    }
+
+    .bed-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gray-800);
+        color: white;
+        padding: 0.5rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-fast);
+        z-index: 10;
+    }
+
+    .bed-item:hover .bed-tooltip {
+        opacity: 1;
+    }
+
+    .ward-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem 0.5rem;
+        background: var(--gray-50);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--gray-100);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ward-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-ward {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .patient-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-fast);
+        overflow: hidden;
+    }
+
+    .patient-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+        border-color: var(--primary-color);
+    }
+
+    .patient-header {
+        background: var(--gray-50);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .patient-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .patient-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .patient-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .patient-details {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .patient-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-stable {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--success-color);
+    }
+
+    .status-critical {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
+    .status-observation {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary-color);
+    }
+
+    .status-recovery {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+
+    .patient-body {
+        padding: 1.5rem;
+    }
+
+    .medical-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        background: var(--gray-50);
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .vitals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .vital-item {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border: 2px solid var(--gray-100);
+        border-radius: var(--border-radius);
+        transition: all var(--transition-fast);
+    }
+
+    .vital-item:hover {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .vital-icon {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .vital-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .vital-label {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .vital-normal {
+        border-color: var(--success-color);
+        background: rgba(34, 197, 94, 0.05);
+    }
+
+    .vital-abnormal {
+        border-color: var(--danger-color);
+        background: rgba(239, 68, 68, 0.05);
+        animation: pulse 2s infinite;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .filters-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+    }
+
+    .search-input-wrapper input {
+        padding-left: 2.75rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+        z-index: 2;
+    }
+
+    .quick-actions {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .quick-action-card {
+        background: var(--gray-50);
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--gray-700);
+        transition: all var(--transition-fast);
+    }
+
+    .quick-action-card:hover {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 2px;
+    }
+
+    @media (max-width: 768px) {
+        .ward-overview {
+            grid-template-columns: 1fr;
+        }
+        
+        .bed-grid {
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        }
+        
+        .ward-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .medical-info {
+            grid-template-columns: 1fr;
+        }
+        
+        .vitals-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .patient-details {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .ward-actions {
+            flex-direction: column;
+        }
+    } #}
+{% endblock %}
+
+{% block content %}
+<div x-data="ipdManager()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="fas fa-bed me-3 text-primary"></i>IPD Management
+            </h1>
+            <p class="text-muted mb-0">Inpatient department and bed management system</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+            <a href="{% url 'ipd:admission' %}" class="btn btn-success">
+                <i class="fas fa-user-plus me-2"></i>New Admission
+            </a>
+            <a href="{% url 'ipd:discharge' %}" class="btn btn-warning">
+                <i class="fas fa-sign-out-alt me-2"></i>Discharge Patient
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h6 class="mb-3">
+            <i class="fas fa-bolt me-2"></i>Quick Actions
+        </h6>
+        <div class="quick-actions-grid">
+            <a href="{% url 'ipd:admission' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h6>New Admission</h6>
+                <p class="text-muted small mb-0">Admit new patient</p>
+            </a>
+            
+            <a href="{% url 'ipd:bed_allocation' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <h6>Bed Management</h6>
+                <p class="text-muted small mb-0">Allocate & manage beds</p>
+            </a>
+            
+            <a href="{% url 'ipd:discharge_summary' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <h6>Discharge Summary</h6>
+                <p class="text-muted small mb-0">Generate summaries</p>
+            </a>
+            
+            <a href="{% url 'ipd:nursing_notes' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
+                <h6>Nursing Notes</h6>
+                <p class="text-muted small mb-0">Patient care notes</p>
+            </a>
+            
+            <a href="{% url 'ipd:medication_chart' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-pills"></i>
+                </div>
+                <h6>Medication Chart</h6>
+                <p class="text-muted small mb-0">Medicine administration</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Bed Status Legend -->
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color bg-success"></div>
+            <span>Available</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-danger"></div>
+            <span>Occupied</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-warning"></div>
+            <span>Maintenance</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bg-info"></div>
+            <span>Reserved</span>
+        </div>
+    </div>
+
+    <!-- Ward Overview -->
+    <div class="ward-overview">
+        {% for ward in wards %}
+        <div class="ward-card">
+            <div class="ward-header {{ ward.type|lower }}">
+                <div class="ward-title">{{ ward.name }}</div>
+                <div class="ward-capacity">{{ ward.occupied_beds }}/{{ ward.total_beds }} beds</div>
+                <div class="occupancy-badge {% if ward.occupancy_rate > 85 %}occupancy-high{% endif %}">
+                    {{ ward.occupancy_rate }}%
+                </div>
+            </div>
+            
+            <div class="ward-body">
+                <div class="ward-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ ward.available_beds }}</div>
+                        <div class="stat-label">Available</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ ward.occupied_beds }}</div>
+                        <div class="stat-label">Occupied</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ ward.maintenance_beds }}</div>
+                        <div class="stat-label">Maintenance</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ ward.reserved_beds }}</div>
+                        <div class="stat-label">Reserved</div>
+                    </div>
+                </div>
+                
+                <div class="bed-grid">
+                    {% for bed in ward.beds.all %}
+                    <div class="bed-item bed-{{ bed.status|lower }}" 
+                         data-bed-id="{{ bed.id }}"
+                         onclick="showBedDetails({{ bed.id }})">
+                        {{ bed.number }}
+                        {% if bed.patient %}
+                        <div class="bed-tooltip">
+                            {{ bed.patient.get_full_name }}<br>
+                            Admitted: {{ bed.patient.admission_date|date:"M d" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="ward-actions">
+                    <a href="{% url 'ipd:ward_details' ward.id %}" class="btn btn-outline-primary btn-ward">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </a>
+                    <a href="{% url 'ipd:bed_allocation' %}?ward={{ ward.id }}" class="btn btn-outline-success btn-ward">
+                        <i class="fas fa-bed me-1"></i>Manage Beds
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-hospital"></i>
+                <h5>No Wards Available</h5>
+                <p>Configure ward setup to begin IPD management</p>
+                <a href="{% url 'ipd:ward_setup' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Setup Wards
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-section">
+        <h6 class="mb-3">
+            <i class="fas fa-filter me-2"></i>Patient Filters
+        </h6>
+        <form class="filters-grid" hx-get="{% url 'ipd:patient_list' %}" hx-target="#patientsList" hx-trigger="submit, change">
+            <div class="search-input-wrapper">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Search patients..."
+                       value="{{ request.GET.search }}"
+                       hx-get="{% url 'ipd:patient_list' %}"
+                       hx-target="#patientsList"
+                       hx-trigger="keyup changed delay:300ms">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <div>
+                <label class="form-label">Ward</label>
+                <select name="ward" class="form-select">
+                    <option value="">All Wards</option>
+                    {% for ward in wards %}
+                    <option value="{{ ward.id }}" {% if request.GET.ward == ward.id|stringformat:"s" %}selected{% endif %}>
+                        {{ ward.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="STABLE" {% if request.GET.status == 'STABLE' %}selected{% endif %}>Stable</option>
+                    <option value="CRITICAL" {% if request.GET.status == 'CRITICAL' %}selected{% endif %}>Critical</option>
+                    <option value="OBSERVATION" {% if request.GET.status == 'OBSERVATION' %}selected{% endif %}>Observation</option>
+                    <option value="RECOVERY" {% if request.GET.status == 'RECOVERY' %}selected{% endif %}>Recovery</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Doctor</label>
+                <select name="doctor" class="form-select">
+                    <option value="">All Doctors</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}" {% if request.GET.doctor == doctor.id|stringformat:"s" %}selected{% endif %}>
+                        Dr. {{ doctor.get_full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Admission Date</label>
+                <div class="d-flex gap-2">
+                    <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                    <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>Filter
+                </button>
+                <a href="{% url 'ipd:patient_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Patients List -->
+    <div id="patientsList">
+        <div class="row g-3">
+            {% for patient in patients %}
+            <div class="col-lg-6 col-xl-4">
+                <div class="patient-card" data-patient-id="{{ patient.id }}">
+                    <div class="patient-header">
+                        <div class="patient-avatar">
+                            {{ patient.first_name.0 }}{{ patient.last_name.0 }}
+                        </div>
+                        <div class="patient-info">
+                            <div class="patient-name">{{ patient.get_full_name }}</div>
+                            <div class="patient-details">
+                                <span><i class="fas fa-id-card me-1"></i>{{ patient.patient_id }}</span>
+                                <span><i class="fas fa-birthday-cake me-1"></i>{{ patient.age }} years</span>
+                                <span><i class="fas fa-bed me-1"></i>Bed {{ patient.current_bed.number }}</span>
+                            </div>
+                        </div>
+                        <div class="patient-status status-{{ patient.status|lower }}">
+                            {{ patient.get_status_display }}
+                        </div>
+                    </div>
+                    
+                    <div class="patient-body">
+                        <div class="medical-info">
+                            <div class="info-item">
+                                <div class="info-label">Admission Date</div>
+                                <div class="info-value">{{ patient.admission_date|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Doctor</div>
+                                <div class="info-value">Dr. {{ patient.attending_doctor.get_full_name }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Diagnosis</div>
+                                <div class="info-value">{{ patient.primary_diagnosis|truncatechars:30 }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Days Admitted</div>
+                                <div class="info-value">{{ patient.days_admitted }} days</div>
+                            </div>
+                        </div>
+                        
+                        {% if patient.latest_vitals %}
+                        <div class="vitals-grid">
+                            <div class="vital-item {% if patient.latest_vitals.temperature_normal %}vital-normal{% else %}vital-abnormal{% endif %}">
+                                <div class="vital-icon">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                                <div class="vital-value">{{ patient.latest_vitals.temperature }}°F</div>
+                                <div class="vital-label">Temperature</div>
+                            </div>
+                            <div class="vital-item {% if patient.latest_vitals.bp_normal %}vital-normal{% else %}vital-abnormal{% endif %}">
+                                <div class="vital-icon">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div class="vital-value">{{ patient.latest_vitals.blood_pressure }}</div>
+                                <div class="vital-label">Blood Pressure</div>
+                            </div>
+                            <div class="vital-item {% if patient.latest_vitals.pulse_normal %}vital-normal{% else %}vital-abnormal{% endif %}">
+                                <div class="vital-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="vital-value">{{ patient.latest_vitals.pulse }} bpm</div>
+                                <div class="vital-label">Pulse</div>
+                            </div>
+                            <div class="vital-item {% if patient.latest_vitals.oxygen_normal %}vital-normal{% else %}vital-abnormal{% endif %}">
+                                <div class="vital-icon">
+                                    <i class="fas fa-lungs"></i>
+                                </div>
+                                <div class="vital-value">{{ patient.latest_vitals.oxygen_saturation }}%</div>
+                                <div class="vital-label">O2 Sat</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="action-buttons">
+                            <a href="{% url 'ipd:patient_detail' patient.id %}" class="btn btn-sm btn-outline-primary btn-action">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                            <a href="{% url 'ipd:nursing_notes' patient.id %}" class="btn btn-sm btn-outline-info btn-action">
+                                <i class="fas fa-notes-medical me-1"></i>Notes
+                            </a>
+                            <a href="{% url 'ipd:medication_chart' patient.id %}" class="btn btn-sm btn-outline-success btn-action">
+                                <i class="fas fa-pills me-1"></i>Meds
+                            </a>
+                            <div class="dropdown w-100">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'ipd:vitals_chart' patient.id %}">
+                                        <i class="fas fa-chart-line me-2"></i>Vitals Chart
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'ipd:discharge_planning' patient.id %}">
+                                        <i class="fas fa-clipboard-check me-2"></i>Discharge Planning
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'ipd:transfer_bed' patient.id %}">
+                                        <i class="fas fa-exchange-alt me-2"></i>Transfer Bed
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'ipd:emergency_contact' patient.id %}">
+                                        <i class="fas fa-phone me-2"></i>Emergency Contact
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-user-injured"></i>
+                    <h5>No Patients Found</h5>
+                    <p>No inpatients match your search criteria</p>
+                    <a href="{% url 'ipd:admission' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Admit New Patient
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Patients pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Bed Details Modal -->
+<div class="modal fade" id="bedDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bed Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bedDetailsContent">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="bedActionBtn">Take Action</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function ipdManager() {
+        return {
+            init() {
+                this.setupEventListeners();
+                this.startRealTimeUpdates();
+            },
+            
+            setupEventListeners() {
+                // Patient card click handling
+                document.addEventListener('click', (e) => {
+                    const patientCard = e.target.closest('.patient-card');
+                    if (patientCard && !e.target.closest('.btn, .dropdown')) {
+                        const patientId = patientCard.dataset.patientId;
+                        window.location.href = `/ipd/patient/${patientId}/`;
+                    }
+                });
+            },
+            
+            startRealTimeUpdates() {
+                // Update bed status every 30 seconds
+                setInterval(() => {
+                    this.updateBedStatus();
+                }, 30000);
+                
+                // Update vital signs every 2 minutes
+                setInterval(() => {
+                    this.updateVitalSigns();
+                }, 120000);
+            },
+            
+            updateBedStatus() {
+                fetch('/ipd/api/bed-status/')
+                    .then(response => response.json())
+                    .then(data => {
+                        data.beds.forEach(bed => {
+                            const bedElement = document.querySelector(`[data-bed-id="${bed.id}"]`);
+                            if (bedElement) {
+                                bedElement.className = `bed-item bed-${bed.status.toLowerCase()}`;
+                            }
+                        });
+                    });
+            },
+            
+            updateVitalSigns() {
+                fetch('/ipd/api/latest-vitals/')
+                    .then(response => response.json())
+                    .then(data => {
+                        data.vitals.forEach(vital => {
+                            this.updatePatientVitals(vital.patient_id, vital);
+                        });
+                    });
+            },
+            
+            updatePatientVitals(patientId, vitals) {
+                const patientCard = document.querySelector(`[data-patient-id="${patientId}"]`);
+                if (patientCard) {
+                    // Update vital signs display
+                    const vitalElements = patientCard.querySelectorAll('.vital-item');
+                    // Update logic here
+                }
+            }
+        }
+    }
+
+    function showBedDetails(bedId) {
+        fetch(`/ipd/api/bed/${bedId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('bedDetailsContent').innerHTML = generateBedDetailsHTML(data);
+                new bootstrap.Modal(document.getElementById('bedDetailsModal')).show();
+            });
+    }
+
+    function generateBedDetailsHTML(bedData) {
+        let html = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Bed Information</h6>
+                    <p><strong>Number:</strong> ${bedData.number}</p>
+                    <p><strong>Ward:</strong> ${bedData.ward.name}</p>
+                    <p><strong>Type:</strong> ${bedData.type}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-${getBadgeColor(bedData.status)}">${bedData.status}</span></p>
+                </div>
+                <div class="col-md-6">
+        `;
+        
+        if (bedData.patient) {
+            html += `
+                <h6>Current Patient</h6>
+                <p><strong>Name:</strong> ${bedData.patient.name}</p>
+                <p><strong>ID:</strong> ${bedData.patient.patient_id}</p>
+                <p><strong>Admission Date:</strong> ${bedData.patient.admission_date}</p>
+                <p><strong>Doctor:</strong> Dr. ${bedData.patient.doctor}</p>
+            `;
+        } else {
+            html += `
+                <h6>Bed Available</h6>
+                <p>This bed is currently available for allocation.</p>
+            `;
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+
+    function getBadgeColor(status) {
+        const colors = {
+            'AVAILABLE': 'success',
+            'OCCUPIED': 'danger',
+            'MAINTENANCE': 'warning',
+            'RESERVED': 'info'
+        };
+        return colors[status] || 'secondary';
+    }
+
+    function refreshData() {
+        showNotification('Refreshing IPD data...', 'info');
+        
+        setTimeout(() => {
+            showNotification('Data refreshed successfully', 'success');
+            location.reload();
+        }, 1500);
+    }
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // Real-time notifications for critical patients
+    function checkCriticalPatients() {
+        fetch('/ipd/api/critical-alerts/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.alerts.length > 0) {
+                    data.alerts.forEach(alert => {
+                        showNotification(alert.message, 'warning', 10000);
+                    });
+                }
+            });
+    }
+
+    // Check for critical patients every 5 minutes
+    setInterval(checkCriticalPatients, 300000);
+</script>
+
+{% block extra_js %}
+<script src="{% static 'js/enhanced-common.js' %}"></script>
+<script src="{% static 'js/ipd.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize IPD functionality
+        if (typeof initIPD === 'function') {
+            initIPD();
+        }
+    });
+</script>
+{% endblock %}

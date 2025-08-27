@@ -68,13 +68,13 @@
                     <span class="badge bg-danger fs-6">Unavailable</span>
                 {% endif %}
                 
-                <a href="{% url 'appointments:create' %}?doctor={{ doctor.pk }}" class="btn btn-light">
+                <a href="{% url 'appointments:appointment_create' %}?doctor={{ doctor.pk }}" class="btn btn-light">
                     <i class="fas fa-calendar-plus me-1"></i>
                     Book Appointment
                 </a>
                 
                 {% if request.user.role == 'ADMIN' or request.user == doctor %}
-                <a href="{% url 'doctors:doctor_edit' doctor.pk %}" class="btn btn-outline-light">
+                <a href="{% url 'doctors:doctor_update' doctor.pk %}" class="btn btn-outline-light">
                     <i class="fas fa-edit me-1"></i>
                     Edit Profile
                 </a>
@@ -166,6 +166,80 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- User Account Management -->
+        {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-cog me-2"></i>
+                    User Account Management
+                </h5>
+                {% if doctor.user %}
+                    <span class="badge bg-success">Account Linked</span>
+                {% else %}
+                    <span class="badge bg-warning">No Account</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if doctor.user %}
+                    <!-- User account exists -->
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">{{ doctor.user.get_full_name }}</h6>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-envelope"></i> {{ doctor.user.email }}
+                            </p>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-user"></i> Username: {{ doctor.user.username }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-calendar"></i> Created: {{ doctor.user.date_joined|date:"M d, Y" }}
+                                {% if doctor.user.is_active %}
+                                    <span class="badge bg-success ms-2">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger ms-2">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group-vertical" role="group">
+                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                        onclick="unlinkUser({{ doctor.pk }})">
+                                    <i class="fas fa-unlink"></i> Unlink User
+                                </button>
+                                <a href="{% url 'accounts:user_detail' doctor.user.pk %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-user-edit"></i> Manage User
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- No user account -->
+                    <div class="text-center py-3">
+                        <i class="fas fa-user-times fa-2x text-muted mb-3"></i>
+                        <h6 class="text-muted">This doctor doesn't have a user account</h6>
+                        <p class="text-muted mb-4">
+                            Create a user account to allow this doctor to log into the system
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <form method="post" action="{% url 'doctors:create_user_for_doctor' doctor.pk %}" 
+                                  style="display: inline-block;" class="create-user-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Create User Account
+                                </button>
+                            </form>
+                            <a href="{% url 'doctors:link_user' doctor.pk %}" class="btn btn-outline-primary">
+                                <i class="fas fa-link"></i> Link Existing User
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Today's Schedule -->
         <div class="card mb-4">
@@ -300,24 +374,26 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'appointments:create' %}?doctor={{ doctor.pk }}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'appointments:appointment_create' %}?doctor={{ doctor.pk }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-calendar-plus me-1"></i>
                         Book Appointment
                     </a>
-                    <a href="{% url 'appointments:list' %}?doctor={{ doctor.pk }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{% url 'appointments:appointment_list' %}?doctor={{ doctor.pk }}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-calendar-alt me-1"></i>
                         View Appointments
                     </a>
+                    {% comment %}
                     {% if request.user.role == 'ADMIN' %}
-                    <a href="{% url 'doctors:schedule_edit' doctor.pk %}" class="btn btn-outline-secondary btn-sm">
+                    <a href="#" class="btn btn-outline-secondary btn-sm" title="Schedule management coming soon">
                         <i class="fas fa-clock me-1"></i>
                         Edit Schedule
                     </a>
-                    <a href="{% url 'reports:generate_report' %}?doctor={{ doctor.pk }}" class="btn btn-outline-info btn-sm">
+                    <a href="#" class="btn btn-outline-info btn-sm" title="Reports coming soon">
                         <i class="fas fa-chart-line me-1"></i>
                         Generate Report
                     </a>
                     {% endif %}
+                    {% endcomment %}
                 </div>
             </div>
         </div>
@@ -351,17 +427,42 @@
 
 {% block extra_js %}
 <script>
-// Auto-refresh appointments status
-setInterval(function() {
-    // Check for appointment updates every 5 minutes
-    fetch(`{% url 'doctors:appointment_status' doctor.pk %}`)
-    .then(response => response.json())
-    .then(data => {
-        // Update appointment badges if needed
-        if (data.updated) {
-            location.reload();
-        }
-    });
-}, 300000); // 5 minutes
+// User account management
+function unlinkUser(doctorId) {
+    if (confirm('Are you sure you want to unlink this user account from the doctor? The user account will remain but will no longer be associated with this doctor.')) {
+        fetch(`/doctors/${doctorId}/unlink-user/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while unlinking the user.');
+        });
+    }
+}
+
+// Create user account confirmation
+document.addEventListener('DOMContentLoaded', function() {
+    const createUserForm = document.querySelector('.create-user-form');
+    if (createUserForm) {
+        createUserForm.addEventListener('submit', function(e) {
+            if (!confirm('Create a user account for this doctor? An email with login credentials will be sent to their email address.')) {
+                e.preventDefault();
+            }
+        });
+    }
+});
 </script>
 {% endblock %}

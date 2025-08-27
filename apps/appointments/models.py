@@ -3,14 +3,16 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from apps.accounts.models import Hospital, User
+# # from tenants.models import  # Temporarily commented Tenant  # Temporarily commented
+from apps.accounts.models import CustomUser as User
 from apps.patients.models import Patient
 from apps.doctors.models import Doctor
+from apps.core.utils.serial_number import SerialNumberMixin
 import uuid
 
 class AppointmentType(models.Model):
     """Different types of appointments"""
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='appointment_types')
+    # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='appointment_types')
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(default=30)
@@ -18,7 +20,6 @@ class AppointmentType(models.Model):
     is_active = models.BooleanField(default=True)
     
     class Meta:
-        unique_together = ['hospital', 'name']
         ordering = ['name']
     
     def __str__(self):
@@ -27,6 +28,8 @@ class AppointmentType(models.Model):
 
 class Appointment(models.Model):
     """Appointment model with comprehensive scheduling"""
+    
+    # SERIAL_TYPE = 'appointment'  # Temporarily disabled due to missing database column
     
     STATUS_CHOICES = [
         ('SCHEDULED', 'Scheduled'),
@@ -48,17 +51,17 @@ class Appointment(models.Model):
     
     # Basic Information
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='appointments')
+    # tenant = models.ForeignKey(Tenant  # Temporarily commented, on_delete=models.CASCADE, related_name='appointments', null=True, blank=True)
     appointment_number = models.CharField(max_length=20, unique=True, blank=True)
     
     # Participants
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='appointments')
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
     
-    # Appointment Details
-    appointment_type = models.ForeignKey(AppointmentType, on_delete=models.SET_NULL, null=True)
-    appointment_date = models.DateField()
-    appointment_time = models.TimeField()
+    # Appointment Details  
+    # appointment_type = models.ForeignKey(AppointmentType, on_delete=models.SET_NULL, null=True)  # Temporarily disabled due to missing database column
+    appointment_date = models.DateField(null=True, blank=True)
+    appointment_time = models.TimeField(null=True, blank=True)
     duration_minutes = models.PositiveIntegerField(default=30)
     
     # Status and Priority
@@ -96,6 +99,13 @@ class Appointment(models.Model):
     cancelled_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cancelled_appointments')
     cancellation_reason = models.TextField(blank=True)
     
+    # AI-Enhanced Fields
+    ai_no_show_probability = models.FloatField(null=True, blank=True, help_text="AI predicted no-show probability (0.0-1.0)")
+    ai_recommendation_score = models.FloatField(null=True, blank=True, help_text="AI scheduling optimization score")
+    ai_reminder_strategy = models.TextField(blank=True, help_text="JSON data for AI reminder strategy")
+    ai_scheduling_conflicts = models.TextField(blank=True, help_text="JSON data for detected scheduling conflicts")
+    ai_optimization_notes = models.TextField(blank=True, help_text="AI optimization and recommendation notes")
+    
     class Meta:
         ordering = ['appointment_date', 'appointment_time']
         indexes = [
@@ -116,23 +126,19 @@ class Appointment(models.Model):
     def generate_appointment_number(self):
         """Generate unique appointment number"""
         from datetime import datetime
-        
         last_appointment = Appointment.objects.filter(
-            hospital=self.hospital,
             created_at__date=datetime.now().date()
         ).order_by('-created_at').first()
-        
         if last_appointment and last_appointment.appointment_number:
             try:
                 last_number = int(last_appointment.appointment_number.split('-')[-1])
                 new_number = last_number + 1
-            except:
+            except Exception:
                 new_number = 1
         else:
             new_number = 1
-            
         date_str = datetime.now().strftime('%Y%m%d')
-        return f"{self.hospital.code}-APT-{date_str}-{new_number:04d}"
+        return f"APT-{date_str}-{new_number:04d}"
     
     def clean(self):
         # Check if appointment time is in the future

@@ -1,0 +1,83 @@
+<!-- templates/components/serial_display.html -->
+{% load i18n %}
+
+<div class="serial-number-display {{ class|default:'' }}">
+    {% if serial_number %}
+        <div class="serial-label">
+            {{ label|default:_("Serial Number") }}:
+        </div>
+        <div class="serial-value">
+            {{ serial_number }}
+        </div>
+    {% else %}
+        <div class="serial-placeholder text-muted">
+            {% trans "Serial not assigned" %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.serial-number-display {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px 12px;
+    display: inline-block;
+    margin: 5px 0;
+}
+
+.serial-label {
+    font-size: 0.85em;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.serial-value {
+    font-weight: bold;
+    color: #212529;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+}
+
+.serial-placeholder {
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+/* Print styles */
+@media print {
+    .serial-number-display {
+        background: white !important;
+        border: 1px solid #000 !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* Size variations */
+.serial-number-display.small {
+    padding: 4px 8px;
+    font-size: 0.85em;
+}
+
+.serial-number-display.large {
+    padding: 12px 16px;
+    font-size: 1.2em;
+}
+
+/* Color variations */
+.serial-number-display.primary {
+    background: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.serial-number-display.success {
+    background: #e8f5e8;
+    border-color: #4caf50;
+}
+
+.serial-number-display.warning {
+    background: #fff3e0;
+    border-color: #ff9800;
+}
+</style>

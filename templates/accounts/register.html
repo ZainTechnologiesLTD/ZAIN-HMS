@@ -1,0 +1,31 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Register - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="auth-header">
+    <h1><i class="bi bi-hospital"></i> ZAIN HMS</h1>
+    <p>Create your account</p>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<form method="post" id="registrationForm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary mt-4">
+        <i class="bi bi-person-plus"></i> Create Account
+    </button>
+</form>
+
+<div class="auth-links">
+    <p>Already have an account? <a href="{% url 'accounts:login' %}">Sign In</a></p>
+</div>
+{% endblock %}

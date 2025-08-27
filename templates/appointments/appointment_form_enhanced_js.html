@@ -1,0 +1,566 @@
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize enhanced form functionality
+    initializePatientSearch();
+    initializeDoctorSearch();
+    initializeDateHandlers();
+    initializeFormValidation();
+    initializePreview();
+    
+    // Initialize Select2 for form selects
+    $('.form-select').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select an option...',
+        allowClear: true
+    });
+    
+    // Initialize flatpickr for date inputs
+    flatpickr('#appointmentDate', {
+        dateFormat: 'Y-m-d',
+        minDate: 'today',
+        disable: [
+            function(date) {
+                // Disable Sundays
+                return date.getDay() === 0;
+            }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                loadTimeSlots();
+            }
+        }
+    });
+});
+
+// Patient search functionality
+function initializePatientSearch() {
+    const patientSearch = document.getElementById('patientSearch');
+    const searchResults = document.getElementById('patientSearchResults');
+    let searchTimeout;
+    
+    if (!patientSearch) return;
+    
+    patientSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchPatients(query);
+        }, 300);
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            searchResults.style.display = 'none';
+        }
+    });
+}
+
+function searchPatients(query) {
+    const searchResults = document.getElementById('patientSearchResults');
+    
+    // Show loading
+    searchResults.innerHTML = '<div class="search-result-item text-center"><div class="loading-spinner"></div> Searching...</div>';
+    searchResults.style.display = 'block';
+    
+    fetch(`/appointments/search-patients/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            searchResults.innerHTML = '';
+            
+            if (data.results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item text-muted text-center">No patients found</div>';
+                return;
+            }
+            
+            data.results.forEach(patient => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${patient.text}</strong>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-phone me-1"></i>${patient.phone || 'No phone'}
+                            </small>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="selectPatient('${patient.id}', '${patient.text}', '${patient.phone || ''}')">
+                            Select
+                        </button>
+                    </div>
+                `;
+                searchResults.appendChild(resultItem);
+            });
+        })
+        .catch(error => {
+            console.error('Error searching patients:', error);
+            searchResults.innerHTML = '<div class="search-result-item text-danger text-center">Error searching patients</div>';
+        });
+}
+
+function selectPatient(patientId, patientName, patientPhone) {
+    document.getElementById('selectedPatientId').value = patientId;
+    document.getElementById('selectedPatientName').textContent = patientName;
+    document.getElementById('selectedPatientDetails').textContent = `Phone: ${patientPhone || 'Not available'}`;
+    
+    document.getElementById('patientSearch').value = '';
+    document.getElementById('patientSearchResults').style.display = 'none';
+    document.getElementById('selectedPatientDisplay').style.display = 'block';
+    
+    updateAppointmentSummary();
+}
+
+function clearPatientSelection() {
+    document.getElementById('selectedPatientId').value = '';
+    document.getElementById('selectedPatientDisplay').style.display = 'none';
+    updateAppointmentSummary();
+}
+
+// Doctor search functionality
+function initializeDoctorSearch() {
+    const doctorSearch = document.getElementById('doctorSearch');
+    const specialtyFilter = document.getElementById('specialtyFilter');
+    const searchResults = document.getElementById('doctorSearchResults');
+    let searchTimeout;
+    
+    if (!doctorSearch) return;
+    
+    doctorSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchDoctors(query);
+        }, 300);
+    });
+    
+    specialtyFilter.addEventListener('change', function() {
+        const query = doctorSearch.value.trim();
+        if (query.length >= 2) {
+            searchDoctors(query);
+        }
+    });
+}
+
+function searchDoctors(query) {
+    const searchResults = document.getElementById('doctorSearchResults');
+    const specialty = document.getElementById('specialtyFilter').value;
+    
+    // Show loading
+    searchResults.innerHTML = '<div class="search-result-item text-center"><div class="loading-spinner"></div> Searching...</div>';
+    searchResults.style.display = 'block';
+    
+    let url = `/appointments/get-doctors/?q=${encodeURIComponent(query)}`;
+    if (specialty) {
+        url += `&specialty=${encodeURIComponent(specialty)}`;
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            searchResults.innerHTML = '';
+            
+            if (data.results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item text-muted text-center">No doctors found</div>';
+                return;
+            }
+            
+            data.results.forEach(doctor => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Dr. ${doctor.name}</strong>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-stethoscope me-1"></i>${doctor.specialty || 'General'}
+                            </small>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="selectDoctor('${doctor.id}', '${doctor.name}', '${doctor.specialty || ''}')">
+                            Select
+                        </button>
+                    </div>
+                `;
+                searchResults.appendChild(resultItem);
+            });
+        })
+        .catch(error => {
+            console.error('Error searching doctors:', error);
+            searchResults.innerHTML = '<div class="search-result-item text-danger text-center">Error searching doctors</div>';
+        });
+}
+
+function selectDoctor(doctorId, doctorName, doctorSpecialty) {
+    document.getElementById('selectedDoctorId').value = doctorId;
+    document.getElementById('selectedDoctorName').textContent = `Dr. ${doctorName}`;
+    document.getElementById('selectedDoctorDetails').textContent = `Specialty: ${doctorSpecialty || 'General'}`;
+    
+    document.getElementById('doctorSearch').value = '';
+    document.getElementById('doctorSearchResults').style.display = 'none';
+    document.getElementById('selectedDoctorDisplay').style.display = 'block';
+    
+    // Load time slots if date is also selected
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    if (appointmentDate) {
+        loadTimeSlots();
+    }
+    
+    updateAppointmentSummary();
+}
+
+function clearDoctorSelection() {
+    document.getElementById('selectedDoctorId').value = '';
+    document.getElementById('selectedDoctorDisplay').style.display = 'none';
+    document.getElementById('timeSlotsContainer').innerHTML = `
+        <div class="text-muted text-center py-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Select a doctor and date to view available time slots
+        </div>
+    `;
+    updateAppointmentSummary();
+}
+
+// Date handling
+function initializeDateHandlers() {
+    const appointmentDate = document.getElementById('appointmentDate');
+    if (appointmentDate) {
+        appointmentDate.addEventListener('change', function() {
+            const doctorId = document.getElementById('selectedDoctorId').value;
+            if (doctorId) {
+                loadTimeSlots();
+            }
+        });
+    }
+}
+
+function setDate(type) {
+    const dateInput = document.getElementById('appointmentDate');
+    const today = new Date();
+    let targetDate;
+    
+    switch(type) {
+        case 'today':
+            targetDate = today;
+            break;
+        case 'tomorrow':
+            targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + 1);
+            break;
+        case 'next_week':
+            targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + 7);
+            break;
+        default:
+            return;
+    }
+    
+    const dateStr = targetDate.toISOString().split('T')[0];
+    dateInput.value = dateStr;
+    
+    // Trigger change event
+    dateInput.dispatchEvent(new Event('change'));
+}
+
+function loadTimeSlots() {
+    const doctorId = document.getElementById('selectedDoctorId').value;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const container = document.getElementById('timeSlotsContainer');
+    
+    if (!doctorId || !appointmentDate) {
+        return;
+    }
+    
+    // Show loading
+    container.innerHTML = `
+        <div class="text-center py-3">
+            <div class="loading-spinner"></div>
+            <br>Loading available time slots...
+        </div>
+    `;
+    
+    fetch(`/appointments/get-available-time-slots/?doctor_id=${doctorId}&date=${appointmentDate}`)
+        .then(response => response.json())
+        .then(data => {
+            container.innerHTML = '';
+            
+            if (data.slots.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No available time slots for this date
+                    </div>
+                `;
+                return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'time-slot-grid';
+            
+            data.slots.forEach(slot => {
+                const slotElement = document.createElement('div');
+                slotElement.className = `time-slot ${slot.available ? '' : 'unavailable'}`;
+                slotElement.innerHTML = `
+                    <span class="availability-indicator ${slot.available ? 'available' : 'unavailable'}"></span>
+                    ${slot.display}
+                `;
+                
+                if (slot.available) {
+                    slotElement.addEventListener('click', () => selectTimeSlot(slot.time, slotElement));
+                }
+                
+                grid.appendChild(slotElement);
+            });
+            
+            container.appendChild(grid);
+        })
+        .catch(error => {
+            console.error('Error loading time slots:', error);
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading time slots
+                </div>
+            `;
+        });
+}
+
+function selectTimeSlot(time, element) {
+    // Remove selection from all slots
+    document.querySelectorAll('.time-slot.selected').forEach(slot => {
+        slot.classList.remove('selected');
+    });
+    
+    // Select current slot
+    element.classList.add('selected');
+    document.getElementById('selectedTimeSlot').value = time;
+    
+    updateAppointmentSummary();
+    checkAvailability();
+}
+
+function checkAvailability() {
+    const doctorId = document.getElementById('selectedDoctorId').value;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const appointmentTime = document.getElementById('selectedTimeSlot').value;
+    
+    if (!doctorId || !appointmentDate || !appointmentTime) {
+        return;
+    }
+    
+    fetch(`/appointments/check-availability/?doctor_id=${doctorId}&date=${appointmentDate}&time=${appointmentTime}`)
+        .then(response => response.json())
+        .then(data => {
+            const checkDiv = document.getElementById('availabilityCheck');
+            const messageSpan = document.getElementById('availabilityMessage');
+            
+            if (data.available) {
+                checkDiv.className = 'mt-3 alert alert-success';
+                messageSpan.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
+            } else {
+                checkDiv.className = 'mt-3 alert alert-warning';
+                messageSpan.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + data.message;
+            }
+            
+            checkDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error checking availability:', error);
+        });
+}
+
+// Form validation
+function initializeFormValidation() {
+    const form = document.getElementById('appointmentForm');
+    
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const spinner = submitBtn.querySelector('.spinner-border');
+        spinner.style.display = 'inline-block';
+        submitBtn.disabled = true;
+    });
+}
+
+function validateForm() {
+    let isValid = true;
+    const errors = [];
+    
+    // Validate patient selection
+    if (!document.getElementById('selectedPatientId').value) {
+        errors.push('Please select a patient');
+        isValid = false;
+    }
+    
+    // Validate doctor selection
+    if (!document.getElementById('selectedDoctorId').value) {
+        errors.push('Please select a doctor');
+        isValid = false;
+    }
+    
+    // Validate date
+    if (!document.getElementById('appointmentDate').value) {
+        errors.push('Please select an appointment date');
+        isValid = false;
+    }
+    
+    // Validate time
+    if (!document.getElementById('selectedTimeSlot').value) {
+        errors.push('Please select a time slot');
+        isValid = false;
+    }
+    
+    // Validate chief complaint
+    const chiefComplaint = document.querySelector('[name="chief_complaint"]');
+    if (chiefComplaint && !chiefComplaint.value.trim()) {
+        errors.push('Please provide the chief complaint');
+        isValid = false;
+    }
+    
+    if (!isValid) {
+        Swal.fire({
+            title: 'Validation Error',
+            html: errors.join('<br>'),
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+        });
+    }
+    
+    return isValid;
+}
+
+// Preview functionality
+function initializePreview() {
+    const previewBtn = document.getElementById('previewBtn');
+    
+    if (previewBtn) {
+        previewBtn.addEventListener('click', function() {
+            showPreview();
+        });
+    }
+}
+
+function showPreview() {
+    const patientName = document.getElementById('selectedPatientName').textContent;
+    const doctorName = document.getElementById('selectedDoctorName').textContent;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const appointmentTime = document.getElementById('selectedTimeSlot').value;
+    const chiefComplaint = document.querySelector('[name="chief_complaint"]').value;
+    
+    const previewContent = document.getElementById('previewContent');
+    previewContent.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Patient Information</h6>
+                <p><strong>Name:</strong> ${patientName || 'Not selected'}</p>
+                
+                <h6>Doctor Information</h6>
+                <p><strong>Doctor:</strong> ${doctorName || 'Not selected'}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Appointment Details</h6>
+                <p><strong>Date:</strong> ${appointmentDate || 'Not selected'}</p>
+                <p><strong>Time:</strong> ${appointmentTime || 'Not selected'}</p>
+                <p><strong>Chief Complaint:</strong> ${chiefComplaint || 'Not provided'}</p>
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+}
+
+function submitForm() {
+    document.getElementById('appointmentForm').submit();
+}
+
+// Update appointment summary
+function updateAppointmentSummary() {
+    const summaryDiv = document.getElementById('appointmentSummary');
+    const patientName = document.getElementById('selectedPatientName').textContent;
+    const doctorName = document.getElementById('selectedDoctorName').textContent;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const appointmentTime = document.getElementById('selectedTimeSlot').value;
+    
+    if (!patientName && !doctorName && !appointmentDate) {
+        summaryDiv.innerHTML = `
+            <div class="text-muted text-center py-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Fill in the form to see appointment summary
+            </div>
+        `;
+        return;
+    }
+    
+    summaryDiv.innerHTML = `
+        <div class="appointment-summary-item">
+            <strong>Patient:</strong> ${patientName || 'Not selected'}<br>
+            <strong>Doctor:</strong> ${doctorName || 'Not selected'}<br>
+            <strong>Date:</strong> ${appointmentDate || 'Not selected'}<br>
+            <strong>Time:</strong> ${appointmentTime || 'Not selected'}
+        </div>
+    `;
+}
+
+// Recent patients functionality
+function showRecentPatients() {
+    fetch('/appointments/search-patients/?recent=true')
+        .then(response => response.json())
+        .then(data => {
+            const searchResults = document.getElementById('patientSearchResults');
+            searchResults.innerHTML = '';
+            
+            if (data.results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item text-muted text-center">No recent patients found</div>';
+            } else {
+                data.results.forEach(patient => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${patient.text}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-phone me-1"></i>${patient.phone || 'No phone'}
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-primary" onclick="selectPatient('${patient.id}', '${patient.text}', '${patient.phone || ''}')">
+                                Select
+                            </button>
+                        </div>
+                    `;
+                    searchResults.appendChild(resultItem);
+                });
+            }
+            
+            searchResults.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error loading recent patients:', error);
+        });
+}
+</script>
+{% endblock %}

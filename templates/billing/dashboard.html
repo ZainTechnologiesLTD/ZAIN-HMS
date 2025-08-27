@@ -1,0 +1,209 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Billing Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .billing-card {
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .billing-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    .stat-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .stat-card.warning {
+        background: linear-gradient(135deg, #fcb045 0%, #fd1d1d 100%);
+    }
+    .stat-card.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-file-invoice-dollar me-2"></i>Billing Dashboard
+        </h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'billing:bill_list' %}" class="btn btn-primary btn-sm shadow-sm">
+                <i class="fas fa-list fa-sm text-white-50"></i> All Bills
+            </a>
+            <a href="{% url 'billing:create' %}" class="btn btn-success btn-sm shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Create Bill
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_bills }}</div>
+                <div class="stat-label">Total Bills</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card warning">
+                <div class="stat-number">{{ pending_bills }}</div>
+                <div class="stat-label">Pending Bills</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card success">
+                <div class="stat-number">{{ paid_bills }}</div>
+                <div class="stat-label">Paid Bills</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card info">
+                <div class="stat-number">${{ total_revenue|default:0|floatformat:0 }}</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bills -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Recent Bills</h6>
+            <a href="{% url 'billing:bill_list' %}" class="btn btn-sm btn-outline-primary">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body">
+            {% if recent_bills %}
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Bill ID</th>
+                                <th>Patient</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in recent_bills %}
+                                <tr>
+                                    <td><strong>#{{ bill.id }}</strong></td>
+                                    <td>
+                                        {% if bill.patient %}
+                                            {{ bill.patient.get_full_name }}
+                                        {% else %}
+                                            <span class="text-muted">No patient</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>${{ bill.total_amount|default:0|floatformat:2 }}</strong></td>
+                                    <td>
+                                        {% if bill.status == 'PAID' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif bill.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ bill.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ bill.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'billing:bill_detail' bill.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No bills found</h5>
+                    <p class="text-muted">Start by creating your first bill.</p>
+                    <a href="{% url 'billing:create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create First Bill
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card billing-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                    <h5>Create New Bill</h5>
+                    <p class="text-muted">Generate a new billing invoice</p>
+                    <a href="{% url 'billing:create' %}" class="btn btn-primary">Create Bill</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card billing-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-search fa-3x text-success mb-3"></i>
+                    <h5>Search Bills</h5>
+                    <p class="text-muted">Find bills by patient or date</p>
+                    <a href="{% url 'billing:bill_list' %}" class="btn btn-success">Search Bills</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card billing-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                    <h5>Billing Reports</h5>
+                    <p class="text-muted">View billing analytics and reports</p>
+                    <a href="#" class="btn btn-info">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any billing dashboard specific JavaScript here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh stats every 30 seconds
+        setInterval(function() {
+            // You can implement auto-refresh logic here
+        }, 30000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base_dashboard.html' %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>Lab Results for: {{ lab_test.test_name }}</h1>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Patient</th>
+        <th>Result</th>
+        <th>Parameters</th>
+        <th>Date Performed</th>
+        <th>Technician</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lab_result in lab_results %}
+      <tr>
+        <td>{{ lab_result.patient }}</td>
+        <td>{{ lab_result.result }}</td>
+        <td>{{ lab_result.parameters }}</td>
+        <td>{{ lab_result.date_performed }}</td>
+        <td>{{ lab_result.technician }}</td>
+        <td>
+          <a href="{% url 'laboratory:lab_result_update' lab_result.id %}" class="btn btn-warning btn-sm">Edit</a>
+          <a href="{% url 'laboratory:lab_result_delete' lab_result.id %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">No lab results found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{% url 'laboratory:lab_result_create' lab_test.id %}" class="btn btn-success">Add New Lab Result</a>
+  <a href="{% url 'laboratory:lab_test_update' lab_test.id %}" class="btn btn-primary">Edit Test</a>
+  <a href="{% url 'laboratory:lab_test_delete' lab_test.id %}" class="btn btn-danger">Delete Test</a>
+</div>
+{% endblock %}

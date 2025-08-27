@@ -1,0 +1,211 @@
+<!-- templates/emr/dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}EMR Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .emr-dashboard {
+        padding: 20px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #3498db;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .stat-label {
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+    
+    .recent-records {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .record-item {
+        padding: 10px;
+        border-bottom: 1px solid #ecf0f1;
+        transition: background-color 0.3s ease;
+    }
+    
+    .record-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .ai-upgrade-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="emr-dashboard">
+    <!-- AI Upgrade Banner -->
+    <div class="ai-upgrade-banner">
+        <h3><i class="fas fa-brain me-2"></i>AI-Enhanced Clinical Decision Support Available!</h3>
+        <p class="mb-3">Experience the power of AI-driven clinical insights, predictive analytics, and automated decision support.</p>
+        <a href="{% url 'emr:ai_dashboard' %}" class="btn btn-light btn-lg">
+            <i class="fas fa-rocket me-2"></i>Explore AI Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Statistics Cards -->
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value">{{ recent_records|length }}</div>
+                <div class="stat-label">Recent Records</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value">{{ recent_vitals|length }}</div>
+                <div class="stat-label">Recent Vitals</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value">{{ active_medications }}</div>
+                <div class="stat-label">Active Medications</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value">{{ pending_labs }}</div>
+                <div class="stat-label">Pending Labs</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Medical Records -->
+        <div class="col-md-6">
+            <div class="recent-records">
+                <h5 class="mb-3">
+                    <i class="fas fa-file-medical me-2"></i>Recent Medical Records
+                </h5>
+                {% for record in recent_records %}
+                <div class="record-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ record.patient.get_full_name }}</h6>
+                            <p class="mb-1 text-muted">{{ record.chief_complaint|truncatechars:60 }}</p>
+                            <small class="text-muted">{{ record.record_date|date:"M d, Y" }}</small>
+                        </div>
+                        <a href="{% url 'emr:medical_record_detail' record.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center">No recent medical records</p>
+                {% endfor %}
+                
+                {% if recent_records %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'emr:medical_record_list' %}" class="btn btn-primary">
+                        View All Records
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Vital Signs -->
+        <div class="col-md-6">
+            <div class="recent-records">
+                <h5 class="mb-3">
+                    <i class="fas fa-heartbeat me-2"></i>Recent Vital Signs
+                </h5>
+                {% for vitals in recent_vitals %}
+                <div class="record-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ vitals.patient.get_full_name }}</h6>
+                            <p class="mb-1">
+                                {% if vitals.blood_pressure_systolic %}
+                                    BP: {{ vitals.blood_pressure_systolic }}/{{ vitals.blood_pressure_diastolic }} •
+                                {% endif %}
+                                {% if vitals.heart_rate %}
+                                    HR: {{ vitals.heart_rate }} •
+                                {% endif %}
+                                {% if vitals.temperature %}
+                                    Temp: {{ vitals.temperature }}°C
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">{{ vitals.recorded_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <a href="{% url 'emr:vital_signs_detail' vitals.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center">No recent vital signs</p>
+                {% endfor %}
+                
+                {% if recent_vitals %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'emr:vital_signs_list' %}" class="btn btn-primary">
+                        View All Vitals
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="recent-records">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{% url 'emr:medical_record_create' %}" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-plus me-2"></i>New Medical Record
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'emr:vital_signs_create' %}" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-heartbeat me-2"></i>Record Vital Signs
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'emr:medication_create' %}" class="btn btn-warning w-100 mb-2">
+                            <i class="fas fa-pills me-2"></i>Add Medication
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'emr:lab_result_create' %}" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-vial me-2"></i>Add Lab Result
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

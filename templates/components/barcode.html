@@ -1,0 +1,158 @@
+{% load static %}
+{% load i18n %}
+
+<!-- Barcode Component for Hospital Documents -->
+<div class="barcode-container">
+    {% if object %}
+        {% if barcode_data %}
+            <!-- Display existing barcode -->
+            <div class="barcode-display">
+                <img src="{{ barcode_data }}" alt="{% trans 'Document Barcode' %}" class="barcode-image">
+                <div class="barcode-info">
+                    <small class="text-muted">
+                        {% if object.serial_number %}
+                            {% trans "Serial" %}: {{ object.serial_number }}
+                        {% else %}
+                            {% trans "Scan to access record" %}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        {% else %}
+            <!-- Generate barcode on-the-fly -->
+            <div class="barcode-display">
+                <div class="barcode-placeholder">
+                    <i class="fas fa-barcode"></i>
+                    <small>{% trans "Generating barcode..." %}</small>
+                </div>
+            </div>
+            
+            <!-- JavaScript to generate barcode -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    generateBarcode('{{ object.id }}', '{{ object|class_name }}');
+                });
+                
+                function generateBarcode(objectId, objectType) {
+                    fetch('{% url "core:generate_barcode" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            'object_id': objectId,
+                            'object_type': objectType
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const container = document.querySelector('.barcode-placeholder').parentElement;
+                            container.innerHTML = `
+                                <img src="${data.barcode_data}" alt="{% trans 'Document Barcode' %}" class="barcode-image">
+                                <div class="barcode-info">
+                                    <small class="text-muted">${data.serial_number || '{% trans "Scan to access record" %}'}</small>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Barcode generation error:', error);
+                    });
+                }
+            </script>
+        {% endif %}
+    {% else %}
+        <!-- No object provided -->
+        <div class="barcode-display">
+            <div class="barcode-placeholder">
+                <i class="fas fa-barcode text-muted"></i>
+                <small class="text-muted">{% trans "No data available" %}</small>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.barcode-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.barcode-display {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.barcode-image {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.barcode-info {
+    margin-top: 5px;
+}
+
+.barcode-info small {
+    font-size: 11px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.barcode-placeholder {
+    padding: 20px;
+    color: #6c757d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.barcode-placeholder i {
+    font-size: 24px;
+}
+
+/* Print styles */
+@media print {
+    .barcode-container {
+        margin: 15px 0;
+    }
+    
+    .barcode-display {
+        border: 2px solid #000;
+        border-radius: 0;
+        box-shadow: none;
+        background-color: #fff;
+    }
+    
+    .barcode-image {
+        border: 1px solid #000;
+        border-radius: 0;
+    }
+    
+    .barcode-info small {
+        color: #000;
+        font-weight: bold;
+    }
+}
+
+/* Hospital barcode reader optimization */
+.barcode-image {
+    /* Ensure high contrast for barcode scanners */
+    filter: contrast(1.2);
+    /* Standard barcode height for hospital scanners */
+    min-height: 30px;
+    max-height: 50px;
+}
+</style>

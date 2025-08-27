@@ -1,0 +1,102 @@
+<!-- Admin Dashboard Content -->
+<div class="row g-4">
+    <!-- Hospital Overview -->
+    <div class="col-12">
+        <div class="chart-container">
+            <h5 class="mb-3">
+                <i class="bi bi-building me-2"></i>Hospital Overview
+            </h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="p-3 bg-primary text-white rounded text-center">
+                        <div class="h4 mb-1">{{ total_departments|default:0 }}</div>
+                        <small>Departments</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-success text-white rounded text-center">
+                        <div class="h4 mb-1">{{ total_rooms|default:0 }}</div>
+                        <small>Rooms</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-warning text-white rounded text-center">
+                        <div class="h4 mb-1">{{ total_staff|default:0 }}</div>
+                        <small>Staff Members</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-info text-white rounded text-center">
+                        <div class="h4 mb-1">${{ monthly_revenue|default:0|floatformat:0 }}</div>
+                        <small>Monthly Revenue</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Alerts -->
+    <div class="col-lg-6">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-exclamation-triangle me-2"></i>System Alerts
+            </h5>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #ef4444;">
+                    <i class="bi bi-server"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">Server Status</div>
+                    <div class="text-success small">All systems operational</div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #f59e0b;">
+                    <i class="bi bi-database"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">Database Backup</div>
+                    <div class="text-muted small">Last backup: 2 hours ago</div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #10b981;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">Security Status</div>
+                    <div class="text-success small">No threats detected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Registrations -->
+    <div class="col-lg-6">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-person-plus me-2"></i>Recent Registrations
+            </h5>
+            
+            {% for patient in recent_patients %}
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #3b82f6;">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div>
+                    <div class="fw-medium">{{ patient.get_full_name }}</div>
+                    <div class="text-muted small">Registered {{ patient.created_at|timesince }} ago</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-3">
+                <i class="bi bi-person-x fs-2"></i>
+                <p class="mb-0">No recent registrations</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

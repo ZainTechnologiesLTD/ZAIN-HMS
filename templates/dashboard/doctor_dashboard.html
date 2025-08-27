@@ -1,0 +1,122 @@
+<!-- Doctor Dashboard Content -->
+<div class="row g-4">
+    <!-- Today's Schedule -->
+    <div class="col-lg-8">
+        <div class="activity-feed">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-day me-2"></i>Today's Appointments
+                </h5>
+                <span class="badge bg-primary">{{ todays_appointments.count }} appointments</span>
+            </div>
+            
+            {% for appointment in todays_appointments %}
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #3b82f6;">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-medium">{{ appointment.patient.get_full_name }}</div>
+                            <div class="text-muted small">{{ appointment.appointment_type|default:"General Consultation" }}</div>
+                            <div class="text-primary small">
+                                <i class="bi bi-clock me-1"></i>{{ appointment.time|time:"g:i A" }}
+                            </div>
+                        </div>
+                        <span class="badge bg-{{ appointment.get_status_color }}">
+                            {{ appointment.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-calendar-x fs-2"></i>
+                <p class="mb-0">No appointments scheduled for today</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-lg-4">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="p-3 bg-primary text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ patients_today|default:0 }}</div>
+                            <small>Patients Today</small>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-success text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ completed_today|default:0 }}</div>
+                            <small>Completed</small>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <div class="p-3 bg-warning text-white rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h4 mb-1">{{ pending_today|default:0 }}</div>
+                            <small>Pending</small>
+                        </div>
+                        <i class="bi bi-clock fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Patients -->
+    <div class="col-12">
+        <div class="activity-feed">
+            <h5 class="mb-3">
+                <i class="bi bi-person-lines-fill me-2"></i>Recent Patients
+            </h5>
+            
+            <div class="row">
+                {% for patient in recent_patients %}
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-medium">{{ patient.get_full_name }}</div>
+                                <div class="text-muted small">{{ patient.phone|default:"No phone" }}</div>
+                                <div class="text-muted small">Age: {{ patient.age|default:"Unknown" }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted">Last visit</div>
+                                <div class="small">{{ patient.last_appointment|date:"M d, Y"|default:"Never" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="#" class="btn btn-sm btn-outline-primary me-2">View History</a>
+                            <a href="#" class="btn btn-sm btn-primary">New Appointment</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-person-x fs-2"></i>
+                        <p class="mb-0">No recent patients</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

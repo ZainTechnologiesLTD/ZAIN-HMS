@@ -1,15 +1,36 @@
+# apps/laboratory/urls.py
 from django.urls import path
-from .views import LabTestViewSet, LabResultViewSet, diagnostic_list, lab_result_list
+from . import views
 
-app_name = 'diagnostics'
+app_name = 'laboratory'
 
 urlpatterns = [
-    path('', diagnostic_list, name='diagnostic_list'),  # New URL for diagnostic-list
-    path('lab_tests/<int:lab_test_id>/results/', lab_result_list, name='lab_result_list'),
-    path('lab_tests/create/', LabTestViewSet.as_view({'get': 'create', 'post': 'create'}), name='lab_test_create'),
-    path('lab_tests/<int:pk>/update/', LabTestViewSet.as_view({'get': 'update', 'post': 'update'}), name='lab_test_update'),
-    path('lab_tests/<int:pk>/delete/', LabTestViewSet.as_view({'get': 'destroy', 'post': 'destroy'}), name='lab_test_delete'),
-    path('lab_results/<int:pk>/update/', LabResultViewSet.as_view({'get': 'update', 'post': 'update'}), name='lab_result_update'),
-    path('lab_results/<int:pk>/delete/', LabResultViewSet.as_view({'get': 'destroy', 'post': 'destroy'}), name='lab_result_delete'),
-    path('lab_results/create/<int:lab_test_id>/', LabResultViewSet.as_view({'get': 'create', 'post': 'create'}), name='lab_result_create'),
+    # Dashboard
+    path('', views.laboratory_dashboard, name='dashboard'),
+    
+    # Test Definitions
+    path('tests/', views.LabTestListView.as_view(), name='lab_test_list'),
+    path('tests/create/', views.LabTestCreateView.as_view(), name='lab_test_create'),
+    path('tests/<uuid:pk>/', views.LabTestDetailView.as_view(), name='lab_test_detail'),
+    path('tests/<uuid:pk>/update/', views.LabTestUpdateView.as_view(), name='lab_test_update'),
+    path('tests/<uuid:pk>/delete/', views.LabTestDeleteView.as_view(), name='lab_test_delete'),
+    
+    # Test Categories
+    path('categories/', views.TestCategoryListView.as_view(), name='test_category_list'),
+    path('categories/create/', views.TestCategoryCreateView.as_view(), name='test_category_create'),
+    
+    # Lab Orders
+    path('orders/', views.LabOrderListView.as_view(), name='lab_order_list'),
+    path('orders/create/', views.LabOrderCreateView.as_view(), name='lab_order_create'),
+    path('orders/<uuid:pk>/', views.LabOrderDetailView.as_view(), name='lab_order_detail'),
+    
+    # Sample Collection
+    path('order-items/<uuid:pk>/collect-sample/', views.SampleCollectionView.as_view(), name='collect_sample'),
+    
+    # Results
+    path('results/create/<uuid:order_item_id>/', views.LabResultCreateView.as_view(), name='lab_result_create'),
+    
+    # Legacy redirects
+    path('diagnostic-list/', views.diagnostic_list, name='diagnostic_list'),
+    path('lab-tests/', views.lab_test_list, name='lab_test_list_legacy'),
 ]

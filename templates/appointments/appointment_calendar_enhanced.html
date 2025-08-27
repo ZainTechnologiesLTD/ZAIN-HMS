@@ -1,0 +1,874 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+<style>
+    .calendar-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .calendar-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(50px, -50px);
+    }
+
+    .calendar-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .calendar-subtitle {
+        opacity: 0.8;
+        font-size: 1rem;
+    }
+
+    .calendar-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .calendar-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .calendar-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .view-buttons {
+        display: flex;
+        background: #f8f9fa;
+        border-radius: 25px;
+        padding: 5px;
+        gap: 5px;
+    }
+
+    .view-btn {
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .view-btn.active {
+        background: #667eea;
+        color: white;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .filter-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .filter-btn {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        padding: 8px 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-btn:hover {
+        border-color: #667eea;
+    }
+
+    .filter-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        min-width: 250px;
+        display: none;
+        z-index: 1000;
+    }
+
+    .filter-menu.show {
+        display: block;
+    }
+
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .filter-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-option {
+        padding: 4px 12px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-option.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    /* FullCalendar Customizations */
+    .fc {
+        font-family: inherit;
+    }
+
+    .fc-toolbar {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        color: #495057;
+    }
+
+    .fc-button-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 8px 16px !important;
+        font-weight: 500 !important;
+    }
+
+    .fc-button-primary:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6c4298 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3) !important;
+    }
+
+    .fc-button-primary:disabled {
+        background: #6c757d !important;
+        opacity: 0.6;
+    }
+
+    .fc-daygrid-day {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .fc-daygrid-day:hover {
+        background-color: rgba(102, 126, 234, 0.05) !important;
+    }
+
+    .fc-day-today {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+    }
+
+    .fc-event {
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 2px 6px !important;
+        margin: 1px !important;
+        font-size: 0.75rem !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .fc-event:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Appointment Status Colors */
+    .fc-event.status-scheduled {
+        background: #e3f2fd !important;
+        color: #1976d2 !important;
+        border-left: 3px solid #1976d2 !important;
+    }
+
+    .fc-event.status-confirmed {
+        background: #e8f5e8 !important;
+        color: #2e7d32 !important;
+        border-left: 3px solid #2e7d32 !important;
+    }
+
+    .fc-event.status-completed {
+        background: #e8f5e8 !important;
+        color: #2e7d32 !important;
+        border-left: 3px solid #2e7d32 !important;
+    }
+
+    .fc-event.status-cancelled {
+        background: #ffebee !important;
+        color: #c62828 !important;
+        border-left: 3px solid #c62828 !important;
+    }
+
+    .fc-event.status-in-progress {
+        background: #fff3e0 !important;
+        color: #ef6c00 !important;
+        border-left: 3px solid #ef6c00 !important;
+    }
+
+    /* Priority Indicators */
+    .fc-event.priority-urgent {
+        background: linear-gradient(45deg, #dc3545, #fd7e14) !important;
+        color: white !important;
+        animation: pulse 2s infinite;
+    }
+
+    .fc-event.priority-high {
+        background: #fff3e0 !important;
+        color: #ef6c00 !important;
+        border-left: 3px solid #ffc107 !important;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    .appointment-sidebar {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .sidebar-section {
+        margin-bottom: 2rem;
+    }
+
+    .sidebar-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .sidebar-title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+    }
+
+    .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quick-action-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .btn-primary-action {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-outline-action {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-outline-action:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .upcoming-appointments {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .upcoming-item {
+        padding: 10px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .upcoming-item:hover {
+        background: #f8f9fa;
+        border-color: #667eea;
+    }
+
+    .upcoming-time {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 2px;
+    }
+
+    .upcoming-patient {
+        color: #495057;
+        margin-bottom: 2px;
+    }
+
+    .upcoming-doctor {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+    }
+
+    @media (max-width: 768px) {
+        .calendar-header {
+            padding: 1.5rem;
+        }
+
+        .calendar-title {
+            font-size: 1.5rem;
+        }
+
+        .calendar-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .calendar-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .view-buttons {
+            justify-content: center;
+        }
+
+        .appointment-sidebar {
+            position: static;
+            margin-top: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Calendar Header -->
+    <div class="calendar-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="calendar-title">📅 Appointment Calendar</h1>
+                <p class="calendar-subtitle">Visual overview of all appointments and schedules</p>
+                
+                <div class="calendar-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_appointments|default:0 }}</div>
+                        <div class="stat-label">Total This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ today_appointments|default:0 }}</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ upcoming_appointments|default:0 }}</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ doctors_count|default:0 }}</div>
+                        <div class="stat-label">Active Doctors</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="quick-actions">
+                    <a href="{% url 'appointments:appointment_create' %}" class="quick-action-btn btn-primary-action">
+                        <i class="bi bi-plus-circle me-2"></i>New Appointment
+                    </a>
+                    <button onclick="refreshCalendar()" class="quick-action-btn btn-outline-action">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            <!-- Calendar Container -->
+            <div class="calendar-container">
+                <!-- Calendar Controls -->
+                <div class="calendar-controls">
+                    <div class="view-buttons">
+                        <button class="view-btn active" data-view="dayGridMonth">
+                            <i class="bi bi-calendar-month me-1"></i>Month
+                        </button>
+                        <button class="view-btn" data-view="timeGridWeek">
+                            <i class="bi bi-calendar-week me-1"></i>Week
+                        </button>
+                        <button class="view-btn" data-view="timeGridDay">
+                            <i class="bi bi-calendar-day me-1"></i>Day
+                        </button>
+                        <button class="view-btn" data-view="listWeek">
+                            <i class="bi bi-list-ul me-1"></i>List
+                        </button>
+                    </div>
+
+                    <div class="filter-dropdown">
+                        <button class="filter-btn" onclick="toggleFilters()">
+                            <i class="bi bi-funnel"></i>
+                            Filters
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="filter-menu" id="filterMenu">
+                            <div class="filter-group">
+                                <label class="filter-label">Status</label>
+                                <div class="filter-options">
+                                    <div class="filter-option active" data-filter="status" data-value="all">All</div>
+                                    <div class="filter-option" data-filter="status" data-value="scheduled">Scheduled</div>
+                                    <div class="filter-option" data-filter="status" data-value="confirmed">Confirmed</div>
+                                    <div class="filter-option" data-filter="status" data-value="completed">Completed</div>
+                                    <div class="filter-option" data-filter="status" data-value="cancelled">Cancelled</div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Priority</label>
+                                <div class="filter-options">
+                                    <div class="filter-option active" data-filter="priority" data-value="all">All</div>
+                                    <div class="filter-option" data-filter="priority" data-value="normal">Normal</div>
+                                    <div class="filter-option" data-filter="priority" data-value="high">High</div>
+                                    <div class="filter-option" data-filter="priority" data-value="urgent">Urgent</div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Doctor</label>
+                                <select class="form-select" id="doctorFilter">
+                                    <option value="all">All Doctors</option>
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor.id }}">Dr. {{ doctor.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar -->
+                <div id="appointmentCalendar"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <!-- Sidebar -->
+            <div class="appointment-sidebar">
+                <!-- Legend -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-palette"></i>
+                        Status Legend
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e3f2fd; border-color: #1976d2;"></div>
+                        <span>Scheduled</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e8f5e8; border-color: #2e7d32;"></div>
+                        <span>Confirmed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #fff3e0; border-color: #ef6c00;"></div>
+                        <span>In Progress</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e8f5e8; border-color: #2e7d32;"></div>
+                        <span>Completed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffebee; border-color: #c62828;"></div>
+                        <span>Cancelled</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(45deg, #dc3545, #fd7e14);"></div>
+                        <span>Urgent Priority</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-lightning"></i>
+                        Quick Actions
+                    </div>
+                    <div class="quick-actions">
+                        <a href="{% url 'appointments:appointment_create' %}" class="quick-action-btn btn-primary-action">
+                            <i class="bi bi-plus me-1"></i>New Appointment
+                        </a>
+                        <button onclick="goToToday()" class="quick-action-btn btn-outline-action">
+                            <i class="bi bi-calendar-check me-1"></i>Go to Today
+                        </button>
+                        <a href="{% url 'appointments:appointment_list' %}" class="quick-action-btn btn-outline-action">
+                            <i class="bi bi-list me-1"></i>List View
+                        </a>
+                        <button onclick="exportCalendar()" class="quick-action-btn btn-outline-action">
+                            <i class="bi bi-download me-1"></i>Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upcoming Appointments -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-clock"></i>
+                        Next 5 Appointments
+                    </div>
+                    <div class="upcoming-appointments" id="upcomingList">
+                        {% for appointment in next_appointments %}
+                        <div class="upcoming-item">
+                            <div class="upcoming-time">{{ appointment.appointment_time|time:"H:i" }}</div>
+                            <div class="upcoming-patient">{{ appointment.patient.get_full_name }}</div>
+                            <div class="upcoming-doctor">Dr. {{ appointment.doctor.get_full_name }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="bi bi-calendar-x"></i>
+                            <div class="mt-2">No upcoming appointments</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Detail Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Appointment Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="appointmentModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="viewFullDetails">View Full Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script>
+let calendar;
+let currentFilters = {
+    status: 'all',
+    priority: 'all',
+    doctor: 'all'
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCalendar();
+    setupEventListeners();
+});
+
+function initializeCalendar() {
+    const calendarEl = document.getElementById('appointmentCalendar');
+    
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: ''
+        },
+        height: 'auto',
+        events: function(fetchInfo, successCallback, failureCallback) {
+            const params = new URLSearchParams({
+                start: fetchInfo.startStr,
+                end: fetchInfo.endStr,
+                ...currentFilters
+            });
+            
+            fetch(`{% url 'appointments:calendar_events' %}?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    const events = data.events.map(event => ({
+                        ...event,
+                        classNames: [`status-${event.status}`, `priority-${event.priority}`]
+                    }));
+                    successCallback(events);
+                })
+                .catch(error => {
+                    console.error('Error loading events:', error);
+                    failureCallback(error);
+                });
+        },
+        eventClick: function(info) {
+            showAppointmentModal(info.event.id);
+        },
+        dateClick: function(info) {
+            // Create new appointment for clicked date
+            const url = `{% url 'appointments:appointment_create' %}?date=${info.dateStr}`;
+            window.location.href = url;
+        },
+        eventDidMount: function(info) {
+            // Add tooltip
+            info.el.title = `${info.event.title}\nTime: ${info.event.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\nStatus: ${info.event.extendedProps.status}`;
+        }
+    });
+    
+    calendar.render();
+}
+
+function setupEventListeners() {
+    // View buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            calendar.changeView(this.dataset.view);
+        });
+    });
+
+    // Filter options
+    document.querySelectorAll('.filter-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const filterType = this.dataset.filter;
+            const filterValue = this.dataset.value;
+            
+            // Update active state
+            document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update filter
+            currentFilters[filterType] = filterValue;
+        });
+    });
+
+    // Doctor filter
+    document.getElementById('doctorFilter').addEventListener('change', function() {
+        currentFilters.doctor = this.value;
+    });
+
+    // Close filter menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.filter-dropdown')) {
+            document.getElementById('filterMenu').classList.remove('show');
+        }
+    });
+}
+
+function toggleFilters() {
+    const menu = document.getElementById('filterMenu');
+    menu.classList.toggle('show');
+}
+
+function applyFilters() {
+    calendar.refetchEvents();
+    document.getElementById('filterMenu').classList.remove('show');
+    showToast('Filters applied', 'success');
+}
+
+function refreshCalendar() {
+    calendar.refetchEvents();
+    updateUpcomingAppointments();
+    showToast('Calendar refreshed', 'success');
+}
+
+function goToToday() {
+    calendar.today();
+}
+
+function exportCalendar() {
+    const view = calendar.view.type;
+    const startDate = calendar.view.activeStart.toISOString().split('T')[0];
+    const endDate = calendar.view.activeEnd.toISOString().split('T')[0];
+    
+    const params = new URLSearchParams({
+        format: 'calendar',
+        view: view,
+        start: startDate,
+        end: endDate,
+        ...currentFilters
+    });
+    
+    window.open(`{% url 'appointments:export' %}?${params}`, '_blank');
+}
+
+function showAppointmentModal(appointmentId) {
+    fetch(`{% url 'appointments:appointment_detail_modal' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', appointmentId))
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('appointmentModalBody').innerHTML = html;
+            document.getElementById('viewFullDetails').onclick = () => {
+                window.location.href = `{% url 'appointments:appointment_detail' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', appointmentId);
+            };
+            
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error loading appointment details:', error);
+            showToast('Error loading appointment details', 'error');
+        });
+}
+
+function updateUpcomingAppointments() {
+    fetch('{% url "appointments:upcoming_appointments_list" %}')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('upcomingList').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error updating upcoming appointments:', error);
+        });
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type === 'error' ? 'danger' : type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+    refreshCalendar();
+}, 5 * 60 * 1000);
+</script>
+{% endblock %}

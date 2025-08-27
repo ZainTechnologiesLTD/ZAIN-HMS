@@ -1,0 +1,385 @@
+<!-- apps/tenants/templates/tenants/enhanced_hospital_selection.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% load hospital_tags %}
+
+{% block title %}Select Hospital - {{ block.super }}{% endblock %}
+{% block page_title %}Hospital Selection{% endblock %}
+{% block page_subtitle %}
+    {% if has_multiple_hospitals %}
+        Choose the hospital context for your session
+    {% else %}
+        Welcome to your hospital dashboard
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hospital-selection-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .hospital-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 3px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hospital-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+        border-color: rgba(255,255,255,0.3);
+    }
+    
+    .hospital-card.current {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    
+    .hospital-card.current::before {
+        content: "CURRENT";
+        position: absolute;
+        top: 10px;
+        right: -30px;
+        background: rgba(255,255,255,0.9);
+        color: #28a745;
+        padding: 5px 40px;
+        font-size: 12px;
+        font-weight: bold;
+        transform: rotate(45deg);
+    }
+    
+    .hospital-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255,255,255,0.3);
+        margin-bottom: 15px;
+    }
+    
+    .subscription-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .subscription-active { background: rgba(40, 167, 69, 0.9); }
+    .subscription-trial { background: rgba(255, 193, 7, 0.9); color: #000; }
+    .subscription-expired { background: rgba(220, 53, 69, 0.9); }
+    
+    .hospital-stats {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0;
+        padding: 15px 0;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    .modules-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    .module-tag {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 15px;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .welcome-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #2c5aa0 0%, #1e3d72 100%);
+        color: white;
+        border-radius: 15px;
+    }
+    
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .quick-stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .hospital-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 25px;
+    }
+    
+    @media (max-width: 768px) {
+        .hospital-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hospital-card {
+            padding: 20px;
+        }
+        
+        .hospital-stats {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hospital-selection-container">
+    <!-- Welcome Header -->
+    <div class="welcome-header">
+        <h2><i class="fas fa-hospital me-2"></i>Welcome, {{ user.get_full_name|default:user.username }}!</h2>
+        <p class="mb-0">{{ user.get_role_display }} Access</p>
+        {% if has_multiple_hospitals %}
+        <p class="mt-2 mb-0">
+            <i class="fas fa-info-circle me-1"></i>
+            You have access to {{ enhanced_accesses|length }} hospital{{ enhanced_accesses|length|pluralize }}. 
+            Select one to continue.
+        </p>
+        {% endif %}
+    </div>
+
+    {% if enhanced_accesses %}
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="quick-stat-card">
+                <h4 class="text-primary">{{ enhanced_accesses|length }}</h4>
+                <p class="mb-0">Hospital{{ enhanced_accesses|length|pluralize }} Access</p>
+            </div>
+            <div class="quick-stat-card">
+                <h4 class="text-success">
+                    {{ enhanced_accesses|length }}
+                    {% comment %}Count active subscriptions{% endcomment %}
+                </h4>
+                <p class="mb-0">Active Subscription{{ enhanced_accesses|length|pluralize }}</p>
+            </div>
+            <div class="quick-stat-card">
+                <h4 class="text-info">{{ user.role }}</h4>
+                <p class="mb-0">Your Role</p>
+            </div>
+            <div class="quick-stat-card">
+                <h4 class="text-warning">
+                    {% for access in enhanced_accesses %}
+                        {% if access.hospital.telemedicine_enabled %}1{% endif %}
+                    {% endfor %}
+                </h4>
+                <p class="mb-0">Telemedicine Enabled</p>
+            </div>
+        </div>
+
+        <!-- Hospital Selection Grid -->
+        <form method="post" id="hospitalForm">
+            {% csrf_token %}
+            <div class="hospital-grid">
+                {% for item in enhanced_accesses %}
+                <div class="hospital-card {% if current_hospital.id == item.hospital.id %}current{% endif %}" 
+                     onclick="selectHospital({{ item.hospital.id }})">
+                    
+                    <!-- Subscription Badge -->
+                    <div class="subscription-badge {% if item.is_trial %}subscription-trial{% elif item.subscription_status %}subscription-active{% else %}subscription-expired{% endif %}">
+                        {% if item.is_trial %}
+                            Trial ({{ item.days_left }} days)
+                        {% elif item.subscription_status %}
+                            Active
+                        {% else %}
+                            Expired
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <img src="{% get_hospital_logo item.hospital %}" 
+                                 alt="{{ item.hospital.name }} Logo" 
+                                 class="hospital-logo">
+                        </div>
+                        <div class="col">
+                            <h4 class="mb-1">{{ item.hospital.name }}</h4>
+                            <p class="mb-2">{{ item.hospital.get_subscription_plan_display }}</p>
+                            <small>
+                                <i class="fas fa-user me-1"></i>{{ item.access.get_role_display }}
+                                {% if item.last_accessed_friendly %}
+                                | <i class="fas fa-clock me-1"></i>Last accessed {{ item.last_accessed_friendly|timesince }} ago
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Hospital Stats -->
+                    <div class="hospital-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ item.user_count }}</span>
+                            <span class="stat-label">Users</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ item.enabled_modules|length }}</span>
+                            <span class="stat-label">Modules</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ item.days_left }}</span>
+                            <span class="stat-label">Days Left</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Enabled Modules Preview -->
+                    <div class="modules-preview">
+                        {% for module in item.enabled_modules|slice:":6" %}
+                        <span class="module-tag">
+                            {% if module == 'appointments' %}<i class="fas fa-calendar-check"></i>{% endif %}
+                            {% if module == 'patients' %}<i class="fas fa-user-injured"></i>{% endif %}
+                            {% if module == 'telemedicine' %}<i class="fas fa-video"></i>{% endif %}
+                            {% if module == 'laboratory' %}<i class="fas fa-flask"></i>{% endif %}
+                            {% if module == 'radiology' %}<i class="fas fa-x-ray"></i>{% endif %}
+                            {% if module == 'billing' %}<i class="fas fa-receipt"></i>{% endif %}
+                            {% if module == 'pharmacy' %}<i class="fas fa-pills"></i>{% endif %}
+                            {{ module|title }}
+                        </span>
+                        {% endfor %}
+                        {% if item.enabled_modules|length > 6 %}
+                        <span class="module-tag">
+                            <i class="fas fa-plus"></i>{{ item.enabled_modules|length|add:"-6" }} more
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Action Button -->
+                    <div class="mt-3 text-center">
+                        {% if current_hospital.id == item.hospital.id %}
+                        <span class="btn btn-success btn-sm">
+                            <i class="fas fa-check me-1"></i>Currently Selected
+                        </span>
+                        {% else %}
+                        <span class="btn btn-light btn-sm">
+                            <i class="fas fa-mouse-pointer me-1"></i>Click to Select
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Remember Choice Option -->
+            {% if has_multiple_hospitals %}
+            <div class="text-center mt-4">
+                <div class="form-check d-inline-block">
+                    <input class="form-check-input" type="checkbox" name="remember_choice" id="rememberChoice">
+                    <label class="form-check-label" for="rememberChoice">
+                        Remember my choice for future sessions
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+
+    {% else %}
+        <!-- No Hospital Access -->
+        <div class="text-center py-5">
+            <div class="card border-0 shadow-sm mx-auto" style="max-width: 500px;">
+                <div class="card-body p-5">
+                    <i class="fas fa-hospital fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Hospital Access</h4>
+                    <p class="text-muted mb-4">
+                        {% if user.role == 'HOSPITAL_ADMIN' %}
+                        No hospitals have been assigned to your account. Please contact your system administrator to get hospital access.
+                        {% else %}
+                        You don't have access to any hospitals. Please contact your hospital administrator to request access.
+                        {% endif %}
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="mailto:support@zainhms.com" class="btn btn-primary">
+                            <i class="fas fa-envelope me-1"></i>Contact Support
+                        </a>
+                        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function selectHospital(hospitalId) {
+    // Add loading state
+    const cards = document.querySelectorAll('.hospital-card');
+    cards.forEach(card => {
+        card.style.pointerEvents = 'none';
+        card.style.opacity = '0.7';
+    });
+    
+    // Submit form
+    const form = document.getElementById('hospitalForm');
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'hospital_id';
+    input.value = hospitalId;
+    form.appendChild(input);
+    
+    // Show loading message
+    const selectedCard = event.currentTarget;
+    const button = selectedCard.querySelector('.btn');
+    if (button) {
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Switching...';
+        button.className = 'btn btn-warning btn-sm';
+    }
+    
+    form.submit();
+}
+
+// Auto-select if only one hospital (with delay for better UX)
+{% if enhanced_accesses|length == 1 and not current_hospital %}
+setTimeout(() => {
+    selectHospital({{ enhanced_accesses.0.hospital.id }});
+}, 2000);
+{% endif %}
+</script>
+{% endblock %}

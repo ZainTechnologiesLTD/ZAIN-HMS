@@ -1,6 +1,7 @@
 # ipd/views.py
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from apps.core.mixins import RequireHospitalSelectionMixin
 from django.urls import reverse_lazy
 from .models import IPDRecord
 from .forms import IPDRecordForm
@@ -18,7 +19,7 @@ class IPDListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(status=status_filter)
         return queryset.select_related('patient', 'doctor', 'room', 'bed')
 
-class IPDCreateView(LoginRequiredMixin, CreateView):
+class IPDCreateView(RequireHospitalSelectionMixin, LoginRequiredMixin, CreateView):
     model = IPDRecord
     form_class = IPDRecordForm
     template_name = 'ipd/ipd_form.html'

@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Scheduling Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .ai-metric-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        color: white;
+        transition: transform 0.3s ease;
+    }
+    
+    .ai-metric-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .ai-metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .ai-metric-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    .ai-recommendation {
+        background: #f8f9fa;
+        border-left: 4px solid #28a745;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .ai-recommendation.high-priority {
+        border-left-color: #dc3545;
+    }
+    
+    .ai-recommendation.medium-priority {
+        border-left-color: #ffc107;
+    }
+    
+    .appointment-risk-high {
+        background: rgba(220, 53, 69, 0.1);
+        border-left: 3px solid #dc3545;
+    }
+    
+    .appointment-risk-medium {
+        background: rgba(255, 193, 7, 0.1);
+        border-left: 3px solid #ffc107;
+    }
+    
+    .appointment-risk-low {
+        background: rgba(40, 167, 69, 0.1);
+        border-left: 3px solid #28a745;
+    }
+    
+    .ai-insights-badge {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .optimization-chart {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- AI Dashboard Header -->
+    <div class="ai-dashboard">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-robot"></i> AI Scheduling Dashboard
+                    {% if ai_insights %}
+                        <span class="ai-insights-badge">AI POWERED</span>
+                    {% endif %}
+                </h1>
+                <p class="mb-0">Intelligent appointment optimization and predictive analytics</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="departmentFilter" data-bs-toggle="dropdown">
+                        Department: {{ selected_department }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="?department=ALL">All Departments</a></li>
+                        {% for dept in departments %}
+                            <li><a class="dropdown-item" href="?department={{ dept }}">{{ dept }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if ai_insights %}
+    <!-- AI Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="ai-metric-card">
+                <div class="ai-metric-value">{{ efficiency_metrics.efficiency_rate }}%</div>
+                <div class="ai-metric-label">Scheduling Efficiency</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ai-metric-card">
+                <div class="ai-metric-value">{{ efficiency_metrics.no_show_rate }}%</div>
+                <div class="ai-metric-label">No-Show Rate</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ai-metric-card">
+                <div class="ai-metric-value">{{ efficiency_metrics.utilization_score }}%</div>
+                <div class="ai-metric-label">Resource Utilization</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ai-metric-card">
+                <div class="ai-metric-value">{{ efficiency_metrics.total_appointments }}</div>
+                <div class="ai-metric-label">Today's Appointments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Recommendations -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3><i class="fas fa-lightbulb"></i> AI Recommendations</h3>
+            {% for recommendation in recommendations %}
+            <div class="ai-recommendation {{ recommendation.priority|lower }}-priority">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">
+                            {% if recommendation.type == 'OPTIMIZATION' %}
+                                <i class="fas fa-chart-line text-success"></i>
+                            {% elif recommendation.type == 'ALERT' %}
+                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                            {% endif %}
+                            {{ recommendation.title }}
+                        </h5>
+                        <p class="mb-1">{{ recommendation.description }}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> {{ recommendation.impact }}
+                        </small>
+                    </div>
+                    <span class="badge bg-{{ recommendation.priority|lower }}">{{ recommendation.priority }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="ai-recommendation">
+                <h5 class="mb-1">
+                    <i class="fas fa-check-circle text-success"></i> Optimal Performance
+                </h5>
+                <p class="mb-0">Your scheduling system is performing optimally. No immediate recommendations.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Upcoming Appointments with AI Insights -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-check"></i> Today's Appointments with AI Insights
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% for item in upcoming_appointments %}
+                    <div class="appointment-item appointment-risk-{{ item.risk_level|lower }} p-3 mb-3 border rounded">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">
+                                    {{ item.appointment.patient.full_name }}
+                                    <small class="text-muted">with Dr. {{ item.appointment.doctor.full_name }}</small>
+                                </h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-clock"></i> {{ item.appointment.appointment_time }}
+                                    <span class="ms-3">
+                                        <i class="fas fa-stethoscope"></i> {{ item.appointment.appointment_type.name|default:"Consultation" }}
+                                    </span>
+                                </p>
+                                {% if item.ai_recommendations %}
+                                <div class="mt-2">
+                                    {% for rec in item.ai_recommendations %}
+                                    <span class="badge bg-info me-1">{{ rec.action }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="mb-2">
+                                    <span class="badge bg-{{ item.risk_level|lower }}">
+                                        {{ item.risk_level }} RISK
+                                    </span>
+                                </div>
+                                <div class="ai-prediction">
+                                    <small class="text-muted">No-show probability:</small>
+                                    <strong>{{ item.no_show_probability|floatformat:1 }}%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <p>No appointments scheduled for today.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Optimization Panel -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie"></i> Resource Optimization
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if resource_optimization.current_utilization %}
+                    <div class="mb-3">
+                        <h6>Current Utilization</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-primary" 
+                                 style="width: 75%">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {{ resource_optimization.current_utilization.average_appointments_per_doctor }} avg appointments/doctor
+                        </small>
+                    </div>
+                    {% endif %}
+
+                    {% if resource_optimization.demand_forecast %}
+                    <div class="mb-3">
+                        <h6>Demand Forecast</h6>
+                        <p class="mb-1">
+                            <strong>{{ resource_optimization.demand_forecast.predicted_total_appointments }}</strong> appointments predicted
+                        </p>
+                        <p class="mb-2">
+                            <small class="text-muted">
+                                Confidence: {{ resource_optimization.demand_forecast.demand_confidence|floatformat:0 }}%
+                            </small>
+                        </p>
+                        {% if resource_optimization.demand_forecast.peak_hours %}
+                        <div>
+                            <small class="text-muted">Peak hours:</small>
+                            {% for hour in resource_optimization.demand_forecast.peak_hours %}
+                            <span class="badge bg-warning text-dark me-1">{{ hour }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if resource_optimization.recommendations %}
+                    <div class="mb-3">
+                        <h6>Optimization Actions</h6>
+                        {% for rec in resource_optimization.recommendations %}
+                        <div class="alert alert-info alert-sm p-2 mb-2">
+                            <strong>{{ rec.type|title }}</strong><br>
+                            <small>{{ rec.description }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'appointments:ai_scheduling' %}" class="btn btn-primary">
+                            <i class="fas fa-robot"></i> AI Scheduling
+                        </a>
+                        <a href="{% url 'appointments:ai_analytics' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-bar"></i> AI Analytics
+                        </a>
+                        <a href="{% url 'appointments:appointment_create' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-plus"></i> Manual Booking
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh dashboard every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 300000);
+    
+    // Initialize tooltips for AI insights
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

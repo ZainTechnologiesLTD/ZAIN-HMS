@@ -8,9 +8,9 @@ from .models import Report, ReportTemplate
 class ReportAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'report_type', 'format', 'status', 'generated_by', 
-        'total_records', 'created_at', 'hospital'
+        'total_records', 'created_at'
     ]
-    list_filter = ['report_type', 'format', 'status', 'hospital', 'created_at']
+    list_filter = ['report_type', 'format', 'status', 'created_at']
     search_fields = ['name', 'generated_by__first_name', 'generated_by__last_name']
     readonly_fields = [
         'generated_by', 'total_records', 'file_size', 'created_at', 
@@ -20,7 +20,7 @@ class ReportAdmin(admin.ModelAdmin):
     
     fieldsets = (
         (None, {
-            'fields': ('hospital', 'generated_by', 'name', 'report_type', 'format')
+            'fields': ('generated_by', 'name', 'report_type', 'format')
         }),
         ('Date Range', {
             'fields': ('date_from', 'date_to')
@@ -42,23 +42,21 @@ class ReportAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        if hasattr(request.user, 'hospital') and request.user.hospital:
-            return qs.filter(hospital=request.user.hospital)
-        return qs.none()
+        return qs
 
 
 @admin.register(ReportTemplate)
 class ReportTemplateAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'report_type', 'is_active', 'created_by', 'created_at', 'hospital'
+        'name', 'report_type', 'is_active', 'created_by', 'created_at'
     ]
-    list_filter = ['report_type', 'is_active', 'hospital', 'created_at']
+    list_filter = ['report_type', 'is_active', 'created_at']
     search_fields = ['name', 'description', 'created_by__first_name']
     readonly_fields = ['created_by', 'created_at', 'updated_at']
     
     fieldsets = (
         (None, {
-            'fields': ('hospital', 'created_by', 'name', 'report_type', 'description', 'is_active')
+            'fields': ('created_by', 'name', 'report_type', 'description', 'is_active')
         }),
         ('Template Configuration', {
             'fields': ('columns', 'default_filters', 'chart_config'),
@@ -74,13 +72,9 @@ class ReportTemplateAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        if hasattr(request.user, 'hospital') and request.user.hospital:
-            return qs.filter(hospital=request.user.hospital)
-        return qs.none()
+        return qs
     
     def save_model(self, request, obj, form, change):
         if not change:
             obj.created_by = request.user
-            if hasattr(request.user, 'hospital'):
-                obj.hospital = request.user.hospital
         super().save_model(request, obj, form, change)

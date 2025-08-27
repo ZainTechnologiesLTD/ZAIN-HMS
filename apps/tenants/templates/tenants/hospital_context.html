@@ -1,0 +1,72 @@
+<!-- apps/tenants/templates/tenants/hospital_context.html -->
+{% load hospital_tags %}
+<div class="hospital-context-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 20px; color: white; border-radius: 8px; margin-bottom: 20px;">
+    {% if hospital %}
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <img src="{% get_hospital_logo hospital %}" 
+                     alt="{{ hospital.name }} Logo" 
+                     style="width: 50px; height: 50px; border-radius: 25px; object-fit: cover; border: 2px solid rgba(255,255,255,0.3);">
+            </div>
+            <div class="col">
+                <h5 class="mb-1" style="font-weight: 600; letter-spacing: 0.5px;">{{ hospital.name }}</h5>
+                <p class="mb-0" style="font-size: 14px; opacity: 0.9;">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ hospital.address|default:"Hospital Management System" }}
+                </p>
+            </div>
+            <div class="col-auto">
+                {% get_subscription_status hospital as subscription_badge %}
+                {{ subscription_badge|safe }}
+            </div>
+            <div class="col-auto">
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-cog me-1"></i>Settings
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'tenants:hospital_profile' %}">
+                            <i class="fas fa-hospital me-2"></i>Hospital Profile
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'tenants:subscription_details' %}">
+                            <i class="fas fa-credit-card me-2"></i>Subscription
+                        </a></li>
+                        {% if user|has_module_access:"telemedicine" %}
+                        <li><a class="dropdown-item" href="{% url 'telemedicine:dashboard' %}">
+                            <i class="fas fa-video me-2"></i>Telemedicine
+                        </a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'tenants:hospital_settings' %}">
+                            <i class="fas fa-cogs me-2"></i>Hospital Settings
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Module Access Status -->
+        {% if enabled_modules %}
+        <div class="mt-2">
+            <small style="opacity: 0.8;">Available Modules:</small>
+            <div class="mt-1">
+                {% for module in enabled_modules %}
+                <span class="badge bg-light text-dark me-1" style="font-size: 11px;">
+                    {% if module == 'appointments' %}<i class="fas fa-calendar-check me-1"></i>Appointments{% endif %}
+                    {% if module == 'patients' %}<i class="fas fa-user-injured me-1"></i>Patients{% endif %}
+                    {% if module == 'telemedicine' %}<i class="fas fa-video me-1"></i>Telemedicine{% endif %}
+                    {% if module == 'laboratory' %}<i class="fas fa-flask me-1"></i>Laboratory{% endif %}
+                    {% if module == 'radiology' %}<i class="fas fa-x-ray me-1"></i>Radiology{% endif %}
+                    {% if module == 'billing' %}<i class="fas fa-receipt me-1"></i>Billing{% endif %}
+                    {% if module == 'pharmacy' %}<i class="fas fa-pills me-1"></i>Pharmacy{% endif %}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>No Hospital Assigned</h5>
+            <p class="mb-0">Your account is not assigned to any hospital. Please contact administrator.</p>
+        </div>
+    {% endif %}
+</div>

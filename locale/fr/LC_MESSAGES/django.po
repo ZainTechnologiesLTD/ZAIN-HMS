@@ -1,0 +1,1274 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-27 08:14+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: apps/core/validators.py:17
+msgid "Password must contain at least one uppercase letter."
+msgstr ""
+
+#: apps/core/validators.py:20
+msgid "Password must contain at least one lowercase letter."
+msgstr ""
+
+#: apps/core/validators.py:23
+msgid "Password must contain at least one digit."
+msgstr ""
+
+#: apps/core/validators.py:26
+msgid "Password must contain at least one special character."
+msgstr ""
+
+#: apps/core/validators.py:33
+msgid ""
+"Your password must contain at least one uppercase letter, one lowercase "
+"letter, one digit, and one special character."
+msgstr ""
+
+#: apps/core/validators.py:51
+msgid "Enter a valid phone number with 10-15 digits."
+msgstr ""
+
+#: apps/core/validators.py:63
+msgid ""
+"Medical record number must be 6-20 characters long and contain only letters, "
+"numbers, and hyphens."
+msgstr ""
+
+#: apps/core/validators.py:75
+msgid ""
+"License number must be 6-15 characters long and contain only letters and "
+"numbers."
+msgstr ""
+
+#: apps/core/validators.py:87
+msgid ""
+"Drug code must be 4-12 characters long and contain only letters, numbers, "
+"and hyphens."
+msgstr ""
+
+#: apps/core/validators.py:98
+msgid "Blood pressure must be in format: systolic/diastolic (e.g., 120/80)"
+msgstr ""
+
+#: apps/core/validators.py:108
+msgid "Blood pressure values are outside normal range."
+msgstr ""
+
+#: apps/core/validators.py:125
+msgid "Temperature must be between 25°C and 45°C."
+msgstr ""
+
+#: apps/core/validators.py:131
+msgid "Temperature must be between 77°F and 113°F."
+msgstr ""
+
+#: apps/core/validators.py:136
+msgid "Enter a valid temperature value."
+msgstr ""
+
+#: apps/core/validators.py:149
+msgid "Heart rate must be between 30 and 220 BPM."
+msgstr ""
+
+#: apps/core/validators.py:154
+msgid "Enter a valid heart rate value."
+msgstr ""
+
+#: apps/core/validators.py:169
+msgid ""
+"Insurance policy number must be 8-20 characters long and contain only "
+"letters and numbers."
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:5
+#: templates/accounts/hospital_selection.html:283
+#: templates/accounts/multi_tenant_selection.html:5
+#: templates/accounts/multi_tenant_selection.html:39
+#: templates/accounts/tenant_selection.html:5
+#: templates/accounts/tenant_selection.html:39
+#: templates/accounts/tenant_selection.html:98
+#: templates/components/hospital_selector.html:43
+msgid "Select Hospital"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:97
+#: templates/core/barcode_scanner.html:331
+msgid "Loading..."
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:99
+msgid "Switching hospital..."
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:110
+msgid "Select Hospital to Manage"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:113
+msgid "Choose which hospital you want to access and manage"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:120
+msgid "Currently managing:"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:124
+#: templates/components/hospital_selector.html:35
+msgid "Clear Selection"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:136
+msgid "Search hospitals by name, code, or location..."
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:163
+msgid "Total Hospitals"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:169
+msgid "Available Hospitals"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:177
+#: templates/dashboard/unified_dashboard.html:179
+msgid "Total Patients"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:185
+msgid "Active Users"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:215
+msgid "Active"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:251
+msgid "Patients"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:257
+msgid "Today"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:263
+msgid "Bills"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:269
+msgid "Users"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:279
+msgid "Currently Selected"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:298
+msgid "Hospital pagination"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:303
+msgid "First"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:308
+msgid "Previous"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:315
+msgid "Page"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:315
+msgid "of"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:322
+msgid "Next"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:327
+msgid "Last"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:344
+msgid "No Hospitals Found"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:347
+msgid "No hospitals match your search criteria:"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:350
+msgid "Show All Hospitals"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:354
+msgid "No active hospitals are available for selection."
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:395
+msgid "Error selecting hospital"
+msgstr ""
+
+#: templates/accounts/hospital_selection.html:401
+msgid "Error selecting hospital. Please try again."
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:40
+msgid "Choose your hospital to continue"
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:75
+#: templates/accounts/tenant_selection.html:75
+msgid "Database"
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:79
+#: templates/accounts/tenant_selection.html:79
+msgid "Available"
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:83
+msgid "Your Hospital"
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:94
+msgid "No hospitals available for your account."
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:96
+msgid "Please contact your administrator."
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:105
+msgid "Skip Selection"
+msgstr ""
+
+#: templates/accounts/multi_tenant_selection.html:110
+#: templates/accounts/tenant_selection.html:103
+msgid "Logout"
+msgstr ""
+
+#: templates/accounts/tenant_selection.html:40
+msgid "Choose a hospital to manage"
+msgstr ""
+
+#: templates/accounts/tenant_selection.html:89
+msgid "No hospitals available."
+msgstr ""
+
+#: templates/appointments/print_appointment.html:6
+#: templates/billing/print_bill.html:102 templates/core/qr_scanner.html:353
+msgid "Appointment"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:73
+msgid "Appointment Confirmation"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:80
+#: templates/billing/print_bill.html:227
+msgid "Generated on"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:91
+msgid "Appointment Serial Number"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:103
+#: templates/billing/print_bill.html:76
+msgid "Patient Information"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:108
+#: templates/appointments/print_appointment.html:147
+msgid "Name"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:112
+#: templates/billing/print_bill.html:83
+msgid "Patient ID"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:116
+msgid "Age"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:117
+msgid "years"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:120
+msgid "Gender"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:124
+#: templates/appointments/print_appointment.html:163
+#: templates/billing/print_bill.html:87
+msgid "Phone"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:129
+msgid "Blood Group"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:142
+msgid "Doctor Information"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:152
+msgid "Specialization"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:158
+msgid "Department"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:177
+msgid "Appointment Details"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:184
+#: templates/billing/print_bill.html:200
+msgid "Date"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:188
+#: templates/dashboard/unified_dashboard.html:460
+msgid "Time"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:192
+msgid "Duration"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:193
+msgid "minutes"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:200
+#: templates/billing/print_bill.html:68
+#: templates/dashboard/unified_dashboard.html:462
+msgid "Status"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:209
+#: templates/dashboard/unified_dashboard.html:461
+msgid "Type"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:214
+msgid "Priority"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:223
+msgid "Chief Complaint"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:230
+msgid "Symptoms"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:237
+#: templates/billing/print_bill.html:149 templates/billing/print_bill.html:204
+msgid "Notes"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:251
+msgid "Important Instructions"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:254
+msgid "Please arrive 15 minutes before your appointment time"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:255
+msgid "Bring a valid ID and this appointment confirmation"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:256
+msgid "Inform the reception about any changes in your condition"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:257
+msgid "Bring all previous medical records and test reports"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:259
+msgid "Fasting required - Do not eat 8 hours before appointment"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:271
+msgid "This is a computer-generated document. No signature required."
+msgstr ""
+
+#: templates/appointments/print_appointment.html:272
+msgid "For any queries, please contact"
+msgstr ""
+
+#: templates/appointments/print_appointment.html:273
+#: templates/billing/print_bill.html:52 templates/billing/print_bill.html:228
+#: templates/components/serial_display.html:7
+msgid "Serial Number"
+msgstr ""
+
+#: templates/base_dashboard.html:379
+#: templates/dashboard/unified_dashboard.html:7
+#: templates/dashboard/unified_dashboard.html:8
+msgid "Dashboard"
+msgstr ""
+
+#: templates/base_dashboard.html:402 templates/base_dashboard.html:562
+#: templates/base_dashboard.html:564 templates/core/barcode_scanner.html:5
+msgid "Barcode Scanner"
+msgstr "Scanner de Code à Barres"
+
+#: templates/base_dashboard.html:576
+msgid "Search patients, doctors..."
+msgstr ""
+
+#: templates/base_print.html:186
+msgid "Print"
+msgstr ""
+
+#: templates/base_print.html:190
+msgid "Close"
+msgstr ""
+
+#: templates/billing/print_bill.html:5 templates/core/qr_scanner.html:356
+msgid "Bill"
+msgstr ""
+
+#: templates/billing/print_bill.html:31
+msgid "MEDICAL BILL"
+msgstr ""
+
+#: templates/billing/print_bill.html:45
+msgid "Bill Information"
+msgstr ""
+
+#: templates/billing/print_bill.html:48
+msgid "Bill Number"
+msgstr ""
+
+#: templates/billing/print_bill.html:56
+msgid "Bill Date"
+msgstr ""
+
+#: templates/billing/print_bill.html:60
+msgid "Due Date"
+msgstr ""
+
+#: templates/billing/print_bill.html:64
+msgid "Payment Terms"
+msgstr ""
+
+#: templates/billing/print_bill.html:79
+msgid "Patient Name"
+msgstr ""
+
+#: templates/billing/print_bill.html:91
+msgid "Email"
+msgstr ""
+
+#: templates/billing/print_bill.html:96
+msgid "Address"
+msgstr ""
+
+#: templates/billing/print_bill.html:114
+msgid "Bill Items"
+msgstr ""
+
+#: templates/billing/print_bill.html:118
+msgid "Service Code"
+msgstr ""
+
+#: templates/billing/print_bill.html:119
+msgid "Description"
+msgstr ""
+
+#: templates/billing/print_bill.html:120
+msgid "Quantity"
+msgstr ""
+
+#: templates/billing/print_bill.html:121
+msgid "Unit Price"
+msgstr ""
+
+#: templates/billing/print_bill.html:122 templates/billing/print_bill.html:201
+msgid "Amount"
+msgstr ""
+
+#: templates/billing/print_bill.html:136
+msgid "No items found"
+msgstr ""
+
+#: templates/billing/print_bill.html:158
+msgid "Subtotal"
+msgstr ""
+
+#: templates/billing/print_bill.html:163
+msgid "Discount"
+msgstr ""
+
+#: templates/billing/print_bill.html:169
+msgid "Tax"
+msgstr ""
+
+#: templates/billing/print_bill.html:174
+msgid "Total Amount"
+msgstr ""
+
+#: templates/billing/print_bill.html:179
+msgid "Paid Amount"
+msgstr ""
+
+#: templates/billing/print_bill.html:183
+msgid "Balance Due"
+msgstr ""
+
+#: templates/billing/print_bill.html:196
+msgid "Payment History"
+msgstr ""
+
+#: templates/billing/print_bill.html:202
+msgid "Method"
+msgstr ""
+
+#: templates/billing/print_bill.html:203
+msgid "Reference"
+msgstr ""
+
+#: templates/billing/print_bill.html:233
+msgid "Scan QR code for quick access"
+msgstr ""
+
+#: templates/components/barcode.html:10 templates/components/barcode.html:53
+msgid "Document Barcode"
+msgstr ""
+
+#: templates/components/barcode.html:14
+msgid "Serial"
+msgstr ""
+
+#: templates/components/barcode.html:16 templates/components/barcode.html:55
+msgid "Scan to access record"
+msgstr ""
+
+#: templates/components/barcode.html:26
+msgid "Generating barcode..."
+msgstr ""
+
+#: templates/components/barcode.html:71
+msgid "No data available"
+msgstr ""
+
+#: templates/components/hospital_selector.html:16
+msgid "Current Hospital"
+msgstr ""
+
+#: templates/components/hospital_selector.html:29
+msgid "Switch Hospital"
+msgstr ""
+
+#: templates/components/hospital_selector.html:44
+msgid "Select"
+msgstr ""
+
+#: templates/components/qr_code.html:7
+msgid "QR Code"
+msgstr ""
+
+#: templates/components/qr_code.html:12
+msgid "Scan this QR code to quickly access this record"
+msgstr ""
+
+#: templates/components/qr_code.html:18
+msgid "Serial:"
+msgstr ""
+
+#: templates/components/qr_code.html:24
+msgid "QR Code not available"
+msgstr ""
+
+#: templates/components/serial_display.html:14
+msgid "Serial not assigned"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:255
+#, fuzzy
+#| msgid "Barcode Scanner"
+msgid "Hospital Barcode Scanner"
+msgstr "Scanner de Code à Barres"
+
+#: templates/core/barcode_scanner.html:256
+msgid "Scan barcodes on hospital documents or enter barcode manually"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:263
+#, fuzzy
+#| msgid "Barcode Scanner"
+msgid "Barcode Input"
+msgstr "Scanner de Code à Barres"
+
+#: templates/core/barcode_scanner.html:264
+msgid "Type or scan barcode directly"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:268 templates/core/qr_scanner.html:116
+msgid "Camera Scanner"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:269
+msgid "Use camera to scan barcodes"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:275
+msgid "Enter Barcode"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:276
+msgid "Type the barcode number or scan directly with a barcode scanner"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:281
+msgid "Enter barcode here..."
+msgstr ""
+
+#: templates/core/barcode_scanner.html:286
+msgid "Search"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:289
+msgid "Clear"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:294 templates/core/qr_scanner.html:152
+msgid "Manual Search"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:295
+msgid "Can't find what you're looking for? Try manual search:"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:297
+msgid "Search by name, ID, phone..."
+msgstr ""
+
+#: templates/core/barcode_scanner.html:307
+#, fuzzy
+#| msgid "Barcode Scanner"
+msgid "Camera Barcode Scanner"
+msgstr "Scanner de Code à Barres"
+
+#: templates/core/barcode_scanner.html:308
+msgid "Position the barcode within the green frame"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:317 templates/core/qr_scanner.html:137
+msgid "Start Camera"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:320 templates/core/qr_scanner.html:141
+msgid "Stop Camera"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:323
+msgid "Flash"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:333
+msgid "Searching hospital records..."
+msgstr ""
+
+#: templates/core/barcode_scanner.html:339 templates/core/qr_scanner.html:175
+msgid "Search Results"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:394
+msgid "Please enter a barcode"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:417
+#: templates/core/barcode_scanner.html:457 templates/core/qr_scanner.html:315
+msgid "Found"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:417
+#: templates/core/barcode_scanner.html:457
+msgid "record(s)"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:419
+msgid "No records found for this barcode"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:425
+#: templates/core/barcode_scanner.html:465
+msgid "Search failed. Please try again."
+msgstr ""
+
+#: templates/core/barcode_scanner.html:434
+msgid "Please enter search terms"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:459
+msgid "No records found"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:556
+msgid "Camera started successfully"
+msgstr ""
+
+#: templates/core/barcode_scanner.html:559
+msgid "Failed to access camera"
+msgstr ""
+
+#: templates/core/qr_scanner.html:5
+#, fuzzy
+#| msgid "Barcode Scanner"
+msgid "QR Scanner"
+msgstr "Scanner de Code à Barres"
+
+#: templates/core/qr_scanner.html:102
+msgid "QR Code Scanner"
+msgstr ""
+
+#: templates/core/qr_scanner.html:104
+msgid ""
+"Scan QR codes to quickly find patient records, appointments, and reports"
+msgstr ""
+
+#: templates/core/qr_scanner.html:125
+msgid "Click 'Start Camera' to begin scanning"
+msgstr ""
+
+#: templates/core/qr_scanner.html:131
+msgid "Camera not started"
+msgstr ""
+
+#: templates/core/qr_scanner.html:158
+msgid "Enter patient name, ID, phone, or serial number..."
+msgstr ""
+
+#: templates/core/qr_scanner.html:164
+msgid "You can also paste QR code data here if camera scanning doesn't work"
+msgstr ""
+
+#: templates/core/qr_scanner.html:183
+msgid "Scan a QR code or search manually to see results here"
+msgstr ""
+
+#: templates/core/qr_scanner.html:240
+msgid "Starting camera..."
+msgstr ""
+
+#: templates/core/qr_scanner.html:254
+msgid "QR Code detected! Searching..."
+msgstr ""
+
+#: templates/core/qr_scanner.html:265
+msgid "Scanning for QR codes..."
+msgstr ""
+
+#: templates/core/qr_scanner.html:268
+msgid "Failed to start camera: "
+msgstr ""
+
+#: templates/core/qr_scanner.html:271
+msgid "No cameras found on this device"
+msgstr ""
+
+#: templates/core/qr_scanner.html:274
+msgid "Error accessing cameras: "
+msgstr ""
+
+#: templates/core/qr_scanner.html:284
+msgid "Camera stopped"
+msgstr ""
+
+#: templates/core/qr_scanner.html:287
+msgid "Error stopping camera: "
+msgstr ""
+
+#: templates/core/qr_scanner.html:315
+msgid "result(s)"
+msgstr ""
+
+#: templates/core/qr_scanner.html:322
+msgid "Search failed: "
+msgstr ""
+
+#: templates/core/qr_scanner.html:334
+msgid "No results found"
+msgstr ""
+
+#: templates/core/qr_scanner.html:351
+#: templates/dashboard/unified_dashboard.html:459
+msgid "Patient"
+msgstr ""
+
+#: templates/core/qr_scanner.html:352
+msgid "Doctor"
+msgstr ""
+
+#: templates/core/qr_scanner.html:354
+msgid "Lab Order"
+msgstr ""
+
+#: templates/core/qr_scanner.html:355
+msgid "Radiology"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:11
+msgid "System Administrator Dashboard"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:13
+msgid "Hospital Administrator Dashboard"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:15
+msgid "Doctor Dashboard"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:17
+msgid "Nurse Dashboard"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:19
+msgid "Reception Dashboard"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:21
+msgid "Welcome to ZAIN HMS"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:151
+msgid "Welcome back"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:154
+msgid "Managing"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:156
+#: templates/public/enhanced_landing.html:398
+#: templates/public/landing_simple.html:47
+msgid "ZAIN Hospital Management System"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:181
+msgid "today"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:192
+msgid "Today's Appointments"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:194
+msgid "pending"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:205
+msgid "Staff Members"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:207
+msgid "doctors"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:218
+msgid "Today's Revenue"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:220
+msgid "this month"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:235
+msgid "My Appointments Today"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:245
+msgid "My Patients"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:255
+msgid "Pending Appointments"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:265
+msgid "Completed Today"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:279
+msgid "Assigned Patients"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:289
+msgid "Emergency Cases"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:299
+msgid "Vitals Recorded Today"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:313
+msgid "Appointments Today"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:323
+msgid "New Registrations"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:333
+msgid "Waiting Patients"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:344
+msgid "Quick Actions"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:351
+msgid "Add Patient"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:357
+msgid "Book Appointment"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:366
+msgid "Add Doctor"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:372
+msgid "Add Nurse"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:378
+msgid "Add Staff"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:387
+msgid "Create Bill"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:395
+msgid "Scan Barcode"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:403
+msgid "Reports"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:417
+msgid "Recent Activity"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:429
+msgid "ago"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:436
+msgid "No recent activities"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:451
+msgid "Upcoming Appointments"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:463
+msgid "Actions"
+msgstr ""
+
+#: templates/dashboard/unified_dashboard.html:477
+msgid "View"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:8
+msgid "ZAIN HMS - Advanced Hospital Management System"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:11
+msgid ""
+"ZAIN HMS - Complete healthcare solution with advanced patient management, "
+"appointments, billing, and analytics"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:375
+#: templates/public/enhanced_landing.html:577
+msgid "Features"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:378
+msgid "About"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:381
+#: templates/public/enhanced_landing.html:578
+msgid "Contact"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:385
+msgid "Login"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:400
+msgid ""
+"Comprehensive healthcare management solution for modern hospitals. "
+"Streamline patient care, appointments, billing, and administrative "
+"operations with our advanced platform."
+msgstr ""
+
+#: templates/public/enhanced_landing.html:404
+#: templates/public/enhanced_landing.html:579
+#: templates/public/landing_simple.html:53
+msgid "Staff Login"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:407
+#: templates/public/landing_simple.html:56
+msgid "Learn More"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:425
+msgid "Comprehensive Healthcare Solutions"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:426
+msgid ""
+"Advanced tools designed for efficiency, patient care, and operational "
+"excellence"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:435
+#: templates/public/landing_simple.html:82
+msgid "Patient Management"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:436
+msgid ""
+"Complete patient records, medical history, and comprehensive care "
+"coordination"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:444
+msgid "Appointment System"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:445
+msgid "Intelligent scheduling with automated reminders and conflict resolution"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:453
+#: templates/public/landing_simple.html:96
+msgid "Billing & Payments"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:454
+msgid "Comprehensive billing system with payment tracking and insurance claims"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:462
+#: templates/public/landing_simple.html:103
+msgid "Pharmacy Management"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:463
+msgid ""
+"Medicine inventory, prescription management, and drug interaction alerts"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:471
+#: templates/public/landing_simple.html:110
+msgid "Laboratory & Radiology"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:472
+msgid "Test management, result tracking, and integrated diagnostic workflows"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:480
+msgid "Analytics & Reports"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:481
+msgid "Advanced reporting with data insights and performance analytics"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:495
+msgid "Healthcare Facilities"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:501
+msgid "Patients Managed"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:507
+msgid "Healthcare Professionals"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:513
+msgid "System Availability"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:525
+msgid "Get Started Today"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:526
+msgid "Contact our team for system setup, training, and ongoing support"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:535
+msgid "Phone Support"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:536
+msgid "24/7 technical support"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:545
+msgid "Email Support"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:546
+msgid "Quick response within hours"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:555
+msgid "Live Chat"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:556
+msgid "Instant assistance online"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:557
+msgid "Available 24/7"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:572
+msgid ""
+"Advanced Hospital Management System designed for modern healthcare "
+"facilities. Streamline operations, enhance patient care, and boost "
+"efficiency."
+msgstr ""
+
+#: templates/public/enhanced_landing.html:575
+msgid "Quick Links"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:583
+msgid "Support"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:585
+msgid "Documentation"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:586
+msgid "Training"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:587
+msgid "System Status"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:594
+msgid "All rights reserved."
+msgstr ""
+
+#: templates/public/enhanced_landing.html:598
+msgid "Privacy Policy"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:599
+msgid "Terms of Service"
+msgstr ""
+
+#: templates/public/enhanced_landing.html:600
+msgid "Cookie Policy"
+msgstr ""
+
+#: templates/public/landing_simple.html:6
+msgid "ZAIN HMS - Hospital Management System"
+msgstr ""
+
+#: templates/public/landing_simple.html:49
+msgid ""
+"Comprehensive healthcare management solution for modern hospitals. "
+"Streamline patient care, appointments, billing, and administrative "
+"operations."
+msgstr ""
+
+#: templates/public/landing_simple.html:74
+msgid "System Features"
+msgstr ""
+
+#: templates/public/landing_simple.html:75
+msgid ""
+"Comprehensive hospital management tools designed for efficiency and patient "
+"care"
+msgstr ""
+
+#: templates/public/landing_simple.html:83
+msgid "Complete patient records, medical history, and care coordination"
+msgstr ""
+
+#: templates/public/landing_simple.html:89
+msgid "Appointment Scheduling"
+msgstr ""
+
+#: templates/public/landing_simple.html:90
+msgid "Efficient appointment booking and management system"
+msgstr ""
+
+#: templates/public/landing_simple.html:97
+msgid "Comprehensive billing system with payment tracking"
+msgstr ""
+
+#: templates/public/landing_simple.html:104
+msgid "Medicine inventory and prescription management"
+msgstr ""
+
+#: templates/public/landing_simple.html:111
+msgid "Test management and result tracking"
+msgstr ""
+
+#: templates/public/landing_simple.html:117
+msgid "Reports & Analytics"
+msgstr ""
+
+#: templates/public/landing_simple.html:118
+msgid "Comprehensive reporting and data insights"
+msgstr ""
+
+#: templates/public/landing_simple.html:130
+msgid "Need Help?"
+msgstr ""
+
+#: templates/public/landing_simple.html:131
+msgid "Contact our support team for assistance with the system"
+msgstr ""
+
+#: templates/public/landing_simple.html:148
+msgid "24/7 Support"
+msgstr ""

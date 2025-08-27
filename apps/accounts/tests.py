@@ -1,3 +1,8 @@
 from django.test import TestCase
 
-# Create your tests here.
+
+class AccountsSmokeTest(TestCase):
+    def test_import(self):
+        # Ensure app loads
+        import apps.accounts
+        self.assertTrue(True)

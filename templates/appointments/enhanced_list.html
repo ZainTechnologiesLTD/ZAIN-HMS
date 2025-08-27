@@ -1,0 +1,874 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Appointments - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">Appointments</li>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/enhanced-common.css' %}">
+<link rel="stylesheet" href="{% static 'css/appointments.css' %}">
+{# <style>
+    .appointment-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-fast);
+        overflow: hidden;
+    }
+
+    .appointment-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .appointment-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        position: relative;
+    }
+
+    .appointment-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .appointment-body {
+        padding: 1.5rem;
+    }
+
+    .appointment-meta {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .meta-icon {
+        font-size: 1rem;
+        color: var(--primary-color);
+    }
+
+    .patient-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .patient-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .patient-details h6 {
+        margin: 0 0 0.25rem 0;
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .patient-id {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .status-scheduled {
+        background: rgba(59, 130, 246, 0.1);
+        color: #1d4ed8;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .status-completed {
+        background: rgba(16, 185, 129, 0.1);
+        color: #047857;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-cancelled {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .date-range-picker {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .appointment-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px var(--primary-color);
+    }
+
+    .timeline-item::after {
+        content: '';
+        position: absolute;
+        left: -1rem;
+        top: 1.5rem;
+        width: 2px;
+        bottom: 0;
+        background: var(--gray-200);
+    }
+
+    .timeline-item:last-child::after {
+        display: none;
+    }
+
+    .calendar-view {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .calendar-header {
+        background: var(--gray-50);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--gray-200);
+    }
+
+    .calendar-day {
+        background: white;
+        padding: 1rem;
+        min-height: 120px;
+        position: relative;
+    }
+
+    .calendar-day.other-month {
+        background: var(--gray-50);
+        color: var(--gray-400);
+    }
+
+    .calendar-day.today {
+        background: rgba(59, 130, 246, 0.1);
+        border: 2px solid var(--primary-color);
+    }
+
+    .day-number {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .calendar-appointment {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+        cursor: pointer;
+        transition: background-color var(--transition-fast);
+    }
+
+    .calendar-appointment:hover {
+        background: var(--primary-dark);
+    }
+
+    .quick-schedule-form {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .search-input {
+        position: relative;
+    }
+
+    .search-input input {
+        padding-left: 2.5rem;
+    }
+
+    .search-input .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+    }
+
+    .appointment-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+
+    .appointment-grid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+
+    @media (max-width: 768px) {
+        .appointment-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .appointment-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .calendar-grid {
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0;
+        }
+        
+        .calendar-day {
+            min-height: 80px;
+            padding: 0.5rem;
+        }
+    } #}
+{% endblock %}
+
+{% block content %}
+<div x-data="appointmentManager()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="fas fa-calendar-check me-3 text-primary"></i>Appointments Management
+            </h1>
+            <p class="text-muted mb-0">Schedule, manage and track all patient appointments</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="viewMode" id="gridView" checked>
+                <label class="btn btn-outline-primary" for="gridView">
+                    <i class="fas fa-th-large"></i> Grid
+                </label>
+                
+                <input type="radio" class="btn-check" name="viewMode" id="listView">
+                <label class="btn btn-outline-primary" for="listView">
+                    <i class="fas fa-list"></i> List
+                </label>
+                
+                <input type="radio" class="btn-check" name="viewMode" id="calendarView">
+                <label class="btn btn-outline-primary" for="calendarView">
+                    <i class="fas fa-calendar"></i> Calendar
+                </label>
+            </div>
+            
+            <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Appointment
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="appointment-stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_appointments|default:0 }}</div>
+            <div class="stat-label">Total Appointments</div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--success-color);">
+            <div class="stat-number" style="color: var(--success-color);">{{ scheduled_appointments|default:0 }}</div>
+            <div class="stat-label">Scheduled</div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--warning-color);">
+            <div class="stat-number" style="color: var(--warning-color);">{{ pending_appointments|default:0 }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--danger-color);">
+            <div class="stat-number" style="color: var(--danger-color);">{{ cancelled_appointments|default:0 }}</div>
+            <div class="stat-label">Cancelled</div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-section">
+        <form method="GET" class="filter-form" hx-get="{% url 'appointments:appointment_list' %}" hx-target="#appointmentsList" hx-trigger="submit, change">
+            <div class="search-input">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Search by patient name, doctor, or appointment ID..."
+                       value="{{ request.GET.search }}"
+                       hx-get="{% url 'appointments:appointment_list' %}"
+                       hx-target="#appointmentsList"
+                       hx-trigger="keyup changed delay:500ms">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <div>
+                <label class="form-label">Date Range</label>
+                <div class="date-range-picker">
+                    <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                    <span class="text-muted">to</span>
+                    <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                </div>
+            </div>
+            
+            <div>
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="SCHEDULED" {% if request.GET.status == 'SCHEDULED' %}selected{% endif %}>Scheduled</option>
+                    <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                    <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                    <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Doctor</label>
+                <select name="doctor" class="form-select">
+                    <option value="">All Doctors</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}" {% if request.GET.doctor == doctor.id|stringformat:'s' %}selected{% endif %}>
+                        Dr. {{ doctor.get_full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Department</label>
+                <select name="department" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept }}" {% if request.GET.department == dept %}selected{% endif %}>{{ dept }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- View Content -->
+    <div id="appointmentsList">
+        <!-- Grid View -->
+        <div id="gridViewContent" class="view-content">
+            <div class="appointment-grid">
+                {% for appointment in appointments %}
+                <div class="appointment-card" 
+                     data-appointment-id="{{ appointment.id }}"
+                     x-data="{ showDetails: false }">
+                    <div class="appointment-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ appointment.patient.get_full_name }}</h6>
+                                <div class="text-light text-opacity-75">
+                                    <i class="fas fa-id-card me-1"></i>ID: {{ appointment.patient.patient_id }}
+                                </div>
+                            </div>
+                            <div class="status-badge status-{{ appointment.status|lower }}">
+                                <i class="fas fa-circle fa-xs"></i>
+                                {{ appointment.get_status_display }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="appointment-body">
+                        <div class="appointment-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar meta-icon"></i>
+                                <span>{{ appointment.date_time|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock meta-icon"></i>
+                                <span>{{ appointment.date_time|date:"g:i A" }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-user-md meta-icon"></i>
+                                <span>Dr. {{ appointment.doctor.get_full_name }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-stethoscope meta-icon"></i>
+                                <span>{{ appointment.doctor.specialization|default:"General" }}</span>
+                            </div>
+                        </div>
+                        
+                        {% if appointment.chief_complaint %}
+                        <div class="mb-3">
+                            <strong class="text-muted small">Chief Complaint:</strong>
+                            <p class="mb-0 mt-1">{{ appointment.chief_complaint|truncatechars:100 }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="action-buttons">
+                            <a href="{% url 'appointments:appointment_detail' appointment.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                            {% if appointment.status == 'SCHEDULED' %}
+                            <a href="{% url 'appointments:appointment_edit' appointment.id %}" 
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-success"
+                                    onclick="markCompleted({{ appointment.id }})">
+                                <i class="fas fa-check me-1"></i>Complete
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-danger"
+                                    onclick="cancelAppointment({{ appointment.id }})">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No appointments found</h5>
+                        <p class="text-muted mb-4">Try adjusting your filters or create a new appointment</p>
+                        <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Schedule New Appointment
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div id="listViewContent" class="view-content d-none">
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">
+                                    <input type="checkbox" class="form-check-input" id="selectAll">
+                                </th>
+                                <th>Patient</th>
+                                <th>Date & Time</th>
+                                <th>Doctor</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td class="ps-4">
+                                    <input type="checkbox" class="form-check-input appointment-checkbox" 
+                                           value="{{ appointment.id }}">
+                                </td>
+                                <td>
+                                    <div class="patient-info">
+                                        <div class="patient-avatar">
+                                            {{ appointment.patient.first_name.0 }}{{ appointment.patient.last_name.0 }}
+                                        </div>
+                                        <div class="patient-details">
+                                            <h6>{{ appointment.patient.get_full_name }}</h6>
+                                            <div class="patient-id">ID: {{ appointment.patient.patient_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="fw-semibold">{{ appointment.date_time|date:"M d, Y" }}</div>
+                                        <div class="text-muted small">{{ appointment.date_time|date:"g:i A" }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="fw-semibold">Dr. {{ appointment.doctor.get_full_name }}</div>
+                                        <div class="text-muted small">{{ appointment.doctor.specialization|default:"General" }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">
+                                        {{ appointment.doctor.department|default:"General" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ appointment.status|lower }}">
+                                        <i class="fas fa-circle fa-xs"></i>
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'appointments:appointment_detail' appointment.id %}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           data-bs-toggle="tooltip" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if appointment.status == 'SCHEDULED' %}
+                                        <a href="{% url 'appointments:appointment_edit' appointment.id %}" 
+                                           class="btn btn-sm btn-outline-secondary"
+                                           data-bs-toggle="tooltip" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-success"
+                                                onclick="markCompleted({{ appointment.id }})"
+                                                data-bs-toggle="tooltip" title="Mark Complete">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#">
+                                                    <i class="fas fa-print me-2"></i>Print
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#">
+                                                    <i class="fas fa-envelope me-2"></i>Send Reminder
+                                                </a></li>
+                                                {% if appointment.status == 'SCHEDULED' %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" 
+                                                       href="#" onclick="cancelAppointment({{ appointment.id }})">
+                                                    <i class="fas fa-times me-2"></i>Cancel
+                                                </a></li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div id="calendarViewContent" class="view-content d-none">
+            <div class="calendar-view">
+                <div class="calendar-header">
+                    <h5 class="mb-0" id="calendarTitle">{{ current_month }} {{ current_year }}</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="previousMonth()">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="today()">Today</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="nextMonth()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar days will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Appointments pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function appointmentManager() {
+        return {
+            currentView: 'grid',
+            selectedAppointments: [],
+            
+            init() {
+                this.setupEventListeners();
+                this.initializeView();
+            },
+            
+            setupEventListeners() {
+                // View mode switching
+                document.querySelectorAll('input[name="viewMode"]').forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        this.switchView(e.target.id.replace('View', ''));
+                    });
+                });
+                
+                // Select all checkbox
+                document.getElementById('selectAll').addEventListener('change', (e) => {
+                    this.toggleSelectAll(e.target.checked);
+                });
+            },
+            
+            switchView(viewType) {
+                // Hide all views
+                document.querySelectorAll('.view-content').forEach(view => {
+                    view.classList.add('d-none');
+                });
+                
+                // Show selected view
+                document.getElementById(viewType + 'ViewContent').classList.remove('d-none');
+                this.currentView = viewType;
+                
+                if (viewType === 'calendar') {
+                    this.initializeCalendar();
+                }
+            },
+            
+            initializeView() {
+                // Default to grid view
+                this.switchView('grid');
+            },
+            
+            toggleSelectAll(checked) {
+                document.querySelectorAll('.appointment-checkbox').forEach(checkbox => {
+                    checkbox.checked = checked;
+                });
+                this.updateSelectedAppointments();
+            },
+            
+            updateSelectedAppointments() {
+                this.selectedAppointments = Array.from(
+                    document.querySelectorAll('.appointment-checkbox:checked')
+                ).map(checkbox => checkbox.value);
+            },
+            
+            initializeCalendar() {
+                // Initialize calendar view
+                const calendarGrid = document.getElementById('calendarGrid');
+                // Calendar implementation would go here
+                console.log('Calendar view initialized');
+            }
+        }
+    }
+
+    function markCompleted(appointmentId) {
+        if (confirm('Mark this appointment as completed?')) {
+            fetch(`/appointments/complete/${appointmentId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Appointment marked as completed!', 'success');
+                    location.reload();
+                } else {
+                    showNotification('Failed to update appointment', 'error');
+                }
+            });
+        }
+    }
+
+    function cancelAppointment(appointmentId) {
+        if (confirm('Are you sure you want to cancel this appointment?')) {
+            fetch(`/appointments/cancel/${appointmentId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Appointment cancelled successfully!', 'success');
+                    location.reload();
+                } else {
+                    showNotification('Failed to cancel appointment', 'error');
+                }
+            });
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Real-time updates
+    document.addEventListener('DOMContentLoaded', function() {
+        // Refresh appointment data every 30 seconds
+        setInterval(() => {
+            htmx.trigger('#appointmentsList', 'refresh');
+        }, 30000);
+    });
+</script>
+
+{% block extra_js %}
+<script src="{% static 'js/enhanced-common.js' %}"></script>
+<script src="{% static 'js/appointments.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize appointments functionality
+        if (typeof initAppointments === 'function') {
+            initAppointments();
+        }
+    });
+</script>
+{% endblock %}

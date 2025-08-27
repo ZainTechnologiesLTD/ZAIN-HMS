@@ -1,0 +1,139 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .hospital-management-guide {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .hospital-management-guide h2 {
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .hospital-management-guide h2 i {
+            margin-right: 10px;
+        }
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .action-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .action-card h4 {
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .action-card h4 i {
+            margin-right: 8px;
+        }
+        .database-legend {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .status-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 20px;
+            margin-bottom: 5px;
+        }
+        .status-icon {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block content_title %}
+    {{ block.super }}
+    
+    <div class="hospital-management-guide">
+        <h2>🏥 Hospital Database Management</h2>
+        <p>Welcome to the multi-tenant hospital management system. Each hospital gets its own dedicated database for complete data isolation and security.</p>
+        
+        <div class="actions-grid">
+            <div class="action-card">
+                <h4>🏗️ Create Database</h4>
+                <p>Automatically creates a hospital-specific database with all necessary modules when you create a new hospital. Includes patient management, appointments, billing, laboratory, and more.</p>
+            </div>
+            
+            <div class="action-card">
+                <h4>🔍 Verify Database</h4>
+                <p>Check the status of existing hospital databases. Shows table count and connection status. Use this to troubleshoot database issues.</p>
+            </div>
+            
+            <div class="action-card">
+                <h4>🔄 Recreate Database</h4>
+                <p><strong>DANGER:</strong> Completely deletes and recreates the hospital database. This will permanently delete all patient data, appointments, and records. Only use as a last resort.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="database-legend">
+        <h3 style="margin: 0 0 10px 0; color: #495057;">📊 Database Status Legend</h3>
+        <div class="status-item">
+            <span class="status-icon" style="color: green;">✅</span>
+            <span><strong>Ready:</strong> Database exists with all tables (10+ tables)</span>
+        </div>
+        <div class="status-item">
+            <span class="status-icon" style="color: orange;">⚠️</span>
+            <span><strong>Incomplete:</strong> Database exists but may be missing tables</span>
+        </div>
+        <div class="status-item">
+            <span class="status-icon" style="color: red;">❌</span>
+            <span><strong>Missing/Error:</strong> Database doesn't exist or connection failed</span>
+        </div>
+        <div class="status-item">
+            <span class="status-icon" style="color: gray;">❓</span>
+            <span><strong>Unknown:</strong> Unable to determine status</span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block result_list %}
+    {{ block.super }}
+    
+    <script>
+        // Add confirmation for dangerous actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const recreateAction = document.querySelector('option[value="recreate_database"]');
+            if (recreateAction) {
+                const selectElement = recreateAction.parentElement;
+                selectElement.addEventListener('change', function() {
+                    if (this.value === 'recreate_database') {
+                        const confirmed = confirm(
+                            '⚠️ DANGER: This will permanently delete ALL data for the selected hospital(s).\n\n' +
+                            'This includes:\n' +
+                            '• All patient records\n' +
+                            '• Appointment history\n' +
+                            '• Medical records\n' +
+                            '• Billing information\n' +
+                            '• All other hospital data\n\n' +
+                            'Are you absolutely sure you want to proceed?'
+                        );
+                        
+                        if (!confirmed) {
+                            this.value = '';
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

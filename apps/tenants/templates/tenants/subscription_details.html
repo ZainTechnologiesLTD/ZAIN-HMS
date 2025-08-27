@@ -1,0 +1,295 @@
+<!-- apps/tenants/templates/tenants/subscription_details.html -->
+{% extends 'base.html' %}
+
+{% block title %}Subscription Details - {{ hospital.name }} | {{ block.super }}{% endblock %}
+
+{% block page_title %}Subscription Details{% endblock %}
+
+{% block page_actions %}
+{% if not is_active %}
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#upgradeModal">
+    <i class="fas fa-arrow-up me-1"></i>Upgrade Plan
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Current Plan Card -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-crown me-2"></i>Current Plan</h5>
+                {% get_subscription_status hospital as subscription_badge %}
+                {{ subscription_badge|safe }}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3 class="text-primary mb-3">{{ hospital.get_subscription_plan_display }}</h3>
+                        <div class="mb-3">
+                            {% if is_trial %}
+                            <p><strong>Trial Period:</strong> 
+                                <span class="text-warning">{{ days_left }} days remaining</span>
+                            </p>
+                            <p><strong>Trial End:</strong> {{ hospital.trial_end_date|date:"F d, Y" }}</p>
+                            {% else %}
+                            <p><strong>Status:</strong> 
+                                {% if is_active %}
+                                <span class="text-success">Active</span>
+                                {% else %}
+                                <span class="text-danger">Expired</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Subscription Start:</strong> {{ hospital.subscription_start_date|date:"F d, Y" }}</p>
+                            <p><strong>Subscription End:</strong> {{ hospital.subscription_end_date|date:"F d, Y" }}</p>
+                            <p><strong>Days Remaining:</strong> 
+                                <span class="{% if days_left < 7 %}text-danger{% elif days_left < 30 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ days_left }} days
+                                </span>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Plan Features:</h6>
+                        <ul class="list-unstyled">
+                            {% for feature in plan_features %}
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>{{ feature }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Usage Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Users Usage -->
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <h6>Users</h6>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar {% if usage_stats.users.percentage > 80 %}bg-danger{% elif usage_stats.users.percentage > 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     style="width: {{ usage_stats.users.percentage }}%">
+                                    {{ usage_stats.users.percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                            <p class="mb-0">{{ usage_stats.users.current }} / {{ usage_stats.users.limit }} users</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Patients Usage -->
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <h6>Patients</h6>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar {% if usage_stats.patients.percentage > 80 %}bg-danger{% elif usage_stats.patients.percentage > 60 %}bg-warning{% else %}bg-info{% endif %}" 
+                                     style="width: {{ usage_stats.patients.percentage }}%">
+                                    {{ usage_stats.patients.percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                            <p class="mb-0">{{ usage_stats.patients.current }} / {{ usage_stats.patients.limit }} patients</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Storage Usage -->
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <h6>Storage</h6>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar {% if usage_stats.storage.percentage > 80 %}bg-danger{% elif usage_stats.storage.percentage > 60 %}bg-warning{% else %}bg-primary{% endif %}" 
+                                     style="width: {{ usage_stats.storage.percentage }}%">
+                                    {{ usage_stats.storage.percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                            <p class="mb-0">{{ usage_stats.storage.current }}GB / {{ usage_stats.storage.limit }}GB</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing History -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Billing History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if is_trial %}
+                            <tr>
+                                <td>{{ hospital.created_at|date:"M d, Y" }}</td>
+                                <td>Trial Period Started</td>
+                                <td>$0.00</td>
+                                <td><span class="badge bg-warning">Trial</span></td>
+                                <td>-</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td>{{ hospital.subscription_start_date|date:"M d, Y" }}</td>
+                                <td>{{ hospital.get_subscription_plan_display }} Subscription</td>
+                                <td>
+                                    {% if hospital.subscription_plan == 'BASIC' %}$29.99
+                                    {% elif hospital.subscription_plan == 'STANDARD' %}$59.99
+                                    {% elif hospital.subscription_plan == 'PREMIUM' %}$99.99
+                                    {% elif hospital.subscription_plan == 'ENTERPRISE' %}$199.99
+                                    {% else %}$0.00{% endif %}
+                                </td>
+                                <td>
+                                    {% if is_active %}
+                                    <span class="badge bg-success">Paid</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Expired</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" disabled>
+                                        <i class="fas fa-download me-1"></i>Download
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Plan Comparison -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Available Plans</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 p-2 border rounded {% if hospital.subscription_plan == 'BASIC' %}border-primary bg-light{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Basic</strong>
+                            <small class="d-block text-muted">$29.99/month</small>
+                        </div>
+                        {% if hospital.subscription_plan == 'BASIC' %}
+                        <span class="badge bg-primary">Current</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Up to 10 users, 500 patients</small>
+                </div>
+                
+                <div class="mb-3 p-2 border rounded {% if hospital.subscription_plan == 'STANDARD' %}border-primary bg-light{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Standard</strong>
+                            <small class="d-block text-muted">$59.99/month</small>
+                        </div>
+                        {% if hospital.subscription_plan == 'STANDARD' %}
+                        <span class="badge bg-primary">Current</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Up to 25 users, 1000 patients</small>
+                </div>
+                
+                <div class="mb-3 p-2 border rounded {% if hospital.subscription_plan == 'PREMIUM' %}border-primary bg-light{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Premium</strong>
+                            <small class="d-block text-muted">$99.99/month</small>
+                        </div>
+                        {% if hospital.subscription_plan == 'PREMIUM' %}
+                        <span class="badge bg-primary">Current</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Up to 50 users, 2500 patients</small>
+                </div>
+                
+                <div class="mb-3 p-2 border rounded {% if hospital.subscription_plan == 'ENTERPRISE' %}border-primary bg-light{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Enterprise</strong>
+                            <small class="d-block text-muted">$199.99/month</small>
+                        </div>
+                        {% if hospital.subscription_plan == 'ENTERPRISE' %}
+                        <span class="badge bg-primary">Current</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Unlimited users & patients</small>
+                </div>
+                
+                {% if not is_active %}
+                <div class="d-grid">
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#upgradeModal">
+                        <i class="fas fa-arrow-up me-1"></i>Upgrade Now
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-headset me-2"></i>Need Help?</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Contact our support team for any billing questions.</p>
+                <div class="d-grid gap-2">
+                    <a href="mailto:billing@zainhms.com" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-envelope me-1"></i>Email Support
+                    </a>
+                    <a href="tel:+1234567890" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-phone me-1"></i>Call Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upgrade Modal -->
+<div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="upgradeModalLabel">
+                    <i class="fas fa-arrow-up me-2"></i>Upgrade Subscription
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>To upgrade your subscription plan, please contact our sales team who will assist you with the process.</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Plan upgrades take effect immediately, and you'll be billed for the remaining period.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="mailto:sales@zainhms.com?subject=Subscription Upgrade Request&body=Hospital: {{ hospital.name }}%0ACurrent Plan: {{ hospital.get_subscription_plan_display }}%0A%0APlease help me upgrade my subscription." 
+                   class="btn btn-primary">
+                    <i class="fas fa-envelope me-1"></i>Contact Sales
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

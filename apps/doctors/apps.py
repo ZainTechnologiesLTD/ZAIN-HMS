@@ -4,7 +4,7 @@ from django import forms
 
 class DoctorsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'doctors'
+    name = 'apps.doctors'
 
     def ready(self):
         # Import models inside the ready() method to avoid AppRegistryNotReady error

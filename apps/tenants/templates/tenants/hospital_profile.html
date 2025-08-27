@@ -1,0 +1,638 @@
+<!-- apps/tenants/templates/tenants/hospital_profile.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}{{ hospital.name }} - Profile | ZAIN HMS{% endblock %}
+{% block page_title %}Hospital Settings{% endblock %}
+{% block page_subtitle %}{{ hospital.name }} - Complete management and configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hospital-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .hospital-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        object-fit: cover;
+    }
+    
+    .settings-card {
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .settings-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .stat-box {
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .module-card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .module-card.enabled {
+        border-color: #10b981;
+        background: #f0fdfa;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-inner">
+    <!-- Hospital Header -->
+    <div class="hospital-header">
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                {% load hospital_tags %}
+                <img src="{% get_hospital_logo hospital %}" 
+                     alt="{{ hospital.name }} Logo" 
+                     class="hospital-logo">
+            </div>
+            <div class="col-md-7">
+                <h2 class="mb-2">{{ hospital.name }}</h2>
+                <p class="mb-3 opacity-90">{{ hospital.description|default:"Professional healthcare management system" }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-success bg-opacity-20 text-success px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>Active
+                    </span>
+                    <span class="badge bg-info bg-opacity-20 text-info px-3 py-2">
+                        <i class="bi bi-code me-1"></i>{{ hospital.code }}
+                    </span>
+                    {% get_subscription_status hospital as subscription_badge %}
+                    {{ subscription_badge|safe }}
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#editHospitalModal">
+                        <i class="bi bi-pencil me-2"></i>Edit Hospital
+                    </button>
+                    <a href="#" class="btn btn-outline-light">
+                        <i class="bi bi-graph-up me-2"></i>Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospital Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-box">
+                <div class="stat-number text-primary">{{ total_users|default:0 }}</div>
+                <p class="text-muted mb-0">Total Users</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-box">
+                <div class="stat-number text-success">{{ total_patients|default:0 }}</div>
+                <p class="text-muted mb-0">Total Patients</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-box">
+                <div class="stat-number text-info">{{ enabled_modules|length|default:0 }}</div>
+                <p class="text-muted mb-0">Active Modules</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-box">
+                <div class="stat-number text-warning">24/7</div>
+                <p class="text-muted mb-0">Support Available</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Tabs -->
+    <div class="card settings-card">
+        <div class="card-header bg-white">
+            <ul class="nav nav-pills" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button" role="tab">
+                        <i class="bi bi-gear me-2"></i>General
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="modules-tab" data-bs-toggle="pill" data-bs-target="#modules" type="button" role="tab">
+                        <i class="bi bi-grid-3x3 me-2"></i>Modules
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="users-tab" data-bs-toggle="pill" data-bs-target="#users" type="button" role="tab">
+                        <i class="bi bi-people me-2"></i>Users
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab">
+                        <i class="bi bi-shield me-2"></i>Security
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="subscription-tab" data-bs-toggle="pill" data-bs-target="#subscription" type="button" role="tab">
+                        <i class="bi bi-credit-card me-2"></i>Subscription
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="settingsTabContent">
+                <!-- General Settings -->
+                <div class="tab-pane fade show active" id="general" role="tabpanel">
+                    <h6 class="mb-4">Hospital Information</h6>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="hospital_name" class="form-label">Hospital Name</label>
+                                    <input type="text" class="form-control" id="hospital_name" name="name" value="{{ hospital.name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="hospital_code" class="form-label">Hospital Code</label>
+                                    <input type="text" class="form-control" id="hospital_code" name="code" value="{{ hospital.code }}" readonly>
+                                    <div class="form-text">Hospital code cannot be changed</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="hospital_phone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="hospital_phone" name="phone" value="{{ hospital.phone }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="hospital_email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="hospital_email" name="email" value="{{ hospital.email }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hospital_address" class="form-label">Address</label>
+                            <textarea class="form-control" id="hospital_address" name="address" rows="3">{{ hospital.address }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hospital_website" class="form-label">Website</label>
+                            <input type="url" class="form-control" id="hospital_website" name="website" value="{{ hospital.website }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="hospital_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="hospital_description" name="description" rows="3">{{ hospital.description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hospital_logo" class="form-label">Hospital Logo</label>
+                            <input type="file" class="form-control" id="hospital_logo" name="logo" accept="image/*">
+                            <div class="form-text">Recommended size: 200x200px, Max: 2MB</div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modules Settings -->
+                <div class="tab-pane fade" id="modules" role="tabpanel">
+                    <h6 class="mb-4">System Modules</h6>
+                    <p class="text-muted mb-4">Enable or disable modules for your hospital</p>
+                    
+                    <div class="module-grid">
+                        {% for module in all_modules %}
+                        <div class="module-card {% if module.name in enabled_modules %}enabled{% endif %}">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" id="module_{{ module.code }}" 
+                                       {% if module.name in enabled_modules %}checked{% endif %}>
+                                <label class="form-check-label" for="module_{{ module.code }}">
+                                    <strong>{{ module.name }}</strong>
+                                </label>
+                            </div>
+                            <i class="bi bi-{{ module.icon|default:'gear' }} text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">{{ module.description }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="module-card enabled">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" checked disabled>
+                                <label class="form-check-label"><strong>Patients</strong></label>
+                            </div>
+                            <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Patient management system</p>
+                        </div>
+                        <div class="module-card enabled">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" checked disabled>
+                                <label class="form-check-label"><strong>Appointments</strong></label>
+                            </div>
+                            <i class="bi bi-calendar text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Appointment scheduling</p>
+                        </div>
+                        <div class="module-card enabled">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" checked disabled>
+                                <label class="form-check-label"><strong>Billing</strong></label>
+                            </div>
+                            <i class="bi bi-receipt text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Billing and payments</p>
+                        </div>
+                        <div class="module-card enabled">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" checked>
+                                <label class="form-check-label"><strong>Laboratory</strong></label>
+                            </div>
+                            <i class="bi bi-flask text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Lab tests and results</p>
+                        </div>
+                        <div class="module-card">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch">
+                                <label class="form-check-label"><strong>Pharmacy</strong></label>
+                            </div>
+                            <i class="bi bi-capsule text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Pharmacy management</p>
+                        </div>
+                        <div class="module-card">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch">
+                                <label class="form-check-label"><strong>Radiology</strong></label>
+                            </div>
+                            <i class="bi bi-x-ray text-primary" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Radiology and imaging</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Users Management -->
+                <div class="tab-pane fade" id="users" role="tabpanel">
+                    <h6 class="mb-4">User Management</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <p class="text-muted mb-0">Manage hospital staff and user permissions</p>
+                        <button class="btn btn-primary">
+                            <i class="bi bi-person-plus me-2"></i>Add User
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                JD
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Dr. John Doe</h6>
+                                                <small class="text-muted">Senior Doctor</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-success">Doctor</span></td>
+                                    <td>john.doe@hospital.com</td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary">Edit</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger">Disable</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- More users would be listed here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security" role="tabpanel">
+                    <h6 class="mb-4">Security & Access Control</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border">
+                                <div class="card-body">
+                                    <h6 class="card-title">Password Policy</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" checked id="minLength">
+                                        <label class="form-check-label" for="minLength">
+                                            Minimum 8 characters
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" checked id="requireUpper">
+                                        <label class="form-check-label" for="requireUpper">
+                                            Require uppercase letters
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require2FA">
+                                        <label class="form-check-label" for="require2FA">
+                                            Require two-factor authentication
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border">
+                                <div class="card-body">
+                                    <h6 class="card-title">Session Settings</h6>
+                                    <div class="mb-3">
+                                        <label for="sessionTimeout" class="form-label">Session Timeout (hours)</label>
+                                        <select class="form-select" id="sessionTimeout">
+                                            <option value="1">1 hour</option>
+                                            <option value="4" selected>4 hours</option>
+                                            <option value="8">8 hours</option>
+                                            <option value="24">24 hours</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" checked id="auditLog">
+                                        <label class="form-check-label" for="auditLog">
+                                            Enable audit logging
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription -->
+                <div class="tab-pane fade" id="subscription" role="tabpanel">
+                    <h6 class="mb-4">Subscription & Billing</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Current Plan: {{ hospital.get_subscription_plan_display|default:"Professional" }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                                            <p><strong>Renewal Date:</strong> Mar 15, 2026</p>
+                                            <p><strong>Users Limit:</strong> Unlimited</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Monthly Cost:</strong> $99/month</p>
+                                            <p><strong>Next Billing:</strong> $99 on Mar 15, 2025</p>
+                                            <p><strong>Payment Method:</strong> •••• 4242</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-outline-primary">Change Plan</button>
+                                        <button class="btn btn-outline-success">Update Payment</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Usage Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Storage Used</small>
+                                            <small>2.1 GB / 10 GB</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 21%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Active Users</small>
+                                            <small>{{ total_users }}/∞</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 45%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>API Calls</small>
+                                            <small>15K/50K</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 30%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Hospital Modal -->
+<div class="modal fade" id="editHospitalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Hospital Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Quick edit form would go here -->
+                <p>Quick edit form will be implemented here...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h3 class="text-warning mb-1">
+                            {% if subscription_status %}
+                            <i class="fas fa-check-circle"></i>
+                            {% else %}
+                            <i class="fas fa-times-circle"></i>
+                            {% endif %}
+                        </h3>
+                        <p class="text-muted mb-0">Subscription</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Enabled Modules -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-cubes me-2"></i>Enabled Modules</h6>
+            </div>
+            <div class="card-body">
+                {% for module in enabled_modules %}
+                <div class="d-flex align-items-center mb-2">
+                    <i class="{% if module == 'appointments' %}fas fa-calendar-check{% elif module == 'patients' %}fas fa-user-injured{% elif module == 'telemedicine' %}fas fa-video{% elif module == 'laboratory' %}fas fa-flask{% elif module == 'radiology' %}fas fa-x-ray{% elif module == 'billing' %}fas fa-receipt{% elif module == 'pharmacy' %}fas fa-pills{% else %}fas fa-cog{% endif %} text-primary me-2"></i>
+                    <span class="text-capitalize">{{ module|title }}</span>
+                </div>
+                {% empty %}
+                <p class="text-muted mb-0">No modules enabled</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'tenants:subscription_details' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-credit-card me-1"></i>View Subscription
+                    </a>
+                    <a href="{% url 'tenants:hospital_settings' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-cog me-1"></i>Hospital Settings
+                    </a>
+                    {% if user|has_module_access:"telemedicine" %}
+                    <a href="{% url 'telemedicine:dashboard' %}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-video me-1"></i>Telemedicine Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Hospital Modal -->
+<div class="modal fade" id="editHospitalModal" tabindex="-1" aria-labelledby="editHospitalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editHospitalModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Hospital Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">Hospital Name</label>
+                                <input type="text" class="form-control" id="id_name" name="name" value="{{ hospital.name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="id_phone" name="phone" value="{{ hospital.phone|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="id_email" name="email" value="{{ hospital.email|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_website" class="form-label">Website</label>
+                                <input type="url" class="form-control" id="id_website" name="website" value="{{ hospital.website|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_address" class="form-label">Address</label>
+                                <textarea class="form-control" id="id_address" name="address" rows="3">{{ hospital.address|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_description" class="form-label">Description</label>
+                                <textarea class="form-control" id="id_description" name="description" rows="3">{{ hospital.description|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_logo" class="form-label">Hospital Logo</label>
+                                <input type="file" class="form-control" id="id_logo" name="logo" accept="image/*">
+                                <small class="text-muted">Recommended: Square image, max 2MB</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 # doctors/api.py
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import filters
@@ -9,8 +9,8 @@ from .serializers import (
     DoctorSerializer, DoctorCreateUpdateSerializer, 
     DoctorScheduleSerializer, PrescriptionSerializer
 )
-from pharmaceutical.models import Medicine
-from patients.models import Patient
+from apps.pharmacy.models import Medicine
+from apps.patients.models import Patient
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_datetime
 

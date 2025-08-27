@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from patients.models import Patient
-from appointments.models import Appointment
-from diagnostics.models import LabTest
-from .models import Bill
+from apps.patients.models import Patient
+from apps.appointments.models import Appointment
+from apps.laboratory.models import LabTest
+from apps.billing.models import Bill
 
 class BillSerializer(serializers.ModelSerializer):
     # Handle many-to-many relationships properly

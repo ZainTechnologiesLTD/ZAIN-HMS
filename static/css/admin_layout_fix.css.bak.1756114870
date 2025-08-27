@@ -1,0 +1,102 @@
+/* DISABLED: admin_layout_fix.css - moved to static/css/_disabled_admin_layout_fix.css */
+
+/* This file intentionally left minimal to avoid overriding Jazzmin defaults. */
+
+/* CSS Variables for Consistent Theming */
+:root {
+    --primary-color: #7c3aed;
+    --primary-dark: #5b21b6;
+    --secondary-color: #10b981;
+    --accent-color: #f59e0b;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --surface-3: #e2e8f0;
+    --background: #f1f5f9;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    /* Cleaned admin layout CSS */
+/* admin_layout_fix.css — SAFE, opt-in layout helpers
+
+     This file intentionally uses a scoped class so it won't override Jazzmin
+     unless you add `class="use-custom-admin-layout"` to the <body> in a
+     template. Backups of original/disabled CSS are kept as `_disabled_*` files.
+*/
+
+/* CSS variables (small, non-opinionated set) */
+:root{
+    --admin-sidebar-width: 300px;
+    --admin-gap: 1rem;
+    --admin-max-width: 1200px;
+    --admin-bg: #ffffff;
+    --admin-text: #111827;
+}
+
+/* Scoped: only applies when body has .use-custom-admin-layout */
+body.use-custom-admin-layout {
+    --_apply_admin_layout: 1;
+}
+
+body.use-custom-admin-layout #container{
+    display: grid;
+    grid-template-columns: var(--admin-sidebar-width) 1fr;
+    gap: var(--admin-gap);
+    min-height: 100vh;
+}
+
+/* Make the sidebar sticky instead of fixed, so it participates in flow */
+body.use-custom-admin-layout .enhanced-admin-nav,
+body.use-custom-admin-layout nav#sidebar{
+    width: var(--admin-sidebar-width);
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 0px);
+    align-self: start;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+body.use-custom-admin-layout #main,
+body.use-custom-admin-layout .content {
+    grid-column: 2 / -1;
+    min-height: 100vh;
+}
+
+body.use-custom-admin-layout .main-content{
+    max-width: var(--admin-max-width);
+    margin: 0 auto;
+    padding: 1.25rem;
+    box-sizing: border-box;
+}
+
+/* Responsive: collapse to single column on narrow screens */
+@media (max-width: 992px){
+    body.use-custom-admin-layout #container{
+        grid-template-columns: 1fr;
+    }
+
+    body.use-custom-admin-layout .enhanced-admin-nav,
+    body.use-custom-admin-layout nav#sidebar{
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-110%);
+        transition: transform .22s ease;
+        z-index: 9999;
+        width: var(--admin-sidebar-width);
+    }
+
+    body.use-custom-admin-layout .enhanced-admin-nav.open,
+    body.use-custom-admin-layout nav#sidebar.open{ transform: translateX(0); }
+
+    /* Keep content full-width when sidebar is off-canvas */
+    body.use-custom-admin-layout #main{ grid-column: 1 / -1; }
+}
+
+/* Minimal utilities that won't conflict with Jazzmin */
+body.use-custom-admin-layout .text-muted{ color: #6b7280; }
+body.use-custom-admin-layout .btn-primary{ background: #7c3aed; color: #fff; }
+
+/* End of opt-in layout helpers */
+    cursor: pointer;

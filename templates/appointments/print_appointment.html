@@ -1,0 +1,286 @@
+<!-- templates/appointments/print_appointment.html -->
+{% extends "base_print.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Appointment" %} - {{ appointment.appointment_number }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .appointment-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .patient-info, .doctor-info {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+    
+    .appointment-details {
+        border: 2px solid #007bff;
+        padding: 20px;
+        border-radius: 8px;
+        background: #fff;
+    }
+    
+    .qr-section {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        text-align: center;
+    }
+    
+    .serial-section {
+        background: #e3f2fd;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #2196f3;
+        margin-bottom: 20px;
+    }
+    
+    @media print {
+        .appointment-header {
+            background: #007bff !important;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header with Hospital Info -->
+    <div class="row">
+        <div class="col-12 position-relative">
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                {% include 'components/qr_code.html' with qr_code_data=appointment_qr_code serial_number=appointment.serial_number show_instructions=False %}
+            </div>
+            
+            <div class="appointment-header">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h2 class="mb-1">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            {% trans "Appointment Confirmation" %}
+                        </h2>
+                        <p class="mb-0">{{ hospital.name }}</p>
+                        <small>{{ hospital.address }}</small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <h4>{{ appointment.appointment_number }}</h4>
+                        <small>{% trans "Generated on" %}: {{ today|date:"d M Y" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Serial Number Display -->
+    <div class="row">
+        <div class="col-12">
+            <div class="serial-section">
+                {% include 'components/serial_display.html' with serial_number=appointment.serial_number label=_("Appointment Serial Number") class="large primary" %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Patient Information -->
+        <div class="col-md-6">
+            <div class="patient-info">
+                <h5 class="mb-3">
+                    <i class="fas fa-user me-2"></i>
+                    {% trans "Patient Information" %}
+                </h5>
+                
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td><strong>{% trans "Name" %}:</strong></td>
+                        <td>{{ appointment.patient.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Patient ID" %}:</strong></td>
+                        <td>{{ appointment.patient.patient_id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Age" %}:</strong></td>
+                        <td>{{ appointment.patient.age }} {% trans "years" %}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Gender" %}:</strong></td>
+                        <td>{{ appointment.patient.get_gender_display }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Phone" %}:</strong></td>
+                        <td>{{ appointment.patient.phone }}</td>
+                    </tr>
+                    {% if appointment.patient.blood_group %}
+                    <tr>
+                        <td><strong>{% trans "Blood Group" %}:</strong></td>
+                        <td>{{ appointment.patient.blood_group }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Doctor Information -->
+        <div class="col-md-6">
+            <div class="doctor-info">
+                <h5 class="mb-3">
+                    <i class="fas fa-user-md me-2"></i>
+                    {% trans "Doctor Information" %}
+                </h5>
+                
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td><strong>{% trans "Name" %}:</strong></td>
+                        <td>Dr. {{ appointment.doctor.get_full_name }}</td>
+                    </tr>
+                    {% if appointment.doctor.specialization %}
+                    <tr>
+                        <td><strong>{% trans "Specialization" %}:</strong></td>
+                        <td>{{ appointment.doctor.specialization.name }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if appointment.doctor.department %}
+                    <tr>
+                        <td><strong>{% trans "Department" %}:</strong></td>
+                        <td>{{ appointment.doctor.department.name }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>{% trans "Phone" %}:</strong></td>
+                        <td>{{ appointment.doctor.phone }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Details -->
+    <div class="row">
+        <div class="col-12">
+            <div class="appointment-details">
+                <h5 class="mb-3">
+                    <i class="fas fa-calendar me-2"></i>
+                    {% trans "Appointment Details" %}
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>{% trans "Date" %}:</strong></td>
+                                <td class="text-primary h5">{{ appointment.appointment_date|date:"l, d F Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{% trans "Time" %}:</strong></td>
+                                <td class="text-primary h5">{{ appointment.appointment_time|time:"g:i A" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{% trans "Duration" %}:</strong></td>
+                                <td>{{ appointment.duration_minutes }} {% trans "minutes" %}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>{% trans "Status" %}:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if appointment.status == 'CONFIRMED' %}success{% elif appointment.status == 'SCHEDULED' %}primary{% else %}secondary{% endif %}">
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if appointment.appointment_type %}
+                            <tr>
+                                <td><strong>{% trans "Type" %}:</strong></td>
+                                <td>{{ appointment.appointment_type.name }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td><strong>{% trans "Priority" %}:</strong></td>
+                                <td>{{ appointment.get_priority_display }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if appointment.chief_complaint %}
+                <div class="mt-3">
+                    <h6>{% trans "Chief Complaint" %}:</h6>
+                    <p class="text-muted">{{ appointment.chief_complaint }}</p>
+                </div>
+                {% endif %}
+
+                {% if appointment.symptoms %}
+                <div class="mt-3">
+                    <h6>{% trans "Symptoms" %}:</h6>
+                    <p class="text-muted">{{ appointment.symptoms }}</p>
+                </div>
+                {% endif %}
+
+                {% if appointment.notes %}
+                <div class="mt-3">
+                    <h6>{% trans "Notes" %}:</h6>
+                    <p class="text-muted">{{ appointment.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6>
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% trans "Important Instructions" %}
+                </h6>
+                <ul class="mb-0">
+                    <li>{% trans "Please arrive 15 minutes before your appointment time" %}</li>
+                    <li>{% trans "Bring a valid ID and this appointment confirmation" %}</li>
+                    <li>{% trans "Inform the reception about any changes in your condition" %}</li>
+                    <li>{% trans "Bring all previous medical records and test reports" %}</li>
+                    {% if appointment.appointment_type.requires_fasting %}
+                    <li class="text-warning">{% trans "Fasting required - Do not eat 8 hours before appointment" %}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <hr>
+            <p class="text-muted small">
+                {% trans "This is a computer-generated document. No signature required." %}<br>
+                {% trans "For any queries, please contact" %}: {{ hospital.phone }} | {{ hospital.email }}<br>
+                {% trans "Serial Number" %}: {{ appointment.serial_number }}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Auto-print when page loads (optional)
+// window.onload = function() { window.print(); }
+</script>
+{% endblock %}

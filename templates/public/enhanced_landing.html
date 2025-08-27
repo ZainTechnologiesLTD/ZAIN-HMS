@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% load static %}
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "ZAIN HMS - Advanced Hospital Management System" %}</title>
+    
+    <!-- Enhanced Meta Tags -->
+    <meta name="description" content="{% trans 'ZAIN HMS - Complete healthcare solution with advanced patient management, appointments, billing, and analytics' %}">
+    <meta name="keywords" content="hospital management, healthcare, medical software, patient management, HMS, SaaS">
+    <meta name="author" content="ZAIN Technologies">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Enhanced CSS Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" 
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Enhanced Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Enhanced Web Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Enhanced Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-color: #f8f9fa;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        /* Enhanced Navigation */
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(44, 90, 160, 0.95) !important;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-scrolled {
+            background: rgba(44, 90, 160, 1) !important;
+            box-shadow: 0 2px 30px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #ffc107 !important;
+            transform: translateY(-2px);
+        }
+
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 50%;
+            background: #ffc107;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .navbar-nav .nav-link:hover::after {
+            width: 80%;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="800" cy="800" r="4" fill="rgba(255,255,255,0.1)"/><circle cx="400" cy="600" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="900" cy="300" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="100" cy="700" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-buttons .btn {
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            margin: 0 10px 10px 0;
+        }
+
+        .btn-hero-primary {
+            background: white;
+            color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-hero-primary:hover {
+            background: #f8f9fa;
+            color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn-hero-outline {
+            border: 2px solid white;
+            color: white;
+            background: transparent;
+        }
+
+        .btn-hero-outline:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        /* Feature Cards */
+        .features-section {
+            padding: 80px 0;
+            background: #f8fafc;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            height: 100%;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-gradient);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+
+        .feature-icon.primary { background: linear-gradient(135deg, #3b82f6, #1e40af); color: white; }
+        .feature-icon.success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .feature-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .feature-icon.info { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+        .feature-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .feature-icon.secondary { background: linear-gradient(135deg, #6b7280, #374151); color: white; }
+
+        /* Stats Section */
+        .stats-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 60px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 80px 0;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 auto 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(44, 90, 160, 1);
+            color: white;
+            padding: 40px 0 20px;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #ffc107;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body { padding-top: 0; }
+            .hero-title { font-size: 2.5rem; }
+            .hero-section { padding: 80px 0 60px; }
+            .features-section { padding: 60px 0; }
+            .stats-section { padding: 40px 0; }
+            .contact-section { padding: 60px 0; }
+            
+            .navbar {
+                position: relative;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-hospital-fill me-2"></i>ZAIN HMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">{% trans "Features" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#stats">{% trans "About" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">{% trans "Contact" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-warning btn-sm px-4 ms-2" href="{% url 'accounts:login' %}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Login" %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Enhanced Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <h1 class="hero-title">{% trans "ZAIN Hospital Management System" %}</h1>
+                    <p class="hero-subtitle">
+                        {% trans "Comprehensive healthcare management solution for modern hospitals. Streamline patient care, appointments, billing, and administrative operations with our advanced platform." %}
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="{% url 'accounts:login' %}" class="btn btn-hero-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Staff Login" %}
+                        </a>
+                        <a href="#features" class="btn btn-hero-outline btn-lg">
+                            <i class="bi bi-info-circle me-2"></i>{% trans "Learn More" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <i class="bi bi-hospital" style="font-size: 12rem; opacity: 0.8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-4 fw-bold mb-4">{% trans "Comprehensive Healthcare Solutions" %}</h2>
+                    <p class="lead text-muted">{% trans "Advanced tools designed for efficiency, patient care, and operational excellence" %}</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="feature-icon primary">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Patient Management" %}</h5>
+                        <p class="text-muted">{% trans "Complete patient records, medical history, and comprehensive care coordination" %}</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="feature-icon success">
+                            <i class="bi bi-calendar-plus-fill"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Appointment System" %}</h5>
+                        <p class="text-muted">{% trans "Intelligent scheduling with automated reminders and conflict resolution" %}</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="feature-icon warning">
+                            <i class="bi bi-receipt-cutoff"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Billing & Payments" %}</h5>
+                        <p class="text-muted">{% trans "Comprehensive billing system with payment tracking and insurance claims" %}</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="feature-icon info">
+                            <i class="bi bi-capsule"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Pharmacy Management" %}</h5>
+                        <p class="text-muted">{% trans "Medicine inventory, prescription management, and drug interaction alerts" %}</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="feature-icon danger">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Laboratory & Radiology" %}</h5>
+                        <p class="text-muted">{% trans "Test management, result tracking, and integrated diagnostic workflows" %}</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="feature-icon secondary">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Analytics & Reports" %}</h5>
+                        <p class="text-muted">{% trans "Advanced reporting with data insights and performance analytics" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number">50+</span>
+                        <div class="stat-label">{% trans "Healthcare Facilities" %}</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number">10K+</span>
+                        <div class="stat-label">{% trans "Patients Managed" %}</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number">500+</span>
+                        <div class="stat-label">{% trans "Healthcare Professionals" %}</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <div class="stat-label">{% trans "System Availability" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-4">{% trans "Get Started Today" %}</h2>
+                    <p class="lead text-muted">{% trans "Contact our team for system setup, training, and ongoing support" %}</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="bi bi-telephone-fill"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Phone Support" %}</h5>
+                        <p class="text-muted mb-3">{% trans "24/7 technical support" %}</p>
+                        <p class="fw-semibold">+1 (555) HMS-ZAIN</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Email Support" %}</h5>
+                        <p class="text-muted mb-3">{% trans "Quick response within hours" %}</p>
+                        <p class="fw-semibold">support@zainhms.com</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mx-auto">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="bi bi-chat-dots-fill"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">{% trans "Live Chat" %}</h5>
+                        <p class="text-muted mb-3">{% trans "Instant assistance online" %}</p>
+                        <p class="fw-semibold">{% trans "Available 24/7" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-3">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-hospital-fill me-2"></i>ZAIN HMS
+                    </h5>
+                    <p class="text-muted">{% trans "Advanced Hospital Management System designed for modern healthcare facilities. Streamline operations, enhance patient care, and boost efficiency." %}</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <h6 class="fw-bold mb-3">{% trans "Quick Links" %}</h6>
+                    <div class="footer-links">
+                        <a href="#features" class="d-block mb-2">{% trans "Features" %}</a>
+                        <a href="#contact" class="d-block mb-2">{% trans "Contact" %}</a>
+                        <a href="{% url 'accounts:login' %}" class="d-block mb-2">{% trans "Staff Login" %}</a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <h6 class="fw-bold mb-3">{% trans "Support" %}</h6>
+                    <div class="footer-links">
+                        <a href="#" class="d-block mb-2">{% trans "Documentation" %}</a>
+                        <a href="#" class="d-block mb-2">{% trans "Training" %}</a>
+                        <a href="#" class="d-block mb-2">{% trans "System Status" %}</a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 ZAIN Hospital Management System. {% trans "All rights reserved." %}</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="footer-links">
+                        <a href="#" class="me-3">{% trans "Privacy Policy" %}</a>
+                        <a href="#" class="me-3">{% trans "Terms of Service" %}</a>
+                        <a href="#" class="">{% trans "Cookie Policy" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Enhanced JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <script>
+        // Enhanced Navbar Scroll Effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.remove('navbar-scrolled');
+            }
+        });
+
+        // Smooth Scrolling for Anchor Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate Elements on Scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-on-scroll');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and stat items
+        document.querySelectorAll('.feature-card, .stat-item, .contact-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Counter Animation for Stats
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent);
+                const increment = target / 100;
+                let current = 0;
+                
+                const updateCounter = () => {
+                    if (current < target) {
+                        current += increment;
+                        counter.textContent = Math.ceil(current) + (counter.textContent.includes('+') ? '+' : '');
+                        setTimeout(updateCounter, 50);
+                    } else {
+                        counter.textContent = counter.textContent; // Keep original format
+                    }
+                };
+                updateCounter();
+            });
+        }
+
+        // Trigger counter animation when stats section is in view
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            const statsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounters();
+                        statsObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            statsObserver.observe(statsSection);
+        }
+    </script>
+</body>
+</html>

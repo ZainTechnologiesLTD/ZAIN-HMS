@@ -1,0 +1,997 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Create Appointment - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'appointments:appointment_list' %}">Appointments</a></li>
+<li class="breadcrumb-item active" aria-current="page">Create Appointment</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-wizard {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .wizard-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+    }
+
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+    }
+
+    .wizard-step {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        position: relative;
+    }
+
+    .wizard-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -50%;
+        width: 100%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
+        transition: all var(--transition-fast);
+    }
+
+    .wizard-step.active .step-number {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+    }
+
+    .wizard-step.completed .step-number {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .wizard-step.completed::after {
+        background: var(--success-color);
+    }
+
+    .step-title {
+        font-weight: 500;
+        opacity: 0.8;
+    }
+
+    .wizard-step.active .step-title {
+        opacity: 1;
+        font-weight: 600;
+    }
+
+    .wizard-content {
+        padding: 2rem;
+    }
+
+    .step-content {
+        display: none;
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    .step-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .patient-search-section {
+        background: var(--gray-50);
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        transition: all var(--transition-fast);
+    }
+
+    .patient-search-section:hover {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .patient-card {
+        background: white;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .patient-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .patient-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+        box-shadow: var(--shadow);
+    }
+
+    .patient-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .patient-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.5rem;
+    }
+
+    .patient-details h6 {
+        margin: 0 0 0.25rem 0;
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .patient-meta {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .doctor-selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .doctor-card {
+        background: white;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-align: center;
+    }
+
+    .doctor-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .doctor-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+        box-shadow: var(--shadow);
+    }
+
+    .doctor-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 2rem;
+        margin: 0 auto 1rem auto;
+    }
+
+    .doctor-name {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.5rem;
+    }
+
+    .doctor-specialization {
+        color: var(--gray-600);
+        margin-bottom: 0.5rem;
+    }
+
+    .doctor-availability {
+        font-size: 0.875rem;
+        color: var(--success-color);
+        font-weight: 500;
+    }
+
+    .time-slot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .time-slot {
+        background: white;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .time-slot:hover {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .time-slot.selected {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .time-slot.unavailable {
+        background: var(--gray-100);
+        color: var(--gray-400);
+        cursor: not-allowed;
+        border-color: var(--gray-200);
+    }
+
+    .time-slot.unavailable:hover {
+        background: var(--gray-100);
+        border-color: var(--gray-200);
+    }
+
+    .slot-time {
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .slot-status {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .appointment-summary {
+        background: var(--gray-50);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .summary-section {
+        background: white;
+        border-radius: var(--border-radius-sm);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .summary-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-label {
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+
+    .summary-value {
+        color: var(--gray-800);
+        font-weight: 600;
+    }
+
+    .wizard-navigation {
+        background: var(--gray-50);
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .nav-button {
+        padding: 0.75rem 2rem;
+        border-radius: var(--border-radius-sm);
+        font-weight: 500;
+        transition: all var(--transition-fast);
+    }
+
+    .error-message {
+        background: var(--danger-color);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 1.5rem;
+        display: none;
+    }
+
+    .success-message {
+        background: var(--success-color);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 1.5rem;
+        display: none;
+    }
+
+    .search-results {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-top: 1rem;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .wizard-steps {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .wizard-step::after {
+            display: none;
+        }
+        
+        .doctor-selection-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .time-slot-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+        
+        .wizard-content {
+            padding: 1rem;
+        }
+        
+        .wizard-navigation {
+            padding: 1rem;
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="appointmentWizard()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="fas fa-calendar-plus me-3 text-primary"></i>Create New Appointment
+            </h1>
+            <p class="text-muted mb-0">Schedule a new patient appointment</p>
+        </div>
+        <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Appointments
+        </a>
+    </div>
+
+    <!-- Error/Success Messages -->
+    <div id="errorMessage" class="error-message">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="errorText"></span>
+    </div>
+    
+    <div id="successMessage" class="success-message">
+        <i class="fas fa-check-circle me-2"></i>
+        <span id="successText"></span>
+    </div>
+
+    <!-- Form Wizard -->
+    <div class="form-wizard">
+        <!-- Wizard Header -->
+        <div class="wizard-header">
+            <h4 class="mb-0">Appointment Booking Wizard</h4>
+            <p class="mb-0 mt-2 opacity-75">Follow the steps below to create a new appointment</p>
+            
+            <div class="wizard-steps">
+                <div class="wizard-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Select Patient</div>
+                </div>
+                <div class="wizard-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Choose Doctor</div>
+                </div>
+                <div class="wizard-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Select Time</div>
+                </div>
+                <div class="wizard-step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Confirm Details</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wizard Content -->
+        <form id="appointmentForm" method="POST" action="{% url 'appointments:appointment_create' %}">
+            {% csrf_token %}
+            
+            <div class="wizard-content">
+                <!-- Step 1: Patient Selection -->
+                <div class="step-content active" data-step="1">
+                    <h5 class="mb-4">
+                        <i class="fas fa-user me-2 text-primary"></i>Select Patient
+                    </h5>
+                    
+                    <div class="patient-search-section">
+                        <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                        <h6>Search for a Patient</h6>
+                        <p class="text-muted mb-3">Enter patient name, ID, or phone number</p>
+                        
+                        <div class="row justify-content-center">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           id="patientSearch" 
+                                           class="form-control form-control-lg" 
+                                           placeholder="Search patients..."
+                                           hx-get="{% url 'appointments:search_patients' %}"
+                                           hx-target="#searchResults"
+                                           hx-trigger="keyup changed delay:300ms"
+                                           hx-indicator="#loadingSpinner">
+                                    <button class="btn btn-primary" type="button">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'patients:create' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Add New Patient
+                            </a>
+                        </div>
+                    </div>
+
+                    <div id="loadingSpinner" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Searching...</span>
+                        </div>
+                        <p class="mt-2">Searching patients...</p>
+                    </div>
+
+                    <div id="searchResults" class="search-results">
+                        <!-- Patient search results will appear here -->
+                    </div>
+
+                    <input type="hidden" id="selectedPatientId" name="patient" required>
+                </div>
+
+                <!-- Step 2: Doctor Selection -->
+                <div class="step-content" data-step="2">
+                    <h5 class="mb-4">
+                        <i class="fas fa-user-md me-2 text-primary"></i>Choose Doctor
+                    </h5>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Department/Specialization</label>
+                            <select id="specializationFilter" class="form-select" onchange="filterDoctors()">
+                                <option value="">All Specializations</option>
+                                {% for spec in specializations %}
+                                <option value="{{ spec.0 }}">{{ spec.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Availability</label>
+                            <select id="availabilityFilter" class="form-select" onchange="filterDoctors()">
+                                <option value="">All Doctors</option>
+                                <option value="available">Available Today</option>
+                                <option value="busy">Busy Today</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="doctorSelection" class="doctor-selection-grid">
+                        {% for doctor in doctors %}
+                        <div class="doctor-card" 
+                             data-doctor-id="{{ doctor.id }}"
+                             data-specialization="{{ doctor.specialization }}"
+                             onclick="selectDoctor({{ doctor.id }}, '{{ doctor.get_full_name }}', '{{ doctor.specialization }}')">
+                            <div class="doctor-avatar">
+                                {{ doctor.first_name.0 }}{{ doctor.last_name.0 }}
+                            </div>
+                            <div class="doctor-name">Dr. {{ doctor.get_full_name }}</div>
+                            <div class="doctor-specialization">{{ doctor.specialization|default:"General Practice" }}</div>
+                            <div class="doctor-availability">
+                                <i class="fas fa-circle text-success me-1"></i>Available
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <input type="hidden" id="selectedDoctorId" name="doctor" required>
+                </div>
+
+                <!-- Step 3: Time Selection -->
+                <div class="step-content" data-step="3">
+                    <h5 class="mb-4">
+                        <i class="fas fa-clock me-2 text-primary"></i>Select Date & Time
+                    </h5>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Appointment Date</label>
+                            <input type="date" 
+                                   id="appointmentDate" 
+                                   name="date" 
+                                   class="form-control"
+                                   min="{{ today|date:'Y-m-d' }}"
+                                   onchange="loadTimeSlots()"
+                                   required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Appointment Type</label>
+                            <select name="appointment_type" class="form-select" required>
+                                <option value="">Select Type</option>
+                                <option value="CONSULTATION">Consultation</option>
+                                <option value="FOLLOW_UP">Follow-up</option>
+                                <option value="EMERGENCY">Emergency</option>
+                                <option value="ROUTINE_CHECKUP">Routine Checkup</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="timeSlotContainer">
+                        <h6 class="mb-3">Available Time Slots</h6>
+                        <div id="timeSlotGrid" class="time-slot-grid">
+                            <!-- Time slots will be loaded here -->
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="selectedTimeSlot" name="time" required>
+                </div>
+
+                <!-- Step 4: Confirmation -->
+                <div class="step-content" data-step="4">
+                    <h5 class="mb-4">
+                        <i class="fas fa-check-circle me-2 text-primary"></i>Confirm Appointment Details
+                    </h5>
+                    
+                    <div class="appointment-summary">
+                        <div class="summary-section">
+                            <div class="summary-title">
+                                <i class="fas fa-user text-primary"></i>
+                                Patient Information
+                            </div>
+                            <div id="patientSummary">
+                                <!-- Patient details will be populated here -->
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <div class="summary-title">
+                                <i class="fas fa-user-md text-primary"></i>
+                                Doctor Information
+                            </div>
+                            <div id="doctorSummary">
+                                <!-- Doctor details will be populated here -->
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <div class="summary-title">
+                                <i class="fas fa-calendar text-primary"></i>
+                                Appointment Details
+                            </div>
+                            <div id="appointmentSummary">
+                                <!-- Appointment details will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label">Chief Complaint (Optional)</label>
+                        <textarea name="chief_complaint" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Describe the main reason for this appointment..."></textarea>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label">Additional Notes (Optional)</label>
+                        <textarea name="notes" 
+                                  class="form-control" 
+                                  rows="2" 
+                                  placeholder="Any additional notes or special instructions..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Navigation -->
+            <div class="wizard-navigation">
+                <button type="button" 
+                        id="prevButton" 
+                        class="btn btn-outline-secondary nav-button"
+                        onclick="previousStep()" 
+                        style="visibility: hidden;">
+                    <i class="fas fa-chevron-left me-2"></i>Previous
+                </button>
+                
+                <div class="d-flex gap-2">
+                    <button type="button" 
+                            class="btn btn-outline-primary">
+                        <i class="fas fa-save me-2"></i>Save Draft
+                    </button>
+                    <button type="button" 
+                            id="nextButton" 
+                            class="btn btn-primary nav-button"
+                            onclick="nextStep()">
+                        Next<i class="fas fa-chevron-right ms-2"></i>
+                    </button>
+                    <button type="submit" 
+                            id="submitButton" 
+                            class="btn btn-success nav-button" 
+                            style="display: none;">
+                        <i class="fas fa-check me-2"></i>Create Appointment
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function appointmentWizard() {
+        return {
+            currentStep: 1,
+            selectedPatient: null,
+            selectedDoctor: null,
+            selectedTime: null,
+            
+            init() {
+                this.setupEventListeners();
+            },
+            
+            setupEventListeners() {
+                // Form submission
+                document.getElementById('appointmentForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitAppointment();
+                });
+            },
+            
+            submitAppointment() {
+                if (this.validateCurrentStep()) {
+                    // Submit the form
+                    document.getElementById('appointmentForm').submit();
+                }
+            }
+        }
+    }
+
+    let currentStep = 1;
+    let selectedPatient = null;
+    let selectedDoctor = null;
+    let selectedTime = null;
+
+    function nextStep() {
+        if (validateCurrentStep()) {
+            if (currentStep < 4) {
+                currentStep++;
+                updateWizardStep();
+            }
+        }
+    }
+
+    function previousStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            updateWizardStep();
+        }
+    }
+
+    function updateWizardStep() {
+        // Update step indicators
+        document.querySelectorAll('.wizard-step').forEach((step, index) => {
+            const stepNumber = index + 1;
+            if (stepNumber < currentStep) {
+                step.classList.add('completed');
+                step.classList.remove('active');
+            } else if (stepNumber === currentStep) {
+                step.classList.add('active');
+                step.classList.remove('completed');
+            } else {
+                step.classList.remove('active', 'completed');
+            }
+        });
+
+        // Update step content
+        document.querySelectorAll('.step-content').forEach((content, index) => {
+            if (index + 1 === currentStep) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+
+        // Update navigation buttons
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const submitButton = document.getElementById('submitButton');
+
+        prevButton.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        
+        if (currentStep === 4) {
+            nextButton.style.display = 'none';
+            submitButton.style.display = 'block';
+            updateSummary();
+        } else {
+            nextButton.style.display = 'block';
+            submitButton.style.display = 'none';
+        }
+    }
+
+    function validateCurrentStep() {
+        let isValid = true;
+        let errorMessage = '';
+
+        switch (currentStep) {
+            case 1:
+                if (!selectedPatient) {
+                    errorMessage = 'Please select a patient';
+                    isValid = false;
+                }
+                break;
+            case 2:
+                if (!selectedDoctor) {
+                    errorMessage = 'Please select a doctor';
+                    isValid = false;
+                }
+                break;
+            case 3:
+                const date = document.getElementById('appointmentDate').value;
+                const type = document.querySelector('select[name="appointment_type"]').value;
+                
+                if (!date) {
+                    errorMessage = 'Please select an appointment date';
+                    isValid = false;
+                } else if (!type) {
+                    errorMessage = 'Please select appointment type';
+                    isValid = false;
+                } else if (!selectedTime) {
+                    errorMessage = 'Please select a time slot';
+                    isValid = false;
+                }
+                break;
+        }
+
+        if (!isValid) {
+            showError(errorMessage);
+        } else {
+            hideError();
+        }
+
+        return isValid;
+    }
+
+    function selectPatient(patientId, patientName, patientId) {
+        selectedPatient = { id: patientId, name: patientName, patientId: patientId };
+        document.getElementById('selectedPatientId').value = patientId;
+        
+        // Update UI to show selected patient
+        document.querySelectorAll('.patient-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`[data-patient-id="${patientId}"]`).classList.add('selected');
+        
+        hideError();
+    }
+
+    function selectDoctor(doctorId, doctorName, specialization) {
+        selectedDoctor = { id: doctorId, name: doctorName, specialization: specialization };
+        document.getElementById('selectedDoctorId').value = doctorId;
+        
+        // Update UI to show selected doctor
+        document.querySelectorAll('.doctor-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`[data-doctor-id="${doctorId}"]`).classList.add('selected');
+        
+        hideError();
+    }
+
+    function selectTimeSlot(time, slot) {
+        selectedTime = { time: time, slot: slot };
+        document.getElementById('selectedTimeSlot').value = time;
+        
+        // Update UI to show selected time
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.classList.remove('selected');
+        });
+        slot.classList.add('selected');
+        
+        hideError();
+    }
+
+    function loadTimeSlots() {
+        const doctorId = document.getElementById('selectedDoctorId').value;
+        const date = document.getElementById('appointmentDate').value;
+        
+        if (doctorId && date) {
+            fetch(`/appointments/time-slots/?doctor=${doctorId}&date=${date}`)
+                .then(response => response.json())
+                .then(data => {
+                    const grid = document.getElementById('timeSlotGrid');
+                    grid.innerHTML = '';
+                    
+                    data.time_slots.forEach(slot => {
+                        const slotElement = document.createElement('div');
+                        slotElement.className = `time-slot ${slot.available ? '' : 'unavailable'}`;
+                        slotElement.innerHTML = `
+                            <div class="slot-time">${slot.time}</div>
+                            <div class="slot-status">${slot.available ? 'Available' : 'Booked'}</div>
+                        `;
+                        
+                        if (slot.available) {
+                            slotElement.onclick = () => selectTimeSlot(slot.time, slotElement);
+                        }
+                        
+                        grid.appendChild(slotElement);
+                    });
+                });
+        }
+    }
+
+    function updateSummary() {
+        // Update patient summary
+        if (selectedPatient) {
+            document.getElementById('patientSummary').innerHTML = `
+                <div class="summary-item">
+                    <span class="summary-label">Name:</span>
+                    <span class="summary-value">${selectedPatient.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Patient ID:</span>
+                    <span class="summary-value">${selectedPatient.patientId}</span>
+                </div>
+            `;
+        }
+
+        // Update doctor summary
+        if (selectedDoctor) {
+            document.getElementById('doctorSummary').innerHTML = `
+                <div class="summary-item">
+                    <span class="summary-label">Doctor:</span>
+                    <span class="summary-value">Dr. ${selectedDoctor.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Specialization:</span>
+                    <span class="summary-value">${selectedDoctor.specialization}</span>
+                </div>
+            `;
+        }
+
+        // Update appointment summary
+        const date = document.getElementById('appointmentDate').value;
+        const type = document.querySelector('select[name="appointment_type"]').value;
+        
+        if (date && type && selectedTime) {
+            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            document.getElementById('appointmentSummary').innerHTML = `
+                <div class="summary-item">
+                    <span class="summary-label">Date:</span>
+                    <span class="summary-value">${formattedDate}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Time:</span>
+                    <span class="summary-value">${selectedTime.time}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Type:</span>
+                    <span class="summary-value">${type.replace('_', ' ')}</span>
+                </div>
+            `;
+        }
+    }
+
+    function filterDoctors() {
+        const specialization = document.getElementById('specializationFilter').value;
+        const availability = document.getElementById('availabilityFilter').value;
+        
+        document.querySelectorAll('.doctor-card').forEach(card => {
+            let show = true;
+            
+            if (specialization && card.dataset.specialization !== specialization) {
+                show = false;
+            }
+            
+            card.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        errorText.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideError() {
+        document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    function showSuccess(message) {
+        const successDiv = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+        successText.textContent = message;
+        successDiv.style.display = 'block';
+        successDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Initialize wizard
+    document.addEventListener('DOMContentLoaded', function() {
+        updateWizardStep();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+<!-- templates/components/qr_code.html -->
+{% load i18n %}
+
+<div class="qr-code-container text-center p-3 border rounded">
+    {% if qr_code_data %}
+        <div class="qr-code-image mb-2">
+            <img src="{{ qr_code_data }}" alt="{% trans 'QR Code' %}" class="img-fluid" style="max-width: 150px;">
+        </div>
+        
+        {% if show_instructions|default:True %}
+            <p class="small text-muted mb-0">
+                {% trans "Scan this QR code to quickly access this record" %}
+            </p>
+        {% endif %}
+        
+        {% if serial_number %}
+            <div class="serial-number mt-2">
+                <small class="text-muted">{% trans "Serial:" %} <strong>{{ serial_number }}</strong></small>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-muted">
+            <i class="fas fa-qrcode fa-2x mb-2"></i>
+            <p class="small mb-0">{% trans "QR Code not available" %}</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.qr-code-container {
+    background: #f8f9fa;
+    border-color: #dee2e6 !important;
+}
+
+.qr-code-image img {
+    border: 2px solid #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.serial-number {
+    font-family: 'Courier New', monospace;
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+@media print {
+    .qr-code-container {
+        background: white !important;
+        border: 1px solid #000 !important;
+    }
+}
+</style>

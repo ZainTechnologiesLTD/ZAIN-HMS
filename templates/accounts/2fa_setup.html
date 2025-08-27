@@ -1,0 +1,222 @@
+{% extends "base_auth.html" %}
+{% load static %}
+
+{% block title %}Setup Two-Factor Authentication{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-qrcode me-2"></i>
+                        Setup Two-Factor Authentication
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Step 1: Scan QR Code</h5>
+                            <p>Use your authenticator app to scan this QR code:</p>
+                            
+                            <div class="text-center mb-3">
+                                <div class="qr-code-container">
+                                    {{ qr_code_svg|safe }}
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <small>
+                                    <strong>Can't scan?</strong> Manual entry key:<br>
+                                    <code>{{ device.bin_key|default:"Contact administrator" }}</code>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Step 2: Verify Setup</h5>
+                            <p>Enter the 6-digit code from your authenticator app:</p>
+                            
+                            <form id="verify2faForm">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <input type="text" 
+                                           class="form-control text-center" 
+                                           name="token" 
+                                           id="token"
+                                           placeholder="000000"
+                                           maxlength="6"
+                                           pattern="[0-9]{6}"
+                                           required>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check me-2"></i>Verify & Enable
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div id="verification-result" class="mt-3"></div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>Backup Codes</h5>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> Save these backup codes in a secure location. 
+                        You can use them to access your account if you lose your authenticator device.
+                    </div>
+                    
+                    <div class="row">
+                        {% for code in backup_codes %}
+                        <div class="col-md-4 mb-2">
+                            <code class="d-block p-2 bg-light rounded">{{ code }}</code>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary" onclick="printBackupCodes()">
+                            <i class="fas fa-print me-2"></i>Print Backup Codes
+                        </button>
+                        <button class="btn btn-outline-success" onclick="downloadBackupCodes()">
+                            <i class="fas fa-download me-2"></i>Download Backup Codes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.qr-code-container {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.qr-code-container svg {
+    width: 100%;
+    height: auto;
+}
+
+#token {
+    font-size: 1.5rem;
+    letter-spacing: 0.3rem;
+    font-family: monospace;
+}
+</style>
+
+<script>
+document.getElementById('verify2faForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const resultDiv = document.getElementById('verification-result');
+    
+    fetch('{% url "core:verify_2fa_setup" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Two-factor authentication has been successfully enabled!
+                </div>
+            `;
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 2000);
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle me-2"></i>
+                    ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                An error occurred. Please try again.
+            </div>
+        `;
+    });
+});
+
+function printBackupCodes() {
+    const codes = [{% for code in backup_codes %}'{{ code }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>2FA Backup Codes - ZAIN HMS</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .codes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+                    .code { padding: 10px; border: 1px solid #ddd; font-family: monospace; }
+                    .warning { background: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; margin: 20px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>Two-Factor Authentication Backup Codes</h2>
+                    <p>ZAIN Hospital Management System</p>
+                    <p>User: {{ user.get_full_name|default:user.username }}</p>
+                    <p>Generated: ${new Date().toLocaleString()}</p>
+                </div>
+                
+                <div class="warning">
+                    <strong>IMPORTANT:</strong> Store these codes in a secure location. Each code can only be used once.
+                </div>
+                
+                <div class="codes">
+                    ${codes.map(code => '<div class="code">' + code + '</div>').join('')}
+                </div>
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function downloadBackupCodes() {
+    const codes = [{% for code in backup_codes %}'{{ code }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    
+    const content = `ZAIN HMS - Two-Factor Authentication Backup Codes
+User: {{ user.get_full_name|default:user.username }}
+Generated: ${new Date().toLocaleString()}
+
+IMPORTANT: Store these codes securely. Each code can only be used once.
+
+Backup Codes:
+${codes.map((code, index) => (index + 1).toString().padStart(2, '0') + '. ' + code).join('\n')}
+
+Keep these codes safe and secure!
+`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'zain_hms_2fa_backup_codes.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

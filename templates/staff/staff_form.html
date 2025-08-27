@@ -1,0 +1,346 @@
+{% extends 'base_dashboard.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Add New Staff - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Add New Staff Member
+                    </h4>
+                    <a href="{% url 'staff:staff_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Staff List
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- Personal Information -->
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Personal Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                                    First Name <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.first_name|add_class:"form-control" }}
+                                                {% if form.first_name.errors %}
+                                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                                    Last Name <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.last_name|add_class:"form-control" }}
+                                                {% if form.last_name.errors %}
+                                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                                    Email Address <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.email|add_class:"form-control" }}
+                                                {% if form.email.errors %}
+                                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                                    Phone Number
+                                                </label>
+                                                {{ form.phone_number|add_class:"form-control" }}
+                                                {% if form.phone_number.errors %}
+                                                    <div class="text-danger small">{{ form.phone_number.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                                                    Date of Birth
+                                                </label>
+                                                {{ form.date_of_birth|add_class:"form-control" }}
+                                                {% if form.date_of_birth.errors %}
+                                                    <div class="text-danger small">{{ form.date_of_birth.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.gender.id_for_label }}" class="form-label">
+                                                    Gender
+                                                </label>
+                                                {{ form.gender|add_class:"form-select" }}
+                                                {% if form.gender.errors %}
+                                                    <div class="text-danger small">{{ form.gender.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.address.id_for_label }}" class="form-label">
+                                                Address
+                                            </label>
+                                            {{ form.address|add_class:"form-control" }}
+                                            {% if form.address.errors %}
+                                                <div class="text-danger small">{{ form.address.errors }}</div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                                                Profile Picture
+                                            </label>
+                                            {{ form.profile_picture|add_class:"form-control" }}
+                                            {% if form.profile_picture.errors %}
+                                                <div class="text-danger small">{{ form.profile_picture.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Professional Information -->
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Professional Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.position_title.id_for_label }}" class="form-label">
+                                                    Position Title <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.position_title|add_class:"form-control" }}
+                                                {% if form.position_title.errors %}
+                                                    <div class="text-danger small">{{ form.position_title.errors }}</div>
+                                                {% endif %}
+                                                <small class="text-muted">e.g., Nurse, Pharmacist, Lab Technician</small>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.department.id_for_label }}" class="form-label">
+                                                    Department
+                                                </label>
+                                                {{ form.department|add_class:"form-control" }}
+                                                {% if form.department.errors %}
+                                                    <div class="text-danger small">{{ form.department.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.employee_number.id_for_label }}" class="form-label">
+                                                    Employee Number
+                                                </label>
+                                                {{ form.employee_number|add_class:"form-control" }}
+                                                {% if form.employee_number.errors %}
+                                                    <div class="text-danger small">{{ form.employee_number.errors }}</div>
+                                                {% endif %}
+                                                <small class="text-muted">Leave blank to auto-generate</small>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.date_joined.id_for_label }}" class="form-label">
+                                                    Date Joined <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.date_joined|add_class:"form-control" }}
+                                                {% if form.date_joined.errors %}
+                                                    <div class="text-danger small">{{ form.date_joined.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.shift_start_time.id_for_label }}" class="form-label">
+                                                    Shift Start Time
+                                                </label>
+                                                {{ form.shift_start_time|add_class:"form-control" }}
+                                                {% if form.shift_start_time.errors %}
+                                                    <div class="text-danger small">{{ form.shift_start_time.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.shift_end_time.id_for_label }}" class="form-label">
+                                                    Shift End Time
+                                                </label>
+                                                {{ form.shift_end_time|add_class:"form-control" }}
+                                                {% if form.shift_end_time.errors %}
+                                                    <div class="text-danger small">{{ form.shift_end_time.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.work_schedule.id_for_label }}" class="form-label">
+                                                Work Schedule
+                                            </label>
+                                            {{ form.work_schedule|add_class:"form-control" }}
+                                            {% if form.work_schedule.errors %}
+                                                <div class="text-danger small">{{ form.work_schedule.errors }}</div>
+                                            {% endif %}
+                                            <small class="text-muted">e.g., Monday-Friday, Rotating shifts</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                {{ form.is_active|add_class:"form-check-input" }}
+                                                <label for="{{ form.is_active.id_for_label }}" class="form-check-label">
+                                                    Active Staff Member
+                                                </label>
+                                            </div>
+                                            {% if form.is_active.errors %}
+                                                <div class="text-danger small">{{ form.is_active.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Contact Information -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Emergency Contact Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                                                    Emergency Contact Name
+                                                </label>
+                                                {{ form.emergency_contact_name|add_class:"form-control" }}
+                                                {% if form.emergency_contact_name.errors %}
+                                                    <div class="text-danger small">{{ form.emergency_contact_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                                                    Emergency Contact Phone
+                                                </label>
+                                                {{ form.emergency_contact_phone|add_class:"form-control" }}
+                                                {% if form.emergency_contact_phone.errors %}
+                                                    <div class="text-danger small">{{ form.emergency_contact_phone.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Additional Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                                Notes
+                                            </label>
+                                            {{ form.notes|add_class:"form-control" }}
+                                            {% if form.notes.errors %}
+                                                <div class="text-danger small">{{ form.notes.errors }}</div>
+                                            {% endif %}
+                                            <small class="text-muted">Any additional information about the staff member</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'staff:staff_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Add Staff Member
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today as default date for date_joined if empty
+    const dateJoinedInput = document.getElementById('{{ form.date_joined.id_for_label }}');
+    if (dateJoinedInput && !dateJoinedInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateJoinedInput.value = today;
+    }
+
+    // Auto-suggest role based on position title
+    const positionInput = document.getElementById('{{ form.position_title.id_for_label }}');
+    if (positionInput) {
+        positionInput.addEventListener('input', function() {
+            const position = this.value.toLowerCase();
+            let suggestedRole = '';
+            
+            if (position.includes('nurse')) {
+                suggestedRole = 'This will create a NURSE role user account';
+            } else if (position.includes('pharmacist')) {
+                suggestedRole = 'This will create a PHARMACIST role user account';
+            } else if (position.includes('lab') || position.includes('laboratory')) {
+                suggestedRole = 'This will create a LAB_TECHNICIAN role user account';
+            } else if (position.includes('radiolog')) {
+                suggestedRole = 'This will create a RADIOLOGIST role user account';
+            } else if (position.includes('account')) {
+                suggestedRole = 'This will create an ACCOUNTANT role user account';
+            } else if (position.includes('hr') || position.includes('human resource')) {
+                suggestedRole = 'This will create an HR_MANAGER role user account';
+            } else if (position.includes('reception')) {
+                suggestedRole = 'This will create a RECEPTIONIST role user account';
+            } else {
+                suggestedRole = 'This will create a STAFF role user account';
+            }
+
+            // Show/update role suggestion
+            let suggestionElement = document.getElementById('roleSuggestion');
+            if (!suggestionElement) {
+                suggestionElement = document.createElement('small');
+                suggestionElement.id = 'roleSuggestion';
+                suggestionElement.className = 'text-info';
+                this.parentNode.appendChild(suggestionElement);
+            }
+            suggestionElement.textContent = suggestedRole;
+        });
+    }
+});
+</script>
+{% endblock %}

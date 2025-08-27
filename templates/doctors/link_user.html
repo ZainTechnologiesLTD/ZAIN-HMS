@@ -1,0 +1,205 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Link User Account - {{ doctor.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doctor-info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .user-selection-card {
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        padding: 2rem;
+        background: white;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+    .user-option {
+        border: 2px solid #e3e6f0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .user-option:hover {
+        border-color: #667eea;
+        background-color: #f8f9fc;
+    }
+    .user-option.selected {
+        border-color: #667eea;
+        background-color: #e8f0fe;
+    }
+    .user-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .user-info h6 {
+        margin: 0;
+        color: #2c3e50;
+    }
+    .user-info small {
+        color: #6c757d;
+    }
+    .user-badge {
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-link"></i> Link User Account
+            </h1>
+            <p class="text-muted">Link an existing user account to Dr. {{ doctor.get_full_name }}</p>
+        </div>
+        <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Doctor
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Doctor Information Card -->
+            <div class="doctor-info-card">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        {% if doctor.image %}
+                            <img src="{{ doctor.image.url }}" alt="{{ doctor.get_full_name }}" 
+                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-user-md fa-2x text-secondary"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-10">
+                        <h4 class="mb-1">Dr. {{ doctor.get_full_name }}</h4>
+                        <p class="mb-1"><i class="fas fa-stethoscope"></i> {{ doctor.get_specialization_display }}</p>
+                        <p class="mb-1"><i class="fas fa-envelope"></i> {{ doctor.email }}</p>
+                        <p class="mb-0"><i class="fas fa-id-card"></i> License: {{ doctor.license_number }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Selection Form -->
+            <div class="user-selection-card">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-users"></i> Select User Account to Link
+                </h5>
+
+                {% if available_users %}
+                    <form method="post" id="linkUserForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <p class="text-muted">
+                                Choose from the available user accounts with DOCTOR role that are not already linked to another doctor:
+                            </p>
+                        </div>
+
+                        <div id="userSelection">
+                            {% for user in available_users %}
+                                <div class="user-option" data-user-id="{{ user.id }}">
+                                    <div class="user-details">
+                                        <div class="user-info">
+                                            <h6>{{ user.get_full_name }}</h6>
+                                            <small>
+                                                <i class="fas fa-envelope"></i> {{ user.email }} | 
+                                                <i class="fas fa-user"></i> {{ user.username }} |
+                                                <i class="fas fa-calendar"></i> Joined {{ user.date_joined|date:"M d, Y" }}
+                                            </small>
+                                            {% if user.specialization %}
+                                                <br><small><i class="fas fa-stethoscope"></i> {{ user.specialization }}</small>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <span class="user-badge">{{ user.get_role_display }}</span>
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="user_id" value="{{ user.id }}" style="display: none;">
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                <i class="fas fa-link"></i> Link Selected User
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Available Users</h5>
+                        <p class="text-muted">
+                            There are no available user accounts with DOCTOR role that can be linked to this doctor.
+                            All existing doctor users are already linked to other doctors.
+                        </p>
+                        <div class="mt-4">
+                            <a href="{% url 'doctors:create_user_for_doctor' doctor.pk %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create New User Account
+                            </a>
+                            <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-arrow-left"></i> Back to Doctor
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userOptions = document.querySelectorAll('.user-option');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    userOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selection from all options
+            userOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selection to clicked option
+            this.classList.add('selected');
+            
+            // Check the radio button
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Enable submit button
+            submitBtn.disabled = false;
+        });
+    });
+    
+    // Form submission confirmation
+    document.getElementById('linkUserForm')?.addEventListener('submit', function(e) {
+        const selectedUser = document.querySelector('.user-option.selected .user-info h6').textContent;
+        if (!confirm(`Are you sure you want to link "${selectedUser}" to Dr. {{ doctor.get_full_name }}?`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

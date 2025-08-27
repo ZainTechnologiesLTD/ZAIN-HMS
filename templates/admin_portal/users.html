@@ -1,0 +1,137 @@
+{% extends "base_enhanced.html" %}
+{% load static %}
+
+{% block title %}Users · Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>Users</h1>
+    <p class="muted">Manage user accounts, roles, and access per hospital.</p>
+  </div>
+
+  <form method="get" class="filters" role="search" aria-label="User filters">
+    <div class="row">
+      <div class="col col-6">
+        <label for="search" class="sr-only">Search</label>
+        <input id="search" name="search" type="search" value="{{ search_query }}" placeholder="Search by name, username, or email" />
+      </div>
+      <div class="col col-3">
+        <label for="role" class="sr-only">Role</label>
+        <select id="role" name="role">
+          <option value="">All roles</option>
+          {% for key,label in role_choices %}
+            <option value="{{ key }}" {% if role_filter == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col col-3 align-end">
+        <button type="submit" class="btn">Apply</button>
+        <a href="?" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+  </form>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Hospitals</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for u in users %}
+            <tr>
+              <td>{{ u.username }}</td>
+              <td>{{ u.first_name }} {{ u.last_name }}</td>
+              <td><a href="mailto:{{ u.email }}">{{ u.email }}</a></td>
+              <td>{{ u.get_role_display|default:"-" }}</td>
+              <td>
+                {% with access_list=u.hospital_access.all %}
+                  {% if access_list %}
+                    {% for access in access_list %}
+                      <span class="badge">{{ access.hospital.code }}</span>
+                    {% endfor %}
+                  {% else %}-{% endif %}
+                {% endwith %}
+              </td>
+              <td>
+                {% if u.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-muted">Inactive</span>{% endif %}
+              </td>
+              <td class="text-right">
+                <div class="btn-group">
+                  <a class="btn btn-sm" href="/django-admin/accounts/customuser/{{ u.id }}/change/">Edit</a>
+                  <a class="btn btn-sm btn-secondary" href="/django-admin/accounts/customuser/{{ u.id }}/password/">Password</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-center muted">No users found.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer">
+      <nav class="pagination" role="navigation" aria-label="Pagination">
+        {% if users.has_previous %}
+          <a href="?page={{ users.previous_page_number }}&search={{ search_query }}&role={{ role_filter }}" class="btn btn-secondary">Prev</a>
+        {% else %}
+          <span class="btn btn-secondary" aria-disabled="true">Prev</span>
+        {% endif %}
+        <span class="page-info">Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+        {% if users.has_next %}
+          <a href="?page={{ users.next_page_number }}&search={{ search_query }}&role={{ role_filter }}" class="btn btn-secondary">Next</a>
+        {% else %}
+          <span class="btn btn-secondary" aria-disabled="true">Next</span>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a class="btn btn-primary" href="/django-admin/accounts/customuser/add/">Add user</a>
+  </div>
+</div>
+
+<style>
+/******** Portal Users page lightweight styles to match tokens ********/
+.container { max-width: 1100px; }
+.page-header { margin-bottom: 1rem; }
+.page-header h1 { margin: 0 0 .25rem 0; }
+.filters { margin: 1rem 0; }
+.row { display: flex; gap: .75rem; flex-wrap: wrap; }
+.col { flex: 1; min-width: 220px; }
+.align-end { display:flex; align-items: flex-end; gap: .5rem; justify-content: flex-end; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: .75rem .75rem; border-bottom: 1px solid var(--border-color); }
+.table thead th { text-align: left; font-weight: 600; background: var(--surface-2); position: sticky; top: 0; }
+.table-striped tbody tr:nth-child(odd) { background: var(--surface-1); }
+.table-hover tbody tr:hover { background: var(--surface-3); }
+.card { border: 1px solid var(--border-color); border-radius: .5rem; background: var(--surface-1); }
+.card-body { padding: 0; }
+.card-footer { padding: .5rem .75rem; display:flex; align-items:center; justify-content: space-between; }
+.btn { padding: .5rem .75rem; border-radius: .375rem; border: 1px solid var(--border-color); background: var(--surface-2); color: var(--text-color); text-decoration: none; display:inline-flex; gap:.25rem; align-items:center; }
+.btn:hover { background: var(--surface-3); }
+.btn-primary { background: var(--primary); border-color: var(--primary-border, var(--primary)); color: #fff; }
+.btn-primary:hover { filter: brightness(.95); }
+.btn-secondary { background: var(--surface-2); }
+.btn-sm { padding: .35rem .55rem; font-size: .9rem; }
+.btn-group { display: inline-flex; gap: .4rem; }
+.badge { padding: .15rem .4rem; border-radius: .25rem; font-size: .75rem; border: 1px solid var(--border-color); }
+.badge-success { background: #1f9d55; color: #fff; border-color: #1f9d55; }
+.badge-muted { background: var(--surface-2); color: var(--muted-text); }
+.table-responsive { overflow:auto; max-height: 65vh; }
+.page-info { color: var(--muted-text); }
+input[type="search"], select { width: 100%; padding: .5rem .6rem; border: 1px solid var(--border-color); border-radius: .375rem; background: var(--surface-1); color: var(--text-color); }
+.sr-only { position: absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+</style>
+{% endblock %}

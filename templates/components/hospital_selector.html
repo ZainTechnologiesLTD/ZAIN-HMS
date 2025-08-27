@@ -1,0 +1,48 @@
+{% load i18n %}
+
+{% if user.role == 'SUPERADMIN' or user.is_superuser %}
+<div class="hospital-selector-widget">
+    {% if request.session.selected_hospital_name %}
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="hospitalSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-hospital-alt me-1"></i>
+            <span class="d-none d-md-inline">{{ request.session.selected_hospital_name }}</span>
+            <span class="d-md-none">{{ request.session.selected_hospital_code }}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="hospitalSelector">
+            <li>
+                <h6 class="dropdown-header">
+                    <i class="fas fa-hospital-alt me-1"></i>
+                    {% trans "Current Hospital" %}
+                </h6>
+            </li>
+            <li>
+                <span class="dropdown-item-text">
+                    <strong>{{ request.session.selected_hospital_name }}</strong><br>
+                    <small class="text-muted">{{ request.session.selected_hospital_code }}</small>
+                </span>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="{% url 'accounts:hospital_selection' %}">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    {% trans "Switch Hospital" %}
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item text-danger" href="{% url 'accounts:clear_hospital_selection' %}">
+                    <i class="fas fa-times me-2"></i>
+                    {% trans "Clear Selection" %}
+                </a>
+            </li>
+        </ul>
+    </div>
+    {% else %}
+    <a href="{% url 'accounts:hospital_selection' %}" class="btn btn-warning btn-sm">
+        <i class="fas fa-hospital-alt me-1"></i>
+        <span class="d-none d-md-inline">{% trans "Select Hospital" %}</span>
+        <span class="d-md-none">{% trans "Select" %}</span>
+    </a>
+    {% endif %}
+</div>
+{% endif %}

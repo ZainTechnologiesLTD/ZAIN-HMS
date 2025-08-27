@@ -43,3 +43,8 @@ def mark_as_read(request, notification_id):
         return JsonResponse({'status': 'success'})
     except Notification.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
+
+
+def all_notifications(request):
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    return render(request, 'notifications/all.html', {'notifications': notifications})
