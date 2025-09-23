@@ -1,0 +1,57 @@
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    }
+.avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid rgba(255,255,255,0.3);
+    }
+.stats-card {
+    transition: transform 0.2s;
+    }
+.stats-card:hover {
+    transform: translateY(-2px);
+    }
+
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+    }
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background: #e9ecef;
+    }
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    }
+
+.timeline-marker {
+    position: absolute;
+    left: -25px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #007bff;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+    }
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    }

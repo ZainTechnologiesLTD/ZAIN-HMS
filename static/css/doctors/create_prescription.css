@@ -1,0 +1,48 @@
+.prescription-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.medication-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    margin-bottom: 15px;
+    padding: 15px;
+}
+
+.medication-item.new-item {
+    border-color: #28a745;
+    background: #f8fff8;
+}
+
+.btn-remove-medication {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.patient-info-card {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.form-section {
+    border-left: 4px solid #007bff;
+    padding-left: 20px;
+    margin-bottom: 30px;
+}
+
+.medication-counter {
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}

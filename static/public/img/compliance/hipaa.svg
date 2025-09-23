@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100">
+  <defs>
+    <linearGradient id="hipaaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+  
+  <!-- HIPAA Shield Icon -->
+  <g transform="translate(20, 20)">
+    <path d="M25 15 L35 10 L45 15 L45 35 C45 45 35 50 35 50 S25 45 25 35 Z" 
+          fill="url(#hipaaGradient)" stroke="#1e40af" stroke-width="1"/>
+    <!-- Check mark -->
+    <path d="M30 32 L33 35 L40 25" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- HIPAA Text -->
+  <text x="75" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e40af">
+    HIPAA
+  </text>
+  <text x="75" y="50" font-family="Arial, sans-serif" font-size="12" fill="#64748b">
+    Ready
+  </text>
+  <text x="75" y="65" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">
+    Compliance
+  </text>
+</svg>

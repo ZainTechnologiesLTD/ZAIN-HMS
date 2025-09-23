@@ -1,0 +1,385 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ staff.get_full_name }} - Staff Details - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">{{ staff.get_full_name }}</h2>
+                    <p class="text-muted mb-0">{{ staff.position_title }} - {{ staff.staff_id }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'staff:staff_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Staff List
+                    </a>
+                    <a href="{% url 'staff:staff_update' staff.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i>Edit Staff
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Basic Information -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user me-2"></i>Basic Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                {% if staff.profile_picture %}
+                                    <img src="{{ staff.profile_picture.url }}" alt="{{ staff.get_full_name }}"
+                                         class="rounded-circle" width="120" height="120">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                                         style="width: 120px; height: 120px;">
+                                        <i class="fas fa-user fa-3x text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-semibold">Staff ID:</td>
+                                    <td>{{ staff.staff_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Full Name:</td>
+                                    <td>{{ staff.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Position:</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ staff.position_title }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Department:</td>
+                                    <td>{{ staff.department|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Employee No:</td>
+                                    <td>{{ staff.employee_number|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Status:</td>
+                                    <td>
+                                        {% if staff.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Date Joined:</td>
+                                    <td>{{ staff.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                                {% if staff.date_left %}
+                                <tr>
+                                    <td class="fw-semibold">Date Left:</td>
+                                    <td>{{ staff.date_left|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-address-book me-2"></i>Contact Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-semibold">Email:</td>
+                                    <td>
+                                        {% if staff.email %}
+                                            <a href="mailto:{{ staff.email }}">{{ staff.email }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Phone:</td>
+                                    <td>
+                                        {% if staff.phone_number %}
+                                            <a href="tel:{{ staff.phone_number }}">{{ staff.phone_number }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Emergency Contact:</td>
+                                    <td>
+                                        {% if staff.emergency_contact_name %}
+                                            <div>{{ staff.emergency_contact_name }}</div>
+                                            {% if staff.emergency_contact_phone %}
+                                                <small class="text-muted">{{ staff.emergency_contact_phone }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Address:</td>
+                                    <td>{{ staff.address|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Date of Birth:</td>
+                                    <td>
+                                        {% if staff.date_of_birth %}
+                                            {{ staff.date_of_birth|date:"M d, Y" }}
+                                            <small class="text-muted">({{ staff.age }} years old)</small>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Gender:</td>
+                                    <td>{{ staff.get_gender_display|default:"-" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Account Management -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user-cog me-2"></i>User Account Management
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if staff.user %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>User account linked</strong>
+                                </div>
+
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-semibold">Username:</td>
+                                        <td>{{ staff.user.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Role:</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ staff.user.get_role_display }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Last Login:</td>
+                                        <td>
+                                            {% if staff.user.last_login %}
+                                                {{ staff.user.last_login|date:"M d, Y H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">Never</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Account Status:</td>
+                                        <td>
+                                            {% if staff.user.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                                        <i class="fas fa-key me-1"></i>Reset Password
+                                    </button>
+                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#unlinkUserModal">
+                                        <i class="fas fa-unlink me-1"></i>Unlink User Account
+                                    </button>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>No user account linked</strong>
+                                </div>
+
+                                <p class="text-muted">This staff member doesn't have a user account for system access.</p>
+
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'staff:create_user_for_staff' staff.pk %}" class="btn btn-success">
+                                        <i class="fas fa-user-plus me-1"></i>Create User Account
+                                    </a>
+                                    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#linkExistingUserModal">
+                                        <i class="fas fa-link me-1"></i>Link Existing User
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Schedule & Performance (if applicable) -->
+            {% if staff.user %}
+            <div class="row mt-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>Work Schedule
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if staff.work_schedule %}
+                                <div class="mb-3">
+                                    <strong>Schedule:</strong> {{ staff.work_schedule }}
+                                </div>
+                            {% endif %}
+                            {% if staff.shift_start_time and staff.shift_end_time %}
+                                <div class="mb-3">
+                                    <strong>Shift Time:</strong>
+                                    {{ staff.shift_start_time|time:"H:i" }} - {{ staff.shift_end_time|time:"H:i" }}
+                                </div>
+                            {% endif %}
+                            <p class="text-muted">Work schedule and attendance tracking can be managed from the HR module.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-line me-2"></i>Performance Metrics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Performance metrics and evaluation data can be managed from the HR module.</p>
+                            <div class="d-grid">
+                                <a href="#" class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-chart-bar me-1"></i>View Performance Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Additional Information -->
+            {% if staff.notes %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-sticky-note me-2"></i>Additional Notes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">{{ staff.notes|linebreaks }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% if staff.user %}
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reset the password for <strong>{{ staff.get_full_name }}</strong>?</p>
+                <p class="text-muted">A new temporary password will be generated and sent to their email address.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="#" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" name="reset_password" class="btn btn-warning">Reset Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unlink User Modal -->
+<div class="modal fade" id="unlinkUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unlink User Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to unlink the user account from <strong>{{ staff.get_full_name }}</strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This will remove the staff member's access to the system. The user account will remain but won't be associated with this staff profile.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="unlinkUser('{{ staff.pk }}')">
+                    Unlink Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Link Existing User Modal -->
+<div class="modal fade" id="linkExistingUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link Existing User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="get" action="{% url 'staff:link_user' staff.pk %}">
+                <div class="modal-body">
+                    <p>Link <strong>{{ staff.get_full_name }}</strong> to an existing user account.</p>
+                    <p class="text-muted">This will take you to a page where you can select from available users.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Continue to Link User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/staff/staff_detail.js' %}"></script>

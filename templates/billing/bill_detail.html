@@ -1,0 +1,352 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Bill #{{ bill.bill_number }} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/billing/bill_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Bill Header -->
+<div class="bill-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2 class="mb-1">Bill #{{ bill.bill_number }}</h2>
+            <p class="mb-1">{{ bill.patient.get_full_name }} - ID: {{ bill.patient.patient_id }}</p>
+            <p class="mb-0">{{ bill.created_at|date:"F d, Y g:i A" }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'billing:bill_print' bill.pk %}" class="btn btn-light" target="_blank">
+                    <i class="fas fa-print me-1"></i>
+                    Print
+                </a>
+                <a href="{% url 'billing:bill_edit' bill.pk %}" class="btn btn-outline-light">
+                    <i class="fas fa-edit me-1"></i>
+                    Edit
+                </a>
+                <a href="{% url 'billing:bill_list' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Bill Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    Bill Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Patient Information:</strong>
+                        <div class="mt-1">
+                            <div>{{ bill.patient.get_full_name }}</div>
+                            <div class="text-muted">ID: {{ bill.patient.patient_id }}</div>
+                            <div class="text-muted">Phone: {{ bill.patient.phone|default:"N/A" }}</div>
+                            <div class="text-muted">Email: {{ bill.patient.email|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Bill Information:</strong>
+                        <div class="mt-1">
+                            <div>Bill Number: {{ bill.bill_number }}</div>
+                            <div>Date: {{ bill.created_at|date:"F d, Y" }}</div>
+                            <div>Due Date: {{ bill.due_date|date:"F d, Y"|default:"N/A" }}</div>
+                            <div>Status:
+                                {% if bill.status == 'PAID' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif bill.status == 'PENDING' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif bill.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ bill.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill Items -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Bill Items
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table bill-items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th class="text-end">Quantity</th>
+                                <th class="text-end">Rate</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in bill.items.all %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.item_name }}</strong>
+                                    {% if item.item_code %}
+                                    <br><small class="text-muted">Code: {{ item.item_code }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.description|default:"-" }}</td>
+                                <td class="text-end">{{ item.quantity }}</td>
+                                <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+                                <td class="text-end">
+                                    <strong>${{ item.total_price|floatformat:2 }}</strong>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No items found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Subtotal:</th>
+                                <th class="text-end">${{ bill.subtotal|floatformat:2 }}</th>
+                            </tr>
+                            {% if bill.discount_amount > 0 %}
+                            <tr>
+                                <th colspan="4" class="text-end">
+                                    Discount
+                                    {% if bill.discount_percentage %}({{ bill.discount_percentage }}%){% endif %}:
+                                </th>
+                                <th class="text-end text-success">-${{ bill.discount_amount|floatformat:2 }}</th>
+                            </tr>
+                            {% endif %}
+                            {% if bill.tax_amount > 0 %}
+                            <tr>
+                                <th colspan="4" class="text-end">
+                                    Tax
+                                    {% if bill.tax_percentage %}({{ bill.tax_percentage }}%){% endif %}:
+                                </th>
+                                <th class="text-end">${{ bill.tax_amount|floatformat:2 }}</th>
+                            </tr>
+                            {% endif %}
+                            <tr class="table-primary">
+                                <th colspan="4" class="text-end">Total Amount:</th>
+                                <th class="text-end">${{ bill.total_amount|floatformat:2 }}</th>
+                            </tr>
+                            {% if bill.paid_amount > 0 %}
+                            <tr>
+                                <th colspan="4" class="text-end">Paid Amount:</th>
+                                <th class="text-end text-success">${{ bill.paid_amount|floatformat:2 }}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end">Balance Due:</th>
+                                <th class="text-end {% if bill.balance_amount > 0 %}text-danger{% else %}text-success{% endif %}">
+                                    ${{ bill.balance_amount|floatformat:2 }}
+                                </th>
+                            </tr>
+                            {% endif %}
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if bill.notes %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-sticky-note me-2"></i>
+                    Notes
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ bill.notes|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Payment Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-dollar-sign me-1"></i>
+                    Payment Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12 mb-3">
+                        <h4 class="text-primary">${{ bill.total_amount|floatformat:2 }}</h4>
+                        <small class="text-muted">Total Amount</small>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Paid:</span>
+                    <span class="text-success">${{ bill.paid_amount|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Balance:</span>
+                    <span class="{% if bill.balance_amount > 0 %}text-danger{% else %}text-success{% endif %}">
+                        ${{ bill.balance_amount|floatformat:2 }}
+                    </span>
+                </div>
+
+                {% if bill.balance_amount > 0 %}
+                <div class="d-grid">
+                    <button class="btn btn-primary" onclick="recordPayment()">
+                        <i class="fas fa-dollar-sign me-1"></i>
+                        Record Payment
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-1"></i>
+                    Payment History
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="payment-history">
+                    {% if bill.payments.all %}
+                        {% for payment in bill.payments.all %}
+                        <div class="d-flex justify-content-between align-items-start mb-3 pb-2 border-bottom">
+                            <div>
+                                <div class="fw-bold">${{ payment.amount|floatformat:2 }}</div>
+                                <small class="text-muted">{{ payment.payment_method }}</small>
+                                <br>
+                                <small class="text-muted">{{ payment.created_at|date:"M d, Y g:i A" }}</small>
+                                {% if payment.notes %}
+                                <br><small class="text-muted">{{ payment.notes }}</small>
+                                {% endif %}
+                            </div>
+                            <span class="badge bg-success">Paid</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No payments recorded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-1"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'billing:bill_print' bill.pk %}" class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="fas fa-print me-1"></i>
+                        Print Bill
+                    </a>
+                    <a href="{% url 'billing:bill_edit' bill.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-edit me-1"></i>
+                        Edit Bill
+                    </a>
+                    <button class="btn btn-outline-info btn-sm" onclick="emailBill()">
+                        <i class="fas fa-envelope me-1"></i>
+                        Email Bill
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="duplicateBill()">
+                        <i class="fas fa-copy me-1"></i>
+                        Duplicate Bill
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'billing:record_payment' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="bill_id" value="{{ bill.pk }}">
+
+                    <div class="alert alert-info">
+                        <strong>Balance Due:</strong> ${{ bill.balance_amount|floatformat:2 }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Amount</label>
+                        <input type="number" name="amount" class="form-control"
+                               step="0.01" max="{{ bill.balance_amount }}"
+                               placeholder="Enter payment amount" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="">Select Method</option>
+                            <option value="CASH">Cash</option>
+                            <option value="CARD">Credit/Debit Card</option>
+                            <option value="CHECK">Check</option>
+                            <option value="INSURANCE">Insurance</option>
+                            <option value="TRANSFER">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Reference Number</label>
+                        <input type="text" name="reference" class="form-control"
+                               placeholder="Transaction ID, Check number, etc.">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"
+                                  placeholder="Additional notes (optional)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/billing/bill_detail.js' %}"></script>
+{% endblock %}

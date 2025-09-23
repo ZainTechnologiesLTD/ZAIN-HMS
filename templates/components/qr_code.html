@@ -1,0 +1,28 @@
+{% load static %}
+<!-- templates/components/qr_code.html -->
+{% load i18n %}
+
+<div class="qr-code-container text-center p-3 border rounded">
+    {% if qr_code_data %}
+        <div class="qr-code-image mb-2">
+            <img src="{{ qr_code_data }}" alt="{% trans 'QR Code' %}" class="img-fluid" style="max-width: 150px;">
+        </div>
+
+        {% if show_instructions|default:True %}
+            <p class="small text-muted mb-0">
+                {% trans "Scan this QR code to quickly access this record" %}
+            </p>
+        {% endif %}
+
+        {% if serial_number %}
+            <div class="serial-number mt-2">
+                <small class="text-muted">{% trans "Serial:" %} <strong>{{ serial_number }}</strong></small>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-muted">
+            <i class="fas fa-qrcode fa-2x mb-2"></i>
+            <p class="small mb-0">{% trans "QR Code not available" %}</p>
+        </div>
+    {% endif %}
+</div>

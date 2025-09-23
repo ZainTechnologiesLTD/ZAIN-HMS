@@ -1,0 +1,173 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "OPD Records" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "OPD Records Management" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-card { border-radius: 12px; }
+    .status-badge { font-size: 0.85rem; }
+    .priority-high { color: #dc3545; font-weight: bold; }
+    .priority-medium { color: #ffc107; font-weight: bold; }
+    .priority-low { color: #28a745; font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-injured me-2"></i>{% trans "OPD Records" %}
+        </h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'opd:opd_create' %}" class="btn btn-primary btn-sm shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> {% trans "New Record" %}
+            </a>
+            <a href="{% url 'opd:opd_list' %}" class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-tachometer-alt fa-sm text-white-50"></i> {% trans "Dashboard" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter Card -->
+    <div class="card shadow mb-4 search-card">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-search me-2"></i>{% trans "Search & Filter" %}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">{% trans "Search" %}</label>
+                    <input type="text" class="form-control" id="search" name="search"
+                           value="{{ search }}" placeholder="{% trans 'Patient name, phone, doctor...' %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">{% trans "Status" %}</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">{% trans "All Status" %}</option>
+                        <option value="waiting" {% if current_status == 'waiting' %}selected{% endif %}>
+                            {% trans "Waiting" %}
+                        </option>
+                        <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>
+                            {% trans "In Progress" %}
+                        </option>
+                        <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>
+                            {% trans "Completed" %}
+                        </option>
+                        <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>
+                            {% trans "Cancelled" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="priority" class="form-label">{% trans "Priority" %}</label>
+                    <select class="form-select" id="priority" name="priority">
+                        <option value="">{% trans "All Priorities" %}</option>
+                        <option value="high" {% if current_priority == 'high' %}selected{% endif %}>
+                            {% trans "High" %}
+                        </option>
+                        <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>
+                            {% trans "Medium" %}
+                        </option>
+                        <option value="low" {% if current_priority == 'low' %}selected{% endif %}>
+                            {% trans "Low" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> {% trans "Search" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {% trans "OPD Records" %}
+                <span class="badge badge-secondary ms-2">{{ opd_records|length }}</span>
+            </h6>
+        </div>
+        <div class="card-body">
+            {% include 'opd/includes/opd_list_table.html' %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="{% trans 'OPD Records Pagination' %}">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_priority %}&priority={{ current_priority }}{% endif %}">
+                        {% trans "First" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_priority %}&priority={{ current_priority }}{% endif %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_priority %}&priority={{ current_priority }}{% endif %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_priority %}&priority={{ current_priority }}{% endif %}">
+                        {% trans "Last" %}
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit search form on input change
+    const searchInput = document.getElementById('search');
+    const statusSelect = document.getElementById('status');
+    const prioritySelect = document.getElementById('priority');
+
+    let searchTimeout;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            document.querySelector('form').submit();
+        }, 500);
+    });
+
+    statusSelect.addEventListener('change', function() {
+        document.querySelector('form').submit();
+    });
+
+    prioritySelect.addEventListener('change', function() {
+        document.querySelector('form').submit();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,346 @@
+/*
+ * Clean Footer System using Bootstrap 5 and vendor utilities
+ * Maintains original color scheme: primary color #053377
+ * Clean vendor-based approach with proper positioning
+ */
+
+:root {
+    /* Footer specific variables */
+    --footer-bg: #053377;
+    --footer-text: #ffffff;
+    --footer-text-secondary: rgba(255, 255, 255, 0.8);
+    --footer-border: rgba(255, 255, 255, 0.1);
+    --footer-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Clean Main Footer */
+.main-footer {
+    background-color: #053377 !important;
+    color: var(--footer-text) !important;
+    border: none !important;
+    border-top: none !important;
+    padding: 1.25rem 1.5rem;
+    margin-top: auto;
+    margin-left: 0 !important;
+    width: 100% !important;
+    position: relative !important;
+    left: 0 !important;
+    z-index: 1000 !important;
+    flex-shrink: 0;
+}
+
+/* Footer stays within content area - no negative margins */
+    .sidebar.collapsed ~ .main-content .main-footer,
+.sidebar.collapsed + .main-content .main-footer {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+/* Footer Content */
+.main-footer .text-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.main-footer .text-muted {
+    color: var(--footer-text-secondary) !important;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.main-footer strong {
+    color: var(--footer-text);
+    font-weight: 600;
+}
+
+.main-footer .small {
+    font-size: 0.8125rem;
+}
+
+/* Footer Links (if any are added) */
+.main-footer a {
+    color: var(--footer-text);
+    text-decoration: none;
+    transition: var(--footer-transition);
+    font-weight: 500;
+}
+
+    .main-footer a:hover,
+.main-footer a:focus {
+    color: var(--footer-text);
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* Footer Dividers */
+.main-footer .border-top {
+    border-top: 1px solid var(--footer-border) !important;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.main-footer .border-bottom {
+    border-bottom: 1px solid var(--footer-border) !important;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Multi-column Footer Layout (for future use) */
+.footer-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    align-items: start;
+}
+
+.footer-column h6 {
+    color: var(--footer-text);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--footer-border);
+    padding-bottom: 0.5rem;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-column li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-column li a {
+    color: var(--footer-text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: var(--footer-transition);
+}
+
+    .footer-column li a:hover,
+.footer-column li a:focus {
+    color: var(--footer-text);
+    text-decoration: underline;
+}
+
+/* Footer Social Icons (for future use) */
+.footer-social {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.footer-social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: var(--footer-text);
+    text-decoration: none;
+    transition: var(--footer-transition);
+    font-size: 1rem;
+}
+
+    .footer-social a:hover,
+.footer-social a:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--footer-text);
+    transform: translateY(-2px);
+}
+
+/* Copyright Section */
+.footer-copyright {
+    border-top: 1px solid var(--footer-border);
+    padding-top: 1rem;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.footer-copyright .row {
+    align-items: center;
+}
+
+.footer-version {
+    font-size: 0.75rem;
+    color: var(--footer-text-secondary);
+    opacity: 0.8;
+}
+
+/* Footer in Content Wrapper - Proper Flex Layout */
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--header-height, 70px));
+    position: relative;
+    background-color: #f5f7fa !important;
+}
+
+.content-wrapper > div:not(.main-footer) {
+    flex-grow: 1;
+}
+
+.content-wrapper .main-footer {
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+/* Ensure no white space behind footer */
+body {
+    background-color: #f5f7fa !important;
+}
+
+/* Sticky Footer Alternative */
+.sticky-footer-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sticky-footer-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.sticky-footer-wrapper .main-footer {
+    margin-top: auto;
+}
+
+/* RTL Support */
+[dir="rtl"] .main-footer {
+    direction: rtl;
+}
+
+[dir="rtl"] .footer-columns {
+    direction: rtl;
+}
+
+[dir="rtl"] .footer-social {
+    direction: ltr; /* Keep social icons in standard order */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+.main-footer {
+    padding: 1rem;
+    text-align: center;
+    margin-left: 0 !important;
+    width: 100% !important;
+    }
+
+.footer-columns {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    text-align: center;
+    }
+
+.footer-social {
+    justify-content: center;
+    gap: 0.75rem;
+    }
+
+.footer-social a {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.875rem;
+    }
+
+.main-footer .text-muted {
+    font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 576px) {
+.main-footer {
+    padding: 0.75rem;
+    }
+
+.main-footer .text-muted {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    }
+
+.footer-copyright {
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    }
+
+.footer-version {
+    font-size: 0.6875rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+.main-footer {
+    background-color: transparent !important;
+    color: #000 !important;
+    border-top: 1px solid #ccc !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    position: static !important;
+    }
+
+    .main-footer .text-muted,
+.main-footer strong {
+    color: #666 !important;
+    }
+
+.footer-social {
+    display: none;
+    }
+}
+
+/* Accessibility Improvements */
+.main-footer a:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Animation on Load */
+@keyframes footerFadeIn {
+from {
+    opacity: 0;
+    transform: translateY(10px);
+    }
+to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+.main-footer {
+    animation: footerFadeIn 0.5s ease-out;
+}
+
+/* Dark Mode Support (for future use) */
+@media (prefers-color-scheme: dark) {
+:root {
+    --footer-bg: #1a1a1a;
+    --footer-text: #f8f9fa;
+    --footer-text-secondary: rgba(248, 249, 250, 0.8);
+    --footer-border: rgba(248, 249, 250, 0.1);
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+.main-footer {
+    border-top: 2px solid var(--footer-text);
+    }
+
+.main-footer .text-muted {
+    color: var(--footer-text) !important;
+    opacity: 0.9;
+    }
+}

@@ -1,0 +1,59 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Appointment Not Found - ZAIN HMS{% endblock %}
+
+{% block page_title %}Appointment Not Found{% endblock %}
+{% block page_subtitle %}The requested appointment could not be found{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-calendar-x text-warning" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <h3 class="mb-3">Appointment Not Found</h3>
+
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Error 404:</strong> The appointment you're looking for doesn't exist or may have been deleted.
+                    </div>
+
+                    <p class="text-muted mb-4">
+                        This could happen if:
+                    </p>
+
+                    <ul class="list-unstyled text-muted mb-4">
+                        <li><i class="bi bi-arrow-right text-primary me-2"></i>The appointment was deleted</li>
+                        <li><i class="bi bi-arrow-right text-primary me-2"></i>You're using an old bookmark or link</li>
+                        <li><i class="bi bi-arrow-right text-primary me-2"></i>The appointment ID is incorrect</li>
+                        <li><i class="bi bi-arrow-right text-primary me-2"></i>You don't have permission to view this appointment</li>
+                    </ul>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'appointments:appointment_list' %}" class="btn btn-primary btn-lg me-md-2">
+                            <i class="bi bi-list-ul me-2"></i>
+                            View All Appointments
+                        </a>
+                        <a href="{% url 'appointments:appointment_create' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Create New Appointment
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-link">
+                            <i class="bi bi-house me-1"></i>
+                            Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

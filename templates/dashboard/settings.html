@@ -1,0 +1,443 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard Settings" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Dashboard Settings" %}{% endblock %}
+
+{% block page_subtitle %}{% trans "Customize your dashboard layout and preferences" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.settings-section {
+    padding: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.settings-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 0;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.color-picker {
+    width: 50px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.layout-preview {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.layout-preview:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+.layout-preview.active {
+    border-color: #667eea;
+    background-color: #f0f4ff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item active">{% trans "Settings" %}</li>
+        </ol>
+    </nav>
+
+    <!-- Dashboard Layout Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <h4 class="mb-0"><i class="bi bi-layout-three-columns me-2"></i>{% trans "Dashboard Layout" %}</h4>
+        </div>
+
+        <div class="settings-section">
+            <h5>{% trans "Choose Layout Style" %}</h5>
+            <p class="text-muted">{% trans "Select your preferred dashboard layout" %}</p>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="layout-preview active" data-layout="default">
+                        <div class="d-flex mb-2">
+                            <div class="bg-primary" style="width: 30%; height: 20px; margin-right: 5px;"></div>
+                            <div class="bg-secondary" style="width: 70%; height: 20px;"></div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="bg-light" style="width: 30%; height: 40px; margin-right: 5px;"></div>
+                            <div class="bg-light" style="width: 70%; height: 40px;"></div>
+                        </div>
+                        <h6 class="mt-2 mb-0">{% trans "Default Layout" %}</h6>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="layout-preview" data-layout="compact">
+                        <div class="bg-primary mb-2" style="height: 15px;"></div>
+                        <div class="d-flex">
+                            <div class="bg-light me-1" style="width: 33%; height: 30px;"></div>
+                            <div class="bg-light me-1" style="width: 33%; height: 30px;"></div>
+                            <div class="bg-light" style="width: 33%; height: 30px;"></div>
+                        </div>
+                        <h6 class="mt-2 mb-0">{% trans "Compact Layout" %}</h6>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="layout-preview" data-layout="wide">
+                        <div class="bg-primary mb-2" style="height: 20px;"></div>
+                        <div class="bg-light mb-1" style="height: 20px;"></div>
+                        <div class="bg-light" style="height: 20px;"></div>
+                        <h6 class="mt-2 mb-0">{% trans "Wide Layout" %}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <h4 class="mb-0"><i class="bi bi-grid-3x3-gap me-2"></i>{% trans "Widget Settings" %}</h4>
+        </div>
+
+        <div class="settings-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Quick Stats Widget" %}</h6>
+                            <small class="text-muted">{% trans "Show dashboard statistics" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Recent Activity Widget" %}</h6>
+                            <small class="text-muted">{% trans "Show recent system activities" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Calendar Widget" %}</h6>
+                            <small class="text-muted">{% trans "Show appointment calendar" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Charts Widget" %}</h6>
+                            <small class="text-muted">{% trans "Show analytics charts" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Notifications Widget" %}</h6>
+                            <small class="text-muted">{% trans "Show system notifications" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Quick Actions Widget" %}</h6>
+                            <small class="text-muted">{% trans "Show quick action buttons" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <h4 class="mb-0"><i class="bi bi-palette me-2"></i>{% trans "Theme Settings" %}</h4>
+        </div>
+
+        <div class="settings-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{% trans "Color Theme" %}</h5>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Primary Color" %}</label>
+                        <div class="d-flex align-items-center">
+                            <input type="color" class="color-picker me-2" value="#667eea">
+                            <span class="text-muted">#667eea</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Secondary Color" %}</label>
+                        <div class="d-flex align-items-center">
+                            <input type="color" class="color-picker me-2" value="#764ba2">
+                            <span class="text-muted">#764ba2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>{% trans "Display Options" %}</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Dark Mode" %}</h6>
+                            <small class="text-muted">{% trans "Enable dark theme" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Compact Mode" %}</h6>
+                            <small class="text-muted">{% trans "Reduce spacing between elements" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <h4 class="mb-0"><i class="bi bi-bell me-2"></i>{% trans "Notification Preferences" %}</h4>
+        </div>
+
+        <div class="settings-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Email Notifications" %}</h6>
+                            <small class="text-muted">{% trans "Receive notifications via email" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Push Notifications" %}</h6>
+                            <small class="text-muted">{% trans "Browser push notifications" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Sound Notifications" %}</h6>
+                            <small class="text-muted">{% trans "Play sound for notifications" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{% trans "Desktop Notifications" %}</h6>
+                            <small class="text-muted">{% trans "Show desktop notifications" %}</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Dashboard" %}
+        </a>
+
+        <div>
+            <button type="button" class="btn btn-outline-primary me-2" id="resetSettings">
+                <i class="bi bi-arrow-clockwise me-1"></i>{% trans "Reset to Default" %}
+            </button>
+            <button type="button" class="btn btn-primary" id="saveSettings">
+                <i class="bi bi-check-lg me-1"></i>{% trans "Save Settings" %}
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block post_base_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Layout selection
+    document.querySelectorAll('.layout-preview').forEach(preview => {
+        preview.addEventListener('click', function() {
+            document.querySelectorAll('.layout-preview').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Color picker updates
+    document.querySelectorAll('.color-picker').forEach(picker => {
+        picker.addEventListener('change', function() {
+            const span = this.nextElementSibling;
+            if (span) {
+                span.textContent = this.value;
+            }
+        });
+    });
+
+    // Save settings
+    document.getElementById('saveSettings').addEventListener('click', function() {
+        const button = this;
+        const originalText = button.innerHTML;
+
+        // Show loading state
+        button.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>{% trans "Saving..." %}';
+        button.disabled = true;
+
+        // Simulate API call
+        setTimeout(() => {
+            button.innerHTML = '<i class="bi bi-check-lg me-1"></i>{% trans "Saved!" %}';
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+        }, 1500);
+    });
+
+    // Reset settings
+    document.getElementById('resetSettings').addEventListener('click', function() {
+        if (confirm('{% trans "Are you sure you want to reset all settings to default?" %}')) {
+            // Reset all switches
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+
+            // Reset color values
+            document.querySelector('input[value="#667eea"]').value = '#667eea';
+            document.querySelector('input[value="#764ba2"]').value = '#764ba2';
+
+            // Reset layout
+            document.querySelectorAll('.layout-preview').forEach(p => p.classList.remove('active'));
+            document.querySelector('.layout-preview[data-layout="default"]').classList.add('active');
+
+            alert('{% trans "Settings have been reset to default values." %}');
+        }
+    });
+});
+</script>
+{% endblock %}

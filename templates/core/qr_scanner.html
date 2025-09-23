@@ -1,0 +1,118 @@
+<!-- templates/core/qr_scanner.html -->
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "QR Scanner" %}{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/core/qr_scanner.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-qrcode me-2"></i>
+                        {% trans "QR Code Scanner" %}
+                    </h1>
+                    <p class="text-muted">{% trans "Scan QR codes to quickly find patient records, appointments, and reports" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-camera me-2"></i>
+                        {% trans "Camera Scanner" %}
+                    </h5>
+                </div>
+                <div class="card-body scanner-container">
+                    <div id="camera-preview" class="camera-preview mb-3">
+                        <div class="camera-overlay"></div>
+                        <div id="scanner-placeholder" class="d-flex align-items-center justify-content-center h-100">
+                            <div class="text-center text-white">
+                                <i class="fas fa-camera fa-3x mb-3"></i>
+                                <p>{% trans "Click 'Start Camera' to begin scanning" %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="scanner-status" class="scanner-status info">
+                        {% trans "Camera not started" %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button id="start-camera" class="btn btn-primary">
+                            <i class="fas fa-play me-2"></i>
+                            {% trans "Start Camera" %}
+                        </button>
+                        <button id="stop-camera" class="btn btn-secondary" style="display: none;">
+                            <i class="fas fa-stop me-2"></i>
+                            {% trans "Stop Camera" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Search -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search me-2"></i>
+                        {% trans "Manual Search" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="text" id="manual-search" class="form-control"
+                               placeholder="{% trans 'Enter patient name, ID, phone, or serial number...' %}">
+                        <button id="search-btn" class="btn btn-outline-primary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        {% trans "You can also paste QR code data here if camera scanning doesn't work" %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        {% trans "Search Results" %}
+                        <span id="results-count" class="badge bg-secondary ms-2">0</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="search-results">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <p>{% trans "Scan a QR code or search manually to see results here" %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- QR Code Scanning Library -->
+<script src="{% static 'vendor/qr-scanner/html5-qrcode.min.js' %}"></script>
+
+
+    <script src="{% static 'js/core/qr_scanner.js' %}"></script>
+{% endblock %}

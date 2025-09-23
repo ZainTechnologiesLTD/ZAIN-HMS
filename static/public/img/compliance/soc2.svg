@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100">
+  <defs>
+    <linearGradient id="soc2Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#ef4444" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="100" rx="8" fill="#fef2f2" stroke="#fecaca" stroke-width="2"/>
+  
+  <!-- SOC 2 Icon -->
+  <g transform="translate(15, 15)">
+    <rect x="5" y="5" width="30" height="30" rx="4" fill="url(#soc2Gradient)" stroke="#dc2626" stroke-width="1"/>
+    <!-- SOC inside -->
+    <text x="20" y="16" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">SOC</text>
+    <text x="20" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">2</text>
+  </g>
+  
+  <!-- SOC 2 Text -->
+  <text x="60" y="32" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#dc2626">
+    SOC 2
+  </text>
+  <text x="60" y="47" font-family="Arial, sans-serif" font-size="12" fill="#64748b">
+    Controls
+  </text>
+  <text x="60" y="60" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">
+    Type II Ready
+  </text>
+</svg>

@@ -1,0 +1,20 @@
+.study-list {
+    max-width: 200px;
+}
+
+.study-list .badge {
+    font-size: 0.75em;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    border-radius: 0.375rem !important;
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}

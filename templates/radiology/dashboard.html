@@ -1,0 +1,210 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Radiology Department - {{ block.super }}{% endblock %}
+
+{% block page_title %}
+<h4><i class="fas fa-radiation-alt me-2"></i>Radiology Department</h4>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Radiology</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-md-3">
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title">{{ total_orders_today }}</h4>
+                        <p class="card-text">Orders Today</p>
+                    </div>
+                    <i class="fas fa-clipboard-list fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title">{{ pending_orders }}</h4>
+                        <p class="card-text">Pending Orders</p>
+                    </div>
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title">{{ completed_studies }}</h4>
+                        <p class="card-text">Completed Studies</p>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-info text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title">{{ equipment_count }}</h4>
+                        <p class="card-text">Active Equipment</p>
+                    </div>
+                    <i class="fas fa-x-ray fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'radiology:order_create' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-2"></i>New Radiology Order
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'radiology:order_list' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-list me-2"></i>View All Orders
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'radiology:study_list' %}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-images me-2"></i>Imaging Studies
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'radiology:study_type_list' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-cogs me-2"></i>Study Types
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Radiology Orders</h5>
+                <a href="{% url 'radiology:order_list' %}" class="btn btn-sm btn-outline-primary">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order Number</th>
+                                <th>Patient</th>
+                                <th>Ordering Doctor</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Order Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'radiology:order_detail' order.pk %}" class="text-decoration-none">
+                                        {{ order.order_number }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ order.patient.get_full_name }}</strong><br>
+                                        <small class="text-muted">{{ order.patient.patient_id }}</small>
+                                    </div>
+                                </td>
+                                <td>{{ order.ordering_doctor.get_full_name }}</td>
+                                <td>
+                                    {% if order.priority == 'EMERGENCY' %}
+                                        <span class="badge bg-danger">{{ order.get_priority_display }}</span>
+                                    {% elif order.priority == 'URGENT' %}
+                                        <span class="badge bg-warning">{{ order.get_priority_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ order.get_priority_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ order.get_status_display }}</span>
+                                    {% elif order.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'radiology:order_detail' order.pk %}"
+                                           class="btn btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'radiology:order_update' order.pk %}"
+                                           class="btn btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-radiation-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No radiology orders yet</h5>
+                    <p class="text-muted">Create your first radiology order to get started.</p>
+                    <a href="{% url 'radiology:order_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create Radiology Order
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/radiology/dashboard.js' %}"></script>
+{% endblock %}

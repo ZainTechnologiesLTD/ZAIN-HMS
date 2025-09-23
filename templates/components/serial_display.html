@@ -1,0 +1,18 @@
+{% load static %}
+<!-- templates/components/serial_display.html -->
+{% load i18n %}
+
+<div class="serial-number-display {{ class|default:'' }}">
+    {% if serial_number %}
+        <div class="serial-label">
+            {{ label|default:_("Serial Number") }}:
+        </div>
+        <div class="serial-value">
+            {{ serial_number }}
+        </div>
+    {% else %}
+        <div class="serial-placeholder text-muted">
+            {% trans "Serial not assigned" %}
+        </div>
+    {% endif %}
+</div>

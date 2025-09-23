@@ -1,0 +1,247 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Surgery Management - HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/surgery/surgery_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="page-title">
+                    <i class="bi bi-scissors me-3"></i>
+                    {% trans "Surgery Management" %}
+                </h1>
+                <p class="page-subtitle">{% trans "Manage surgical procedures, schedules, and operations" %}</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn btn-primary me-2">
+                    <i class="bi bi-plus-circle me-2"></i>{% trans "Schedule Surgery" %}
+                </button>
+                <button class="btn btn-outline-primary">
+                    <i class="bi bi-calendar-week me-2"></i>{% trans "Surgery Calendar" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-icon scheduled">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stats-number">12</div>
+                <div class="stats-label">{% trans "Scheduled" %}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-icon ongoing">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <div class="stats-number">3</div>
+                <div class="stats-label">{% trans "Ongoing" %}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-icon completed">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stats-number">45</div>
+                <div class="stats-label">{% trans "Completed" %}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-icon cancelled">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="stats-number">2</div>
+                <div class="stats-label">{% trans "Cancelled" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-xl-4 col-lg-6 mb-4">
+            <h5 class="mb-3 text-white">
+                <i class="bi bi-lightning me-2"></i>{% trans "Quick Actions" %}
+            </h5>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <a href="#" class="action-card">
+                        <div class="action-icon schedule">
+                            <i class="bi bi-calendar-plus"></i>
+                        </div>
+                        <h6 class="mb-0">{% trans "Schedule Surgery" %}</h6>
+                        <small class="text-muted">{% trans "Plan new operation" %}</small>
+                    </a>
+                </div>
+                <div class="col-6 mb-3">
+                    <a href="#" class="action-card">
+                        <div class="action-icon manage">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <h6 class="mb-0">{% trans "Manage Queue" %}</h6>
+                        <small class="text-muted">{% trans "Surgery queue" %}</small>
+                    </a>
+                </div>
+                <div class="col-6 mb-3">
+                    <a href="#" class="action-card">
+                        <div class="action-icon reports">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h6 class="mb-0">{% trans "Reports" %}</h6>
+                        <small class="text-muted">{% trans "Surgery analytics" %}</small>
+                    </a>
+                </div>
+                <div class="col-6 mb-3">
+                    <a href="#" class="action-card">
+                        <div class="action-icon settings">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <h6 class="mb-0">{% trans "Settings" %}</h6>
+                        <small class="text-muted">{% trans "Configure options" %}</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Schedule -->
+        <div class="col-xl-8 col-lg-6 mb-4">
+            <div class="recent-surgeries">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock me-2"></i>{% trans "Today's Surgery Schedule" %}
+                    </h5>
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+
+                <div class="surgery-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="surgery-time">08:00 AM - 10:30 AM</div>
+                            <div class="surgery-details">{% trans "Appendectomy" %}</div>
+                            <div class="surgery-patient">{% trans "Patient" %}: John Smith • {% trans "Room" %}: OR-1</div>
+                        </div>
+                        <span class="status-badge status-scheduled">{% trans "Scheduled" %}</span>
+                    </div>
+                </div>
+
+                <div class="surgery-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="surgery-time">11:00 AM - 02:00 PM</div>
+                            <div class="surgery-details">{% trans "Cardiac Bypass Surgery" %}</div>
+                            <div class="surgery-patient">{% trans "Patient" %}: Maria Garcia • {% trans "Room" %}: OR-2</div>
+                        </div>
+                        <span class="status-badge status-ongoing">{% trans "Ongoing" %}</span>
+                    </div>
+                </div>
+
+                <div class="surgery-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="surgery-time">03:00 PM - 05:30 PM</div>
+                            <div class="surgery-details">{% trans "Knee Replacement" %}</div>
+                            <div class="surgery-patient">{% trans "Patient" %}: Robert Johnson • {% trans "Room" %}: OR-3</div>
+                        </div>
+                        <span class="status-badge status-scheduled">{% trans "Scheduled" %}</span>
+                    </div>
+                </div>
+
+                <div class="surgery-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="surgery-time">06:00 PM - 08:00 PM</div>
+                            <div class="surgery-details">{% trans "Gallbladder Removal" %}</div>
+                            <div class="surgery-patient">{% trans "Patient" %}: Lisa Wang • {% trans "Room" %}: OR-1</div>
+                        </div>
+                        <span class="status-badge status-scheduled">{% trans "Scheduled" %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="recent-surgeries">
+                <h5 class="mb-4">
+                    <i class="bi bi-people me-2"></i>{% trans "Surgical Team Status" %}
+                </h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon scheduled me-3" style="width: 40px; height: 40px; font-size: 16px;">
+                                <i class="bi bi-person-check"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">8 {% trans "Surgeons" %}</div>
+                                <small class="text-muted">{% trans "Available" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon ongoing me-3" style="width: 40px; height: 40px; font-size: 16px;">
+                                <i class="bi bi-heart-pulse"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">12 {% trans "Nurses" %}</div>
+                                <small class="text-muted">{% trans "On duty" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="recent-surgeries">
+                <h5 class="mb-4">
+                    <i class="bi bi-building me-2"></i>{% trans "Operating Room Status" %}
+                </h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3 text-center">
+                        <div class="stats-icon ongoing mx-auto">
+                            <i class="bi bi-door-open"></i>
+                        </div>
+                        <div class="fw-bold">2</div>
+                        <small class="text-muted">{% trans "In Use" %}</small>
+                    </div>
+                    <div class="col-md-4 mb-3 text-center">
+                        <div class="stats-icon scheduled mx-auto">
+                            <i class="bi bi-door-closed"></i>
+                        </div>
+                        <div class="fw-bold">3</div>
+                        <small class="text-muted">{% trans "Available" %}</small>
+                    </div>
+                    <div class="col-md-4 mb-3 text-center">
+                        <div class="stats-icon cancelled mx-auto">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        <div class="fw-bold">1</div>
+                        <small class="text-muted">{% trans "Maintenance" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

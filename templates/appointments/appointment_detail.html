@@ -1,0 +1,493 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/appointments/appointment_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Enhanced Appointment Header -->
+    <div class="appointment-detail-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="appointment-number">Appointment #{{ appointment.appointment_number }}</div>
+                <h1 class="appointment-title">
+                    {% if appointment.appointment_type %}
+                        {{ appointment.appointment_type.name }}
+                    {% else %}
+                        General Consultation
+                    {% endif %}
+                </h1>
+                <div class="mb-3">
+                    <span class="status-badge-large status-{{ appointment.status|lower }}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                    <span class="priority-badge-large priority-{{ appointment.priority|lower }}">
+                        {{ appointment.get_priority_display }}
+                    </span>
+                </div>
+                <div class="quick-stats">
+                    <div class="stat-box">
+                        <div class="stat-number">{{ appointment.appointment_date|date:"d" }}</div>
+                        <div class="stat-label">{{ appointment.appointment_date|date:"M Y" }}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ appointment.appointment_time|time:"H:i" }}</div>
+                        <div class="stat-label">Appointment Time</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ appointment.duration_minutes }}</div>
+                        <div class="stat-label">Minutes</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${{ appointment.consultation_fee|default:"0" }}</div>
+                        <div class="stat-label">Consultation Fee</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="d-flex flex-column gap-2">
+                    <small class="opacity-75">Created by: {{ appointment.created_by.get_full_name|default:appointment.created_by.username }}</small>
+                    <small class="opacity-75">Created on: {{ appointment.created_at|date:"M d, Y H:i" }}</small>
+                    {% if appointment.updated_at != appointment.created_at %}
+                    <small class="opacity-75">Last updated: {{ appointment.updated_at|date:"M d, Y H:i" }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Information Grid -->
+            <div class="info-grid">
+                <!-- Patient Information -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-icon patient-icon">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Patient Information</h5>
+                            <small class="text-muted">Patient details and contact</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <div class="patient-avatar mx-auto">
+                            {{ appointment.patient.first_name.0 }}{{ appointment.patient.last_name.0 }}
+                        </div>
+                        <h6 class="mb-1">{{ appointment.patient.get_full_name }}</h6>
+                        <small class="text-muted">Patient ID: {{ appointment.patient.patient_id }}</small>
+                    </div>
+
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="bi bi-telephone text-primary"></i>
+                            <span>{{ appointment.patient.phone|default:"Not provided" }}</span>
+                        </div>
+                        {% if appointment.patient.email %}
+                        <div class="contact-item">
+                            <i class="bi bi-envelope text-primary"></i>
+                            <span>{{ appointment.patient.email }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="contact-item">
+                            <i class="bi bi-calendar text-primary"></i>
+                            <span>{{ appointment.patient.date_of_birth|default:"DOB not provided" }}</span>
+                        </div>
+                        {% if appointment.patient.address %}
+                        <div class="contact-item">
+                            <i class="bi bi-geo-alt text-primary"></i>
+                            <span>{{ appointment.patient.address }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'patients:patient_detail' appointment.patient.id %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-eye me-1"></i>View Patient Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Doctor Information -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-icon doctor-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Doctor Information</h5>
+                            <small class="text-muted">Attending physician details</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <div class="doctor-avatar mx-auto">
+                            {{ appointment.doctor.first_name.0 }}{{ appointment.doctor.last_name.0 }}
+                        </div>
+                        <h6 class="mb-1">Dr. {{ appointment.doctor.get_full_name }}</h6>
+                        <small class="text-muted">{{ appointment.doctor.specialization|default:"General Practitioner" }}</small>
+                    </div>
+
+                    <div class="contact-info">
+                        {% if appointment.doctor.phone %}
+                        <div class="contact-item">
+                            <i class="bi bi-telephone text-info"></i>
+                            <span>{{ appointment.doctor.phone }}</span>
+                        </div>
+                        {% endif %}
+                        {% if appointment.doctor.email %}
+                        <div class="contact-item">
+                            <i class="bi bi-envelope text-info"></i>
+                            <span>{{ appointment.doctor.email }}</span>
+                        </div>
+                        {% endif %}
+                        {% if appointment.doctor.department %}
+                        <div class="contact-item">
+                            <i class="bi bi-building text-info"></i>
+                            <span>{{ appointment.doctor.department }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'doctors:doctor_detail' appointment.doctor.id %}" class="btn btn-outline-info btn-sm w-100">
+                            <i class="bi bi-eye me-1"></i>View Doctor Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Details -->
+            <div class="medical-details">
+                <div class="info-card-header">
+                    <div class="info-card-icon medical-icon">
+                        <i class="bi bi-file-medical"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Medical Information</h5>
+                        <small class="text-muted">Patient symptoms and notes</small>
+                    </div>
+                </div>
+
+                {% if appointment.chief_complaint %}
+                <div class="complaint-section">
+                    <div class="section-title">
+                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                        Chief Complaint
+                    </div>
+                    <p class="mb-0">{{ appointment.chief_complaint }}</p>
+                </div>
+                {% endif %}
+
+                {% if appointment.symptoms %}
+                <div class="symptoms-section">
+                    <div class="section-title">
+                        <i class="bi bi-activity text-info"></i>
+                        Symptoms
+                    </div>
+                    <p class="mb-0">{{ appointment.symptoms }}</p>
+                </div>
+                {% endif %}
+
+                {% if appointment.notes %}
+                <div class="notes-section">
+                    <div class="section-title">
+                        <i class="bi bi-file-text text-danger"></i>
+                        Additional Notes
+                    </div>
+                    <p class="mb-0">{{ appointment.notes }}</p>
+                </div>
+                {% endif %}
+
+                {% if not appointment.chief_complaint and not appointment.symptoms and not appointment.notes %}
+                <div class="text-center py-4">
+                    <i class="bi bi-file-medical fs-1 text-muted"></i>
+                    <h6 class="text-muted mt-2">No medical information provided</h6>
+                    <p class="text-muted">Medical details will be added during the consultation.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Appointment Timeline -->
+            {% if appointment.history.exists %}
+            <div class="timeline">
+                <div class="timeline-header">
+                    <div class="timeline-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Appointment Timeline</h5>
+                        <small class="text-muted">History of status changes</small>
+                    </div>
+                </div>
+
+                {% for history in appointment.history.all %}
+                <div class="timeline-item">
+                    <div class="timeline-bullet"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">{{ history.changed_at|date:"M d, Y H:i" }}</div>
+                        <div class="timeline-title">Status changed to {{ history.new_status }}</div>
+                        <div class="timeline-description">
+                            Changed by {{ history.changed_by.get_full_name|default:history.changed_by.username }}
+                            {% if history.notes %}
+                            <br>Note: {{ history.notes }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Related Appointments -->
+            {% if appointment.patient.appointments.all|length > 1 %}
+            <div class="related-appointments">
+                <h5 class="mb-3">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Other Appointments for {{ appointment.patient.get_full_name }}
+                </h5>
+
+                {% for related in appointment.patient.appointments.all|slice:":5" %}
+                    {% if related.id != appointment.id %}
+                    <div class="related-item">
+                        <div>
+                            <strong>{{ related.appointment_date|date:"M d, Y" }}</strong>
+                            <small class="text-muted d-block">{{ related.appointment_time|time:"H:i" }} - Dr. {{ related.doctor.get_full_name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge status-{{ related.status|lower }}">{{ related.get_status_display }}</span>
+                            <br>
+                            <a href="{% url 'appointments:appointment_detail' related.id %}" class="btn btn-sm btn-outline-primary mt-1">View</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Action Panel -->
+            <div class="action-panel">
+                <h5 class="mb-3">
+                    <i class="bi bi-gear me-2"></i>
+                    Quick Actions
+                </h5>
+
+                <!-- Primary Action (based on current status) -->
+                <div class="primary-action mb-3">
+                    {% if appointment.status == 'SCHEDULED' %}
+                    <button type="button" class="btn btn-success btn-lg w-100 primary-action-btn" onclick="checkInAppointment()">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Check In Patient
+                    </button>
+                    {% elif appointment.status == 'CHECKED_IN' %}
+                    <button type="button" class="btn btn-primary btn-lg w-100 primary-action-btn" onclick="startConsultation()">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Start Consultation
+                    </button>
+                    {% elif appointment.status == 'IN_PROGRESS' %}
+                    <button type="button" class="btn btn-success btn-lg w-100 primary-action-btn" onclick="completeAppointment()">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Complete Appointment
+                    </button>
+                    {% else %}
+                    <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-primary btn-lg w-100 primary-action-btn">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Back to Appointments
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Actions Dropdown -->
+                <div class="dropdown w-100 mb-3">
+                    <button class="btn btn-outline-secondary btn-lg w-100 dropdown-toggle" type="button"
+                            id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots me-2"></i>
+                        More Actions
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end w-100 actions-dropdown-menu" aria-labelledby="actionsDropdown">
+                        {% if appointment.status in 'SCHEDULED,CONFIRMED' %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'appointments:appointment_edit' appointment.id %}">
+                                <i class="bi bi-pencil me-2 text-warning"></i>
+                                Edit Appointment
+                            </a>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" onclick="rescheduleAppointment()">
+                                <i class="bi bi-calendar2-week me-2 text-info"></i>
+                                Reschedule
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <button class="dropdown-item text-danger" onclick="cancelAppointment()">
+                                <i class="bi bi-x-circle me-2"></i>
+                                Cancel Appointment
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+
+                        {% if appointment.status == 'COMPLETED' %}
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-file-earmark-medical me-2 text-primary"></i>
+                                View Medical Records
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-receipt me-2 text-success"></i>
+                                Generate Invoice
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+
+                        <li>
+                            <button class="dropdown-item" onclick="printAppointment()">
+                                <i class="bi bi-printer me-2 text-primary"></i>
+                                Print Details
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" onclick="scrollToNotifications()">
+                                <i class="bi bi-bell me-2 text-secondary"></i>
+                                Manage Notifications
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" onclick="exportToPDF()">
+                                <i class="bi bi-file-pdf me-2 text-danger"></i>
+                                Export PDF
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'appointments:appointment_list' %}">
+                                <i class="bi bi-arrow-left me-2 text-muted"></i>
+                                Back to List
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Notification Management Widget -->
+            {% include 'appointments/notification_widget.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Check In Modal -->
+<div class="modal fade" id="checkInModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Check In Patient</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to check in {{ appointment.patient.get_full_name }} for this appointment?</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    This will change the appointment status to "Checked In" and record the check-in time.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmCheckIn()">Check In</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Appointment Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cancelForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="cancellationReason" class="form-label">Reason for Cancellation <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="cancellationReason" name="cancellation_reason" rows="3" required
+                                  placeholder="Please provide a reason for cancelling this appointment..."></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyPatient" name="notify_patient" checked>
+                        <label class="form-check-label" for="notifyPatient">
+                            Notify patient about cancellation
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancel()">Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reschedule Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rescheduleForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newDate" class="form-label">New Date</label>
+                                <input type="date" class="form-control datetime-field" id="newDate" name="new_date" data-enable-time="true" placeholder="DD/MM/YYYY HH:MM" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newTime" class="form-label">New Time</label>
+                                <select class="form-control" id="newTime" name="new_time" required>
+                                    <option value="">Select time</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rescheduleReason" class="form-label">Reason for Rescheduling</label>
+                        <textarea class="form-control" id="rescheduleReason" name="reschedule_reason" rows="3"
+                                  placeholder="Optional: Provide a reason for rescheduling..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="confirmReschedule()">Reschedule</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'shared/ultra_modern_date_picker_2025.html' %}
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/appointments/appointment_detail.js' %}"></script>
+{% endblock %}

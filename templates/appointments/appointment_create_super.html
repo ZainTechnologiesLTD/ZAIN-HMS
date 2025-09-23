@@ -1,0 +1,390 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Appointment - Enhanced" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/appointments/appointment_create_super.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- AI Templates Access Banner -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info d-flex justify-content-between align-items-center" style="border-left: 4px solid #667eea;">
+                <div>
+                    <i class="bi bi-robot me-2"></i>
+                    <strong>AI-Powered Features Available:</strong>
+                    <span class="text-muted ms-2">Use intelligent scheduling and analytics for better appointment management</span>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'appointments:ai_dashboard' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-speedometer2 me-1"></i>AI Dashboard
+                    </a>
+                    <a href="{% url 'appointments:ai_scheduling' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-calendar-check me-1"></i>AI Scheduling
+                    </a>
+                    <a href="{% url 'appointments:ai_analytics' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-graph-up me-1"></i>Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="appointment-wizard" style="position: relative;">
+        {% if active_timezone %}
+        <div class="tz-chip" title="Active Timezone">
+            <span class="tz-dot"></span>
+            <span>{{ active_timezone_abbrev|default:active_timezone }}</span>
+        </div>
+        {% endif %}
+        <div class="text-center mb-4">
+            <h2>{% trans "Enhanced Appointment Creation" %}</h2>
+            <p class="mb-0">{% trans "Smart scheduling with calendar integration and notifications" %}</p>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">1</div>
+            <div class="step" data-step="2">2</div>
+            <div class="step" data-step="3">3</div>
+            <div class="step" data-step="4">4</div>
+            <div class="step" data-step="5">5</div>
+        </div>
+
+        <!-- Step 1: Patient Selection -->
+        <div class="wizard-step active" id="step1">
+            <h4 class="text-center mb-4">{% trans "Step 1: Select Patient" %}</h4>
+
+            <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="patientSearch" class="form-control"
+                       placeholder="{% trans 'Search by name, phone, or patient ID' %}" autocomplete="off">
+            </div>
+
+            <div class="patient-results-container">
+                <div class="row" id="patientResults">
+                    <div class="col-12 text-center text-white-50">
+                        <i class="bi bi-person-search fs-1 mb-3"></i>
+                        <p>{% trans "Start typing to search for patients" %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'patients:create' %}" class="quick-action-btn">
+                    <i class="bi bi-person-plus"></i>
+                    {% trans "Add New Patient" %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Step 2: Department Selection -->
+        <div class="wizard-step" id="step2">
+            <h4 class="text-center mb-4">{% trans "Step 2: Select Department" %}</h4>
+
+            <div class="row" id="departmentList">
+                <!-- Departments will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Step 3: Calendar & Doctor Selection -->
+        <div class="wizard-step" id="step3">
+            <h4 class="text-center mb-4">{% trans "Step 3: Select Date & Doctor" %}</h4>
+
+            <div class="calendar-container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>{% trans "Select Date" %}</h5>
+                        <div id="appointmentCalendar"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>{% trans "Available Doctors" %}</h5>
+                        <div id="doctorList">
+                            <div class="text-center text-muted">
+                                <i class="bi bi-calendar-date fs-1 mb-3"></i>
+                                <p>{% trans "Select a date to see available doctors" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Time Slot Selection -->
+        <div class="wizard-step" id="step4">
+            <h4 class="text-center mb-4">{% trans "Step 4: Select Time Slot" %}</h4>
+
+            <div class="calendar-container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="doctorScheduleInfo" class="doctor-schedule-info">
+                            <!-- Doctor schedule info will be shown here -->
+                        </div>
+                        <div class="row" id="timeSlots">
+                            <!-- Time slots will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="selected-info">
+                            <h6>{% trans "Selected Information" %}</h6>
+                            <div id="selectedSummary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Appointment Details -->
+        <div class="wizard-step" id="step5">
+            <h4 class="text-center mb-4">{% trans "Step 5: Appointment Details" %}</h4>
+
+            <div class="calendar-container">
+                <form id="appointmentForm" method="post" action="{% url 'appointments:appointment_create_super_enhanced' %}">
+                    {% csrf_token %}
+
+                    <!-- Hidden fields for selections -->
+                    <input type="hidden" id="selectedPatientId" name="patient_id">
+                    <input type="hidden" id="selectedDoctorId" name="doctor_id">
+                    <input type="hidden" id="selectedDepartment" name="department">
+                    <input type="hidden" id="selectedDate" name="appointment_date">
+                    <input type="hidden" id="selectedTime" name="appointment_time">
+                    <input type="hidden" id="selectedSlotStart" name="slot_time_start">
+                    <input type="hidden" id="selectedSlotEnd" name="slot_time_end">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Chief Complaint" %} <span class="text-danger">*</span></label>
+                                <textarea name="chief_complaint" class="form-control" rows="3"
+                                         placeholder="{% trans 'Primary reason for visit' %}" required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Symptoms" %}</label>
+                                <textarea name="symptoms" class="form-control" rows="3"
+                                         placeholder="{% trans 'Patient reported symptoms' %}"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Additional Notes" %}</label>
+                                <textarea name="notes" class="form-control" rows="2"
+                                         placeholder="{% trans 'Any additional notes' %}"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Appointment Type" %}</label>
+                                <select name="appointment_type" class="form-select">
+                                    <option value="">{% trans "Select Type" %}</option>
+                                    <option value="CONSULTATION">{% trans "Consultation" %}</option>
+                                    <option value="FOLLOW_UP">{% trans "Follow-up" %}</option>
+                                    <option value="EMERGENCY">{% trans "Emergency" %}</option>
+                                    <option value="ROUTINE_CHECKUP">{% trans "Routine Checkup" %}</option>
+                                    <option value="VACCINATION">{% trans "Vaccination" %}</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Priority" %}</label>
+                                <select name="priority" class="form-select">
+                                    <option value="NORMAL">{% trans "Normal" %}</option>
+                                    <option value="HIGH">{% trans "High" %}</option>
+                                    <option value="URGENT">{% trans "Urgent" %}</option>
+                                    <option value="LOW">{% trans "Low" %}</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Duration (minutes)" %}</label>
+                                <input type="number" name="duration_minutes" class="form-control"
+                                       placeholder="30" min="15" max="180" value="30">
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" name="is_follow_up" class="form-check-input" id="isFollowUp">
+                                    <label class="form-check-label text-dark" for="isFollowUp">
+                                        {% trans "This is a follow-up appointment" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Consultation Fee" %}</label>
+                                <input type="number" name="consultation_fee" class="form-control"
+                                       placeholder="0.00" step="0.01" min="0">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Patient Phone" %}</label>
+                                <input type="tel" name="patient_phone" class="form-control"
+                                       placeholder="{% trans 'Phone number for notifications' %}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Patient Email" %}</label>
+                                <input type="email" name="patient_email" class="form-control"
+                                       placeholder="{% trans 'Email for notifications' %}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">{% trans "Status" %}</label>
+                                <select name="status" class="form-select">
+                                    <option value="SCHEDULED">{% trans "Scheduled" %}</option>
+                                    <option value="CONFIRMED">{% trans "Confirmed" %}</option>
+                                    <option value="CHECKED_IN">{% trans "Checked In" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="notification-section">
+                        <h6 class="mb-3">
+                            <i class="bi bi-bell me-2"></i>
+                            {% trans "Send Notifications" %}
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-check notification-checkbox">
+                                    <input type="checkbox" name="notification_email" class="form-check-input" id="notifyEmail" checked>
+                                    <label class="form-check-label" for="notifyEmail">
+                                        <i class="bi bi-envelope me-1"></i>
+                                        {% trans "Email" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check notification-checkbox">
+                                    <input type="checkbox" name="notification_whatsapp" class="form-check-input" id="notifyWhatsApp" checked>
+                                    <label class="form-check-label" for="notifyWhatsApp">
+                                        <i class="bi bi-whatsapp me-1"></i>
+                                        {% trans "WhatsApp" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check notification-checkbox">
+                                    <input type="checkbox" name="notification_telegram" class="form-check-input" id="notifyTelegram">
+                                    <label class="form-check-label" for="notifyTelegram">
+                                        <i class="bi bi-telegram me-1"></i>
+                                        {% trans "Telegram" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check notification-checkbox">
+                                    <input type="checkbox" name="notification_viber" class="form-check-input" id="notifyViber">
+                                    <label class="form-check-label" for="notifyViber">
+                                        <i class="bi bi-phone me-1"></i>
+                                        {% trans "Viber" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success Animation -->
+        <div class="success-animation" id="successAnimation">
+            <i class="bi bi-check-circle-fill fs-1 text-success mb-3"></i>
+            <h4>{% trans "Appointment Created Successfully!" %}</h4>
+            <p id="appointmentDetails"></p>
+            <div class="quick-actions">
+                <a href="#" id="printAppointment" class="quick-action-btn">
+                    <i class="bi bi-printer"></i>
+                    {% trans "Print Appointment" %}
+                </a>
+                <a href="{% url 'appointments:appointment_list' %}" class="quick-action-btn">
+                    <i class="bi bi-list"></i>
+                    {% trans "View All Appointments" %}
+                </a>
+                <a href="{% url 'appointments:appointment_create_super_enhanced' %}" class="quick-action-btn">
+                    <i class="bi bi-plus-circle"></i>
+                    {% trans "Create Another" %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-white" role="status">
+                <span class="visually-hidden">{% trans "Loading..." %}</span>
+            </div>
+            <p class="mt-2">{% trans "Creating appointment..." %}</p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="text-center mt-4" id="navigationButtons">
+            <button type="button" class="btn btn-outline-light me-3" id="prevBtn" style="display: none;" onclick="changeStep(-1)">
+                <i class="bi bi-arrow-left me-2"></i>
+                {% trans "Previous" %}
+            </button>
+            <button type="button" class="btn btn-success" id="nextBtn" onclick="changeStep(1)" disabled>
+                {% trans "Next" %}
+                <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+            <button type="button" class="btn btn-primary" id="submitBtn" style="display: none;" onclick="submitAppointment()">
+                <i class="bi bi-check-circle me-2"></i>
+                {% trans "Create Appointment" %}
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/flatpickr/flatpickr.min.js' %}"></script>
+
+<script>
+    // Pass Django URLs to JavaScript
+    window.APPOINTMENT_URLS = {
+        searchPatients: "{% url 'appointments:search_patients' %}",
+        getDepartments: "{% url 'appointments:get_departments' %}",
+        getDoctorsByDepartment: "{% url 'appointments:get_doctors_by_department' 0 %}".replace('0', ''),
+        getTimeSlots: "{% url 'appointments:get_enhanced_time_slots' %}",
+        getMonthAvailability: "{% url 'appointments:get_month_availability_days' %}",
+        createAppointment: "{% url 'appointments:create_enhanced_appointment' %}"
+    };
+
+    // Translation strings for JavaScript
+    window.APPOINTMENT_TRANSLATIONS = {
+        startTyping: "{% trans 'Start typing to search for patients' %}",
+        keepTyping: "{% trans 'Keep typing to search...' %}",
+        noPatientsFound: "{% trans 'No patients found' %}",
+        tryDifferentTerm: "{% trans 'Try a different search term or:' %}",
+        errorLoadingPatients: "{% trans 'Error loading patients' %}",
+        errorLoadingDoctors: "{% trans 'Error loading doctors' %}",
+        noDoctorsAvailable: "{% trans 'No doctors available for selected date and department' %}",
+        noTimeSlots: "{% trans 'No available time slots' %}",
+        full: "{% trans 'Full' %}",
+        available: "{% trans 'Available' %}",
+        selectPatient: "{% trans 'Please select a patient' %}",
+        selectDepartment: "{% trans 'Please select a department' %}",
+        selectDateDoctor: "{% trans 'Please select a date and doctor' %}",
+        selectTimeSlot: "{% trans 'Please select a time slot' %}",
+        errorOccurred: "{% trans 'An error occurred. Please try again.' %}",
+        appointmentDetails: "{% trans 'Appointment Details' %}",
+        appointmentNumber: "{% trans 'Appointment Number:' %}",
+        serialNumber: "{% trans 'Serial Number:' %}",
+        patient: "{% trans 'Patient:' %}",
+        doctor: "{% trans 'Doctor:' %}",
+        dateTime: "{% trans 'Date & Time:' %}",
+        barcode: "{% trans 'Barcode' %}"
+    };
+</script>
+
+    <script src="{% static 'js/appointments/appointment_create_super.js' %}"></script>
+{% endblock %}

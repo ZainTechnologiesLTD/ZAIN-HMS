@@ -1,0 +1,273 @@
+{% load i18n %}
+<!-- Unified Footer for Public Pages -->
+<footer class="footer" x-data="{ currentYear: new Date().getFullYear() }">
+    <div class="footer-content">
+        <div class="footer-grid">
+            <!-- Company Section -->
+            <div class="footer-section">
+                <h3>
+                    <i class="bi bi-hospital-fill me-2"></i>ZAIN HMS
+                </h3>
+                <p>{% trans "Advanced Hospital Management System designed for modern healthcare facilities. Streamline operations, enhance patient care, and boost efficiency." %}</p>
+                <div class="social-links">
+                    <a href="#" aria-label="LinkedIn" class="social-link">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                    <a href="#" aria-label="Twitter" class="social-link">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="#" aria-label="Facebook" class="social-link">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" aria-label="YouTube" class="social-link">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="footer-section">
+                <h3>{% trans "Quick Links" %}</h3>
+                <ul>
+                    <li><a href="{% url 'dashboard:home' %}">{% trans "Home" %}</a></li>
+                    <li><a href="{% url 'dashboard:home' %}#features">{% trans "Features" %}</a></li>
+                    <li><a href="{% url 'dashboard:home' %}#pricing">{% trans "Pricing" %}</a></li>
+                    <li><a href="{% url 'dashboard:home' %}#contact">{% trans "Contact" %}</a></li>
+                    <li><a href="{% url 'accounts:login' %}">{% trans "Staff Login" %}</a></li>
+                </ul>
+            </div>
+
+            <!-- Support -->
+            <div class="footer-section">
+                <h3>{% trans "Support" %}</h3>
+                <ul>
+                    <li><a href="#">{% trans "Documentation" %}</a></li>
+                    <li><a href="#">{% trans "Training" %}</a></li>
+                    <li><a href="#">{% trans "System Status" %}</a></li>
+                    <li><a href="mailto:support@zainhms.com">{% trans "Email Support" %}</a></li>
+                    <li><a href="tel:+1555HMSZAIN">{% trans "Phone Support" %}</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="footer-section">
+                <h3>{% trans "Contact Us" %}</h3>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="bi bi-telephone-fill"></i>
+                        <span>+1 (555) HMS-ZAIN</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>support@zainhms.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>{% trans "Healthcare Technology District" %}</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{% trans "24/7 Support Available" %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <div class="footer-copyright">
+                    <p x-text="`© ${currentYear} ZAIN HMS - Unified Hospital Management System. {% trans 'All rights reserved.' %}`"></p>
+                </div>
+                <div class="footer-legal">
+                    <a href="#" hx-get="/legal/privacy" hx-target="body" hx-push-url="true">{% trans "Privacy Policy" %}</a>
+                    <a href="#" hx-get="/legal/terms" hx-target="body" hx-push-url="true">{% trans "Terms of Service" %}</a>
+                    <a href="#" hx-get="/legal/cookies" hx-target="body" hx-push-url="true">{% trans "Cookie Policy" %}</a>
+                    <a href="#" hx-get="/legal/security" hx-target="body" hx-push-url="true">{% trans "Security" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to top button -->
+    <button class="scroll-to-top"
+            x-data="{ visible: false }"
+            x-show="visible"
+            x-transition
+            x-init="
+                window.addEventListener('scroll', () => {
+                    visible = window.scrollY > 500;
+                });
+            "
+            @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+            aria-label="{% trans 'Scroll to top' %}">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+</footer>
+
+<!-- Enhanced CSS for unified footer -->
+<style>
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.social-link:hover {
+    background: var(--warning-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.contact-item i {
+    color: var(--warning-color);
+    width: 16px;
+}
+
+.newsletter-section {
+    background: var(--primary-gradient);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.newsletter-content {
+    text-align: center;
+    color: white;
+}
+
+.newsletter-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.newsletter-input {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 400px;
+    margin: 1rem auto 0;
+}
+
+.newsletter-input input {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+}
+
+.newsletter-input button {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    color: var(--primary-color);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.newsletter-input button:hover:not(:disabled) {
+    background: var(--warning-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.newsletter-input button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.newsletter-disclaimer {
+    display: block;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+.footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-legal {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.footer-legal a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.footer-legal a:hover {
+    color: var(--warning-color);
+}
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1001; /* Higher than chatbot */
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+}
+
+.scroll-to-top:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+    .footer-bottom-content {
+        text-align: center;
+        flex-direction: column;
+    }
+
+    .newsletter-input {
+        flex-direction: column;
+    }
+
+    .newsletter-input button {
+        align-self: center;
+        min-width: 150px;
+    }
+}
+</style>

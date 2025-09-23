@@ -1,0 +1,171 @@
+.ai-patient-analysis {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    }
+
+.patient-header {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    }
+
+.analysis-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+    border-left: 4px solid #3498db;
+    }
+
+.analysis-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+.analysis-card.critical {
+    border-left-color: #e74c3c;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+
+.analysis-card.warning {
+    border-left-color: #f39c12;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+
+.analysis-card.success {
+    border-left-color: #27ae60;
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+
+.risk-indicator {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    }
+
+.risk-high {
+    background: #e74c3c;
+    color: white;
+    }
+
+.risk-medium {
+    background: #f39c12;
+    color: white;
+    }
+
+.risk-low {
+    background: #27ae60;
+    color: white;
+    }
+
+.symptom-tag {
+    display: inline-block;
+    background: #3498db;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin: 2px;
+    }
+
+.vital-reading {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 3px solid #3498db;
+    }
+
+.vital-reading.abnormal {
+    border-left-color: #e74c3c;
+    background: #fdf2f2;
+    }
+
+.medication-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 3px solid #27ae60;
+    }
+
+.medication-item.interaction {
+    border-left-color: #e74c3c;
+    background: #fdf2f2;
+    }
+
+.lab-result {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    }
+
+.lab-result.abnormal {
+    background: #fdf2f2;
+    border-left: 3px solid #e74c3c;
+    }
+
+.lab-result.normal {
+    background: #f0f9f0;
+    border-left: 3px solid #27ae60;
+    }
+
+.ai-insight {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    }
+
+.recommendation-item {
+    background: #e8f4fd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 3px solid #2196F3;
+    }
+
+.confidence-bar {
+    background: #e0e0e0;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 5px;
+    }
+
+.confidence-fill {
+    background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+    height: 100%;
+    transition: width 0.3s ease;
+    }
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+    display: flex;
+    align-items: center;
+    }
+
+.section-title i {
+    margin-right: 10px;
+    color: #3498db;
+    }

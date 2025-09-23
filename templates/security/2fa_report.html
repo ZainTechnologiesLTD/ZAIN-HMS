@@ -1,0 +1,77 @@
+{% extends 'base/base_dashboard.html' %}
+{% load i18n %}
+{% block title %}2FA Adoption Report{% endblock %}
+{% block page_title %}Two-Factor Adoption{% endblock %}
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="text-muted mb-1">Total Protected Users</h6>
+        <div class="display-6 fw-bold">{{ total }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="text-muted mb-1">With 2FA</h6>
+        <div class="display-6 fw-bold text-success">{{ with_2fa }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="text-muted mb-1">Without 2FA</h6>
+        <div class="display-6 fw-bold text-danger">{{ without_2fa }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="text-muted mb-1">Adoption Rate</h6>
+        <div class="display-6 fw-bold">{{ adoption_rate|floatformat:1 }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Users Missing 2FA ({{ without_2fa }})</span>
+    <div>
+      <a href="?format=json" class="btn btn-sm btn-outline-secondary"><i class="bi bi-code"></i> JSON</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Staff</th>
+          <th>Superuser</th>
+          <th>Last Login</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users_missing_2fa %}
+        <tr>
+          <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{% if u.is_staff %}<span class="badge bg-primary">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+            <td>{% if u.is_superuser %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+            <td>{% if u.last_login %}{{ u.last_login|date:'Y-m-d H:i' }}{% else %}<span class="text-muted">Never</span>{% endif %}</td>
+            <td><a href="/admin/auth/user/{{ u.id }}/change/" class="btn btn-sm btn-outline-primary">Manage</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted">All target users have 2FA enabled. Great job!</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

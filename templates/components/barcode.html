@@ -1,0 +1,43 @@
+{% load static %}
+{% load i18n %}
+
+<!-- Barcode Component for Hospital Documents -->
+<div class="barcode-container">
+    {% if object %}
+        {% if barcode_data %}
+            <!-- Display existing barcode -->
+            <div class="barcode-display">
+                <img src="{{ barcode_data }}" alt="{% trans 'Document Barcode' %}" class="barcode-image">
+                <div class="barcode-info">
+                    <small class="text-muted">
+                        {% if object.serial_number %}
+                            {% trans "Serial" %}: {{ object.serial_number }}
+                        {% else %}
+                            {% trans "Scan to access record" %}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        {% else %}
+            <!-- Generate barcode on-the-fly -->
+            <div class="barcode-display">
+                <div class="barcode-placeholder">
+                    <i class="bi bi-upc-scan"></i>
+                    <small>{% trans "Generating barcode..." %}</small>
+                </div>
+            </div>
+
+            <!-- JavaScript to generate barcode -->
+
+        {% endif %}
+    {% else %}
+        <!-- No object provided -->
+        <div class="barcode-display">
+            <div class="barcode-placeholder">
+                <i class="bi bi-upc-scan text-muted"></i>
+                <small class="text-muted">{% trans "No data available" %}</small>
+            </div>
+        </div>
+    {% endif %}
+</div>
+<script src="{% static 'js/components/barcode.js' %}"></script>

@@ -1,0 +1,18 @@
+{% load static %}
+{% load i18n %}
+{% if user.is_authenticated and not user.totpdevice_set.exists %}
+<div class="alert alert-warning d-flex align-items-center justify-content-between" role="alert" style="border-radius:10px;">
+  <div class="d-flex align-items-center">
+    <i class="bi bi-shield-lock-fill me-2"></i>
+    <div>
+      <strong>{% trans "Protect your account" %}:</strong> {% trans "Enable two‑factor authentication to add an extra layer of security." %}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'dashboard:setup_2fa' %}" class="btn btn-sm btn-primary">{% trans "Enable 2FA" %}</a>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="dismiss-2fa-banner">{% trans "Dismiss" %}</button>
+  </div>
+</div>
+
+{% endif %}
+<script src="{% static 'js/components/2fa_reminder.js' %}"></script>

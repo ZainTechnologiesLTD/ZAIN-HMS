@@ -1,0 +1,161 @@
+{% load static %}
+
+<!-- Notification Management Widget -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h6 class="mb-0">
+            <i class="bi bi-bell-fill me-2"></i>
+            Patient Notifications
+        </h6>
+    </div>
+    <div class="card-body">
+        <!-- Notification Status -->
+        <div id="notificationStatus" class="mb-3">
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status" aria-hidden="true"></div>
+                <span class="text-muted">Loading notification status...</span>
+            </div>
+        </div>
+
+        <!-- Available Contact Information -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="contact-info">
+                    <h6 class="text-muted mb-2">
+                        <i class="bi bi-envelope me-1"></i>
+                        Email Address
+                    </h6>
+                    <div id="patientEmail" class="contact-value">
+                        <span class="text-muted">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="contact-info">
+                    <h6 class="text-muted mb-2">
+                        <i class="bi bi-telephone me-1"></i>
+                        Phone Number
+                    </h6>
+                    <div id="patientPhone" class="contact-value">
+                        <span class="text-muted">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Notification Buttons -->
+        <div class="notification-controls">
+            <h6 class="text-muted mb-3">Send Notifications</h6>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-6 col-lg-3">
+                    <button type="button"
+                            class="btn btn-outline-success btn-sm w-100 notification-btn"
+                            data-type="email"
+                            data-bs-toggle="tooltip"
+                            title="Send email notification">
+                        <i class="bi bi-envelope me-1"></i>
+                        <span class="btn-text">Email</span>
+                        <span class="btn-spinner spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+                    </button>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <button type="button"
+                            class="btn btn-outline-success btn-sm w-100 notification-btn"
+                            data-type="whatsapp"
+                            data-bs-toggle="tooltip"
+                            title="Send WhatsApp message">
+                        <i class="bi bi-whatsapp me-1"></i>
+                        <span class="btn-text">WhatsApp</span>
+                        <span class="btn-spinner spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+                    </button>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <button type="button"
+                            class="btn btn-outline-primary btn-sm w-100 notification-btn"
+                            data-type="telegram"
+                            data-bs-toggle="tooltip"
+                            title="Send Telegram message">
+                        <i class="bi bi-telegram me-1"></i>
+                        <span class="btn-text">Telegram</span>
+                        <span class="btn-spinner spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+                    </button>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <button type="button"
+                            class="btn btn-outline-info btn-sm w-100 notification-btn"
+                            data-type="viber"
+                            data-bs-toggle="tooltip"
+                            title="Send Viber message">
+                        <i class="bi bi-chat-dots me-1"></i>
+                        <span class="btn-text">Viber</span>
+                        <span class="btn-spinner spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bulk Notification Options -->
+            <div class="bulk-notifications">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="email" id="bulkEmail">
+                        <label class="form-check-label" for="bulkEmail">
+                            <i class="bi bi-envelope me-1"></i>Email
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="whatsapp" id="bulkWhatsApp">
+                        <label class="form-check-label" for="bulkWhatsApp">
+                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="telegram" id="bulkTelegram">
+                        <label class="form-check-label" for="bulkTelegram">
+                            <i class="bi bi-telegram me-1"></i>Telegram
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="viber" id="bulkViber">
+                        <label class="form-check-label" for="bulkViber">
+                            <i class="bi bi-chat-dots me-1"></i>Viber
+                        </label>
+                    </div>
+                </div>
+
+                <button type="button"
+                        id="sendBulkNotifications"
+                        class="btn btn-primary btn-sm"
+                        data-bs-toggle="tooltip"
+                        title="Send selected notifications at once">
+                    <i class="bi bi-send-fill me-1"></i>
+                    Send Selected
+                    <span id="bulkSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Notification History -->
+        <div id="notificationHistory" class="notification-history mt-4 pt-3 border-top">
+            <h6 class="text-muted mb-3">
+                <i class="bi bi-clock-history me-1"></i>
+                Notification History
+            </h6>
+            <div id="historyContent">
+                <div class="text-muted">No notification history available</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles for Notification Widget -->
+
+
+<!-- JavaScript for Notification Management -->
+
+
+<!-- Toast Notification Styles -->
+<script src="{% static 'js/appointments/notification_widget.js' %}"></script>

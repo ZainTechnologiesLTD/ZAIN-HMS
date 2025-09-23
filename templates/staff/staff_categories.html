@@ -1,0 +1,267 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Staff Categories - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-users-cog me-2"></i>Staff Categories Overview
+                    </h4>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'staff:staff_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add New Staff
+                        </a>
+                        <a href="{% url 'staff:staff_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-1"></i>View All Staff
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Overview Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                    <h3 class="text-primary">{{ total_staff }}</h3>
+                                    <p class="mb-0">Total Staff</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+                                    <h3 class="text-success">{{ active_staff }}</h3>
+                                    <p class="mb-0">Active Staff</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-plus fa-2x text-warning mb-2"></i>
+                                    <h3 class="text-warning">{{ staff_without_accounts }}</h3>
+                                    <p class="mb-0">Without Accounts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-cog fa-2x text-info mb-2"></i>
+                                    <h3 class="text-info">{{ departments_count }}</h3>
+                                    <p class="mb-0">Departments</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Staff Categories Grid -->
+                    <div class="row">
+                        <!-- Pharmacy Staff -->
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-pills me-2"></i>Pharmacy Staff
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-success fs-5">{{ pharmacist_count }}</span>
+                                        <small class="text-muted">Active Pharmacists</small>
+                                    </div>
+                                    <p class="text-muted mb-3">Medication management, dispensing, and inventory control.</p>
+                                    <a href="{% url 'staff:staff_list' %}?role=PHARMACIST" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Pharmacists
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Laboratory Staff -->
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-microscope me-2"></i>Laboratory Staff
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-info fs-5">{{ lab_technician_count }}</span>
+                                        <small class="text-muted">Lab Technicians</small>
+                                    </div>
+                                    <p class="text-muted mb-3">Sample collection, testing, and laboratory operations.</p>
+                                    <a href="{% url 'staff:staff_list' %}?role=LAB_TECHNICIAN" class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Lab Technicians
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Radiology Staff -->
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-x-ray me-2"></i>Radiology Staff
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-primary fs-5">{{ radiologist_count }}</span>
+                                        <small class="text-muted">Radiologists</small>
+                                    </div>
+                                    <p class="text-muted mb-3">Medical imaging, X-rays, and diagnostic radiology.</p>
+                                    <a href="{% url 'staff:staff_list' %}?role=RADIOLOGIST" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Radiologists
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accounting Staff -->
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-calculator me-2"></i>Accounting Staff
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-warning fs-5">{{ accountant_count }}</span>
+                                        <small class="text-muted">Accountants</small>
+                                    </div>
+                                    <p class="text-muted mb-3">Financial management, billing, and accounting operations.</p>
+                                    <a href="{% url 'staff:staff_list' %}?role=ACCOUNTANT" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Accountants
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reception Staff -->
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-concierge-bell me-2"></i>Reception Staff
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-secondary fs-5">{{ receptionist_count }}</span>
+                                        <small class="text-muted">Receptionists</small>
+                                    </div>
+                                    <p class="text-muted mb-3">Front desk operations, patient registration, and scheduling.</p>
+                                    <a href="{% url 'staff:staff_list' %}?role=RECEPTIONIST" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Receptionists
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- General Staff -->
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-dark">
+                                <div class="card-header bg-dark text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-users me-2"></i>General Staff
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-dark fs-5">{{ general_staff_count }}</span>
+                                        <small class="text-muted">General Staff</small>
+                                    </div>
+                                    <p class="text-muted mb-3">Support staff, maintenance, security, and other roles.</p>
+                                    <a href="{% url 'staff:staff_list' %}?role=STAFF" class="btn btn-outline-dark btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View General Staff
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">
+                                        <i class="fas fa-rocket me-2"></i>Quick Actions
+                                    </h5>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{% url 'staff:staff_without_users' %}" class="btn btn-outline-warning">
+                                            <i class="fas fa-user-plus me-1"></i>Staff Without Accounts
+                                        </a>
+                                        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-user-cog me-1"></i>User Management
+                                        </a>
+                                        <a href="{% url 'staff:staff_create' %}" class="btn btn-outline-success">
+                                            <i class="fas fa-plus me-1"></i>Add New Staff
+                                        </a>
+                                        <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#categoryInfoModal">
+                                            <i class="fas fa-info-circle me-1"></i>Category Info
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Info Modal -->
+<div class="modal fade" id="categoryInfoModal" tabindex="-1" aria-labelledby="categoryInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryInfoModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Staff Categories Information
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-pills text-success me-2"></i>Pharmacist</h6>
+                        <p class="small text-muted mb-3">Responsible for medication management, prescription dispensing, drug inventory, and patient counseling on medications.</p>
+
+                        <h6><i class="fas fa-microscope text-info me-2"></i>Lab Technician</h6>
+                        <p class="small text-muted mb-3">Conducts laboratory tests, sample collection and processing, equipment maintenance, and result reporting.</p>
+
+                        <h6><i class="fas fa-x-ray text-primary me-2"></i>Radiologist</h6>
+                        <p class="small text-muted mb-3">Performs medical imaging, operates radiological equipment, and interprets diagnostic images.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calculator text-warning me-2"></i>Accountant</h6>
+                        <p class="small text-muted mb-3">Manages hospital finances, billing operations, financial reporting, and budget planning.</p>
+
+                        <h6><i class="fas fa-concierge-bell text-secondary me-2"></i>Receptionist</h6>
+                        <p class="small text-muted mb-3">Handles patient registration, appointment scheduling, front desk operations, and visitor management.</p>
+
+                        <h6><i class="fas fa-users text-dark me-2"></i>General Staff</h6>
+                        <p class="small text-muted mb-3">Includes support roles such as maintenance, security, cleaning, administration, and other operational staff.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

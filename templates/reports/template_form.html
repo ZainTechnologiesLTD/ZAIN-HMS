@@ -1,0 +1,235 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit Template{% else %}Create Template{% endif %} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/reports/template_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            {% if form.instance.pk %}
+                Edit Template: {{ form.instance.name }}
+            {% else %}
+                Create Report Template
+            {% endif %}
+        </h1>
+        <p class="text-muted">Configure a reusable report template</p>
+    </div>
+    <a href="{% url 'reports:template_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>
+        Back to Templates
+    </a>
+</div>
+
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Basic Information
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            Template Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.report_type.id_for_label }}" class="form-label">
+                            Report Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.report_type }}
+                        {% if form.report_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.report_type.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                        Description
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.description.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Column Configuration -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-columns me-2"></i>
+                    Column Configuration
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Visual Column Builder</h6>
+                        <div class="column-builder">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">Selected Columns</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addColumn()">
+                                    <i class="fas fa-plus"></i> Add Column
+                                </button>
+                            </div>
+
+                            <div id="column-list">
+                                <!-- Dynamic column items will be added here -->
+                            </div>
+
+                            <div class="mt-3">
+                                <h6>Available Fields</h6>
+                                <div id="available-fields" class="d-flex flex-wrap gap-2">
+                                    <!-- Available fields will be populated based on report type -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.columns.id_for_label }}" class="form-label">
+                            Columns JSON <span class="text-danger">*</span>
+                        </label>
+                        {{ form.columns }}
+                        {% if form.columns.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.columns.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            JSON array of column names to include in the report
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Default Filters -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>
+                    Default Filters
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Filter Builder</h6>
+                        <div class="column-builder">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">Active Filters</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFilter()">
+                                    <i class="fas fa-plus"></i> Add Filter
+                                </button>
+                            </div>
+
+                            <div id="filter-list">
+                                <!-- Dynamic filter items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.default_filters.id_for_label }}" class="form-label">
+                            Default Filters JSON
+                        </label>
+                        {{ form.default_filters }}
+                        {% if form.default_filters.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.default_filters.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            JSON object with default filter values
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 mb-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>
+                    {% if form.instance.pk %}Update Template{% else %}Create Template{% endif %}
+                </button>
+                <a href="{% url 'reports:template_list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+                {% if form.instance.pk %}
+                <button type="button" class="btn btn-outline-info" onclick="testTemplate()">
+                    <i class="fas fa-play me-1"></i>
+                    Test Template
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Template Preview -->
+            <div class="card sticky-top" style="top: 2rem;">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-eye me-1"></i>
+                        Template Preview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="template-preview">
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Configure template to see preview</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Field Reference -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-book me-1"></i>
+                        Field Reference
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="field-reference">
+                        <p class="text-muted small">Select a report type to see available fields</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/reports/template_form.js' %}"></script>
+{% endblock %}

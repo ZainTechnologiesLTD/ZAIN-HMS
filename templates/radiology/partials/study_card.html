@@ -1,0 +1,55 @@
+<div class="card study-type-card" data-study-id="{{ study.id }}" data-modality="{{ study.modality }}">
+    <div class="card-body">
+        <div class="form-check">
+            <input class="form-check-input study-checkbox"
+                   type="checkbox"
+                   value="{{ study.id }}"
+                   id="study_{{ study.id }}">
+            <label class="form-check-label w-100" for="study_{{ study.id }}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">{{ study.name }}</h6>
+                        <small class="text-muted">{{ study.code }}</small>
+                    </div>
+                    <span class="badge bg-info modality-badge">{{ study.get_modality_display }}</span>
+                </div>
+                {% if study.description %}
+                    <p class="small text-muted mb-1">{{ study.description|truncatewords:10 }}</p>
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-success fw-bold">${{ study.price }}</small>
+                    <small class="text-muted">{{ study.estimated_duration_minutes }} min</small>
+                </div>
+                {% if study.preparation_instructions %}
+                    <div class="mt-1">
+                        <small class="text-info">
+                            <i class="fas fa-info-circle"></i>
+                            {{ study.preparation_instructions|truncatewords:8 }}
+                        </small>
+                    </div>
+                {% endif %}
+                {% if study.contrast_required or study.fasting_required %}
+                    <div class="mt-1">
+                        {% if study.contrast_required %}
+                            <span class="badge badge-sm bg-warning text-dark">Contrast</span>
+                        {% endif %}
+                        {% if study.fasting_required %}
+                            <span class="badge badge-sm bg-warning text-dark">Fasting</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </label>
+        </div>
+
+        <!-- Laterality selection (appears when checked) -->
+        <div class="laterality-section mt-2" style="display: none;">
+            <label class="form-label small">Laterality:</label>
+            <select class="form-select form-select-sm laterality-select" name="laterality_{{ study.id }}">
+                <option value="">Not specified</option>
+                <option value="LEFT">Left</option>
+                <option value="RIGHT">Right</option>
+                <option value="BILATERAL">Bilateral</option>
+            </select>
+        </div>
+    </div>
+</div>

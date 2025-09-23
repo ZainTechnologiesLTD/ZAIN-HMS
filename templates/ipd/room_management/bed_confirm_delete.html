@@ -1,0 +1,87 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Delete Bed - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:ipd_list' %}">IPD</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:bed_list' %}">Bed Management</a></li>
+<li class="breadcrumb-item active" aria-current="page">Delete Bed</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Bed Deletion
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+
+                    <h5 class="text-center mb-4">
+                        Are you sure you want to delete Bed <strong>{{ object.number }}</strong>?
+                    </h5>
+
+                    <div class="bed-details bg-light p-3 rounded mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Bed Number:</strong> {{ object.number }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Room:</strong> {{ object.room.number }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <strong>Room Type:</strong> {{ object.room.room_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Floor:</strong> {{ object.room.floor }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <strong>Status:</strong>
+                                {% if object.available %}
+                                    <span class="badge badge-success">Available</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Occupied</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if not object.available %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Cannot Delete!</strong> This bed is currently occupied.
+                        Please ensure the bed is available before deleting it.
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2 justify-content-center">
+                            {% if object.available %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i> Yes, Delete Bed
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'ipd:bed_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

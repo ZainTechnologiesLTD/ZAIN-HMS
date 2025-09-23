@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Login" %} - ZAIN HMS</title>
+
+    <!-- Enhanced Meta Tags -->
+    <meta name="description" content="{% trans 'Secure login to ZAIN HMS - Hospital Management System' %}">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <!-- Enhanced CSS Framework -->
+    <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Enhanced Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/all.min.css' %}">
+
+    <!-- Enhanced Web Fonts -->
+    <link href="{% static 'fonts/inter.css' %}" rel="stylesheet">
+
+    <!-- Consolidated Public Styles - V2 Modular -->
+    <link rel="stylesheet" href="{% static 'css/public/public-v2.css' %}">
+
+    <!-- HTMX Framework -->
+    <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+
+    <!-- Alpine.js Framework -->
+    <script src="{% static 'vendor/alpinejs/alpine.min.js' %}" defer></script>
+
+</head>
+
+<body class="auth-page" x-data="authController()">
+    <!-- Unified Header -->
+    {% include 'components/public_navbar.html' %}
+
+    <!-- Main Container -->
+    <main class="main-container" role="main" aria-labelledby="loginTitle">
+        <div class="login-card">
+            <div class="login-header">
+                <h2 class="login-title" id="loginTitle">{% trans "Welcome Back" %}</h2>
+                <p class="login-subtitle">{% trans "Sign in to your HMS account" %}</p>
+            </div>
+
+            <!-- Error Messages -->
+            {% if form.errors %}
+                <div class="alert alert-danger" role="alert" aria-live="polite"
+                     aria-labelledby="errorTitle" id="formErrors">
+                    <h3 class="visually-hidden" id="errorTitle">{% trans "Login Errors" %}</h3>
+                    <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
+                    <ul class="mb-0" style="list-style: none; padding: 0;">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert" aria-live="polite">
+                        <i class="fas fa-info-circle me-2" aria-hidden="true"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post" id="loginForm" x-ref="authForm" role="form" aria-label="{% trans 'Login Form' %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                        <i class="fas fa-user me-2" aria-hidden="true"></i>{% trans "Username" %}
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1" role="alert" aria-describedby="{{ form.username.id_for_label }}_error">
+                            {% for error in form.username.errors %}
+                                <small id="{{ form.username.id_for_label }}_error">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">
+                        <i class="fas fa-lock me-2" aria-hidden="true"></i>{% trans "Password" %}
+                    </label>
+                    <div class="position-relative">
+                        {{ form.password }}
+                        <button type="button" id="togglePassword" class="password-toggle"
+                                title="{% trans 'Show/Hide Password' %}"
+                                aria-label="{% trans 'Toggle password visibility' %}">
+                            <i class="fas fa-eye" id="passwordIcon" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-1" role="alert" aria-describedby="{{ form.password.id_for_label }}_error">
+                            {% for error in form.password.errors %}
+                                <small id="{{ form.password.id_for_label }}_error">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Biometric Login -->
+                <div class="biometric-login">
+                    <button type="button" class="biometric-btn" id="biometricBtn"
+                            title="{% trans 'Biometric Login' %}"
+                            aria-label="{% trans 'Enable Biometric Authentication Login' %}">
+                        <i class="fas fa-fingerprint" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <!-- Social Login -->
+                <div class="social-login">
+                    <div class="social-login-title">{% trans "Or continue with" %}</div>
+                    <div class="social-buttons" role="group" aria-label="{% trans 'Social Login Options' %}">
+                        <a href="#" class="social-btn google"
+                           aria-label="{% trans 'Continue with Google' %}"
+                           role="button">
+                            <i class="fab fa-google" aria-hidden="true"></i>
+                            {% trans "Google" %}
+                        </a>
+                        <a href="#" class="social-btn microsoft"
+                           aria-label="{% trans 'Continue with Microsoft' %}"
+                           role="button">
+                            <i class="fab fa-microsoft" aria-hidden="true"></i>
+                            {% trans "Microsoft" %}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <div class="form-check">
+                        {{ form.remember_me }}
+                        <label for="{{ form.remember_me.id_for_label }}" class="form-check-label">
+                            {% trans "Remember me" %}
+                        </label>
+                    </div>
+                    <a href="{% url 'accounts:password_reset' %}" class="auth-link">
+                        {% trans "Forgot Password?" %}
+                    </a>
+                </div>
+                <button type="submit"
+                        class="btn-primary"
+                        id="loginBtn"
+                        aria-label="{% trans 'Submit login form' %}"
+                        >
+                    <span class="btn-text">
+                        <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i>
+                        {% trans "Sign In" %}
+                    </span>
+                </button>
+
+                <!-- Security Features Section -->
+                <div class="security-features" role="region" aria-labelledby="securityFeaturesTitle">
+                    <div class="security-title" id="securityFeaturesTitle">
+                        <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                        {% trans "Enhanced Security Available" %}
+                    </div>
+                    <ul class="security-list" role="list">
+                        <li role="listitem">
+                            <i class="fas fa-check text-success" aria-hidden="true"></i>
+                            {% trans "Two-Factor Authentication (2FA)" %}
+                        </li>
+                        <li role="listitem">
+                            <i class="fas fa-check text-success" aria-hidden="true"></i>
+                            {% trans "Advanced Session Management" %}
+                        </li>
+                        <li role="listitem">
+                            <i class="fas fa-check text-success" aria-hidden="true"></i>
+                            {% trans "Real-time Security Monitoring" %}
+                        </li>
+                    </ul>
+
+                </div>
+            </form>
+
+            <!-- Additional Links -->
+            <div class="auth-links">
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    {% trans "New to ZAIN HMS?" %}
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-weight: 600; font-size: 1rem;">
+                        {% trans "Sign Up" %}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Unified Footer -->
+    {% include 'components/public_footer.html' %}
+
+    <!-- Scripts -->
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Consolidated Public JavaScript - V2 Modular -->
+    <script src="{% static 'js/public/public-v2.js' %}"></script>
+    <script>
+      // Password toggle functionality with accessibility improvements
+      document.getElementById('togglePassword')?.addEventListener('click', function() {
+          const input = document.getElementById('{{ form.password.id_for_label }}') || document.querySelector('input[name="password"]');
+          const icon = document.getElementById('passwordIcon');
+          const button = this;
+
+          if (!input) return;
+
+          if (input.type === 'password') {
+              input.type = 'text';
+              if (icon) icon.className = 'fas fa-eye-slash';
+              button.setAttribute('aria-label', '{% trans "Hide password" %}');
+              button.setAttribute('title', '{% trans "Hide Password" %}');
+          } else {
+              input.type = 'password';
+              if (icon) icon.className = 'fas fa-eye';
+              button.setAttribute('aria-label', '{% trans "Show password" %}');
+              button.setAttribute('title', '{% trans "Show Password" %}');
+          }
+      });
+
+      // Form validation and accessibility improvements
+      document.addEventListener('DOMContentLoaded', function() {
+          const form = document.getElementById('loginForm');
+          const usernameField = document.getElementById('{{ form.username.id_for_label }}');
+          const passwordField = document.getElementById('{{ form.password.id_for_label }}');
+
+          // Add ARIA attributes for better screen reader support
+          if (usernameField) {
+              usernameField.setAttribute('aria-describedby', 'username-help');
+              usernameField.setAttribute('autocomplete', 'username');
+          }
+
+          if (passwordField) {
+              passwordField.setAttribute('aria-describedby', 'password-help');
+              passwordField.setAttribute('autocomplete', 'current-password');
+          }
+
+          // Focus management
+          if (form && form.querySelector('.alert-danger')) {
+              // If there are errors, focus on the form errors first
+              const errorElement = form.querySelector('.alert-danger');
+              if (errorElement) {
+                  errorElement.focus();
+                  errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+          }
+      });
+    </script>
+  </body>
+</html>

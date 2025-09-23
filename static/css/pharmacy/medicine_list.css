@@ -1,0 +1,13 @@
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+code {
+    font-size: 0.8rem;
+    color: #495057;
+    background-color: #f8f9fa;
+}

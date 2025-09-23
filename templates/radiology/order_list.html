@@ -1,0 +1,281 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Radiology Orders - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-file-medical me-2"></i>Radiology Orders
+                    </h4>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'radiology:order_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>New Order
+                        </a>
+                        <a href="{% url 'radiology:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Search and Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <form method="get" class="d-flex">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="search"
+                                           value="{{ request.GET.search }}"
+                                           placeholder="Search by order number, patient, or doctor...">
+                                    <button class="btn btn-outline-secondary" type="submit">
+                                        Search
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="get">
+                                {% if request.GET.search %}
+                                    <input type="hidden" name="search" value="{{ request.GET.search }}">
+                                {% endif %}
+                                <select name="status" class="form-select" onchange="this.form.submit()">
+                                    <option value="">All Status</option>
+                                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="get">
+                                {% if request.GET.search %}
+                                    <input type="hidden" name="search" value="{{ request.GET.search }}">
+                                {% endif %}
+                                {% if request.GET.status %}
+                                    <input type="hidden" name="status" value="{{ request.GET.status }}">
+                                {% endif %}
+                                <select name="priority" class="form-select" onchange="this.form.submit()">
+                                    <option value="">All Priorities</option>
+                                    <option value="routine" {% if request.GET.priority == 'routine' %}selected{% endif %}>Routine</option>
+                                    <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                                    <option value="stat" {% if request.GET.priority == 'stat' %}selected{% endif %}>STAT</option>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Orders Table -->
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Patient</th>
+                                        <th>Ordering Doctor</th>
+                                        <th>Studies</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td>
+                                                <strong class="text-primary">{{ order.order_number }}</strong>
+                                                {% if order.urgent %}
+                                                    <br><small class="badge bg-danger">URGENT</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-user-injured me-2 text-muted"></i>
+                                                    <div>
+                                                        <strong>{{ order.patient.get_full_name }}</strong>
+                                                        <br><small class="text-muted">ID: {{ order.patient.patient_id }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-user-md me-2 text-muted"></i>
+                                                    <div>
+                                                        <strong>Dr. {{ order.ordering_doctor.get_full_name }}</strong>
+                                                        {% if order.ordering_doctor.specialization %}
+                                                            <br><small class="text-muted">{{ order.ordering_doctor.specialization }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if order.items.exists %}
+                                                    <div class="study-list">
+                                                        {% for item in order.items.all|slice:":3" %}
+                                                            <span class="badge bg-info me-1 mb-1">
+                                                                {{ item.study_type.name }}
+                                                                {% if item.laterality %}({{ item.get_laterality_display }}){% endif %}
+                                                            </span>
+                                                        {% endfor %}
+                                                        {% if order.items.count > 3 %}
+                                                            <br><small class="text-muted">+{{ order.items.count|add:"-3" }} more...</small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">No studies</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if order.priority == 'routine' %}
+                                                    <span class="badge bg-secondary">Routine</span>
+                                                {% elif order.priority == 'urgent' %}
+                                                    <span class="badge bg-warning">Urgent</span>
+                                                {% elif order.priority == 'stat' %}
+                                                    <span class="badge bg-danger">STAT</span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark">{{ order.get_priority_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if order.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif order.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">In Progress</span>
+                                                {% elif order.status == 'completed' %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% elif order.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark">{{ order.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    {{ order.created_at|date:"M d, Y" }}
+                                                    <br>{{ order.created_at|time:"H:i" }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'radiology:order_detail' order.pk %}"
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if order.status == 'pending' %}
+                                                        <a href="{% url 'radiology:order_update' order.pk %}"
+                                                           class="btn btn-sm btn-outline-secondary"
+                                                           title="Edit Order">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    {% if order.status != 'completed' and order.status != 'cancelled' %}
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-success"
+                                                                onclick="updateOrderStatus({{ order.pk }}, 'in_progress')"
+                                                                title="Start Processing">
+                                                            <i class="fas fa-play"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                    {% if order.status == 'in_progress' %}
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-success"
+                                                                onclick="updateOrderStatus({{ order.pk }}, 'completed')"
+                                                                title="Mark Complete">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                            <nav aria-label="Orders pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.priority %}priority={{ request.GET.priority }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.priority %}priority={{ request.GET.priority }}&{% endif %}page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.priority %}priority={{ request.GET.priority }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Radiology Orders Found</h5>
+                            <p class="text-muted">
+                                {% if request.GET.search or request.GET.status or request.GET.priority %}
+                                    No orders match your current filters. <a href="{% url 'radiology:order_list' %}">Clear filters</a>
+                                {% else %}
+                                    Start by creating your first radiology order.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'radiology:order_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Create First Order
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Order Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to update this order status?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStatusUpdate">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<script src="{% static 'js/radiology/order_list.js' %}"></script>

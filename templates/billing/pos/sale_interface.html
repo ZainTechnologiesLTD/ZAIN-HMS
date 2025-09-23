@@ -1,0 +1,693 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Point of Sale{% endblock %}
+
+{% block extra_css %}
+<style>
+.pos-interface {
+    height: calc(100vh - 120px);
+    overflow: hidden;
+}
+
+.pos-left-panel {
+    height: 100%;
+    overflow-y: auto;
+    border-right: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.pos-right-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.category-btn {
+    width: 100%;
+    margin-bottom: 5px;
+    text-align: left;
+    border: none;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+.category-btn:hover, .category-btn.active {
+    background-color: #007bff;
+    color: white;
+    transform: translateX(5px);
+}
+
+.item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 15px;
+    height: 400px;
+    overflow-y: auto;
+}
+
+.item-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.item-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+    line-height: 1.2;
+}
+
+.item-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.cart-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.cart-totals {
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.search-section {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.checkout-btn {
+    width: 100%;
+    height: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-input {
+    width: 60px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 5px;
+}
+
+.patient-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.patient-result-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.patient-result-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pos-interface">
+    <div class="row h-100">
+        <!-- Left Panel - Product Categories and Items -->
+        <div class="col-md-8 pos-left-panel">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="input-group">
+                    <input type="text" id="item-search" class="form-control"
+                           placeholder="Search items by name, code, or barcode...">
+                    <div class="input-group-append">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                </div>
+                <div id="search-results" class="mt-2" style="display: none;"></div>
+            </div>
+
+            <!-- Categories -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="p-3">
+                        <h6 class="mb-3">Categories</h6>
+                        {% for category in categories %}
+                        <button class="category-btn" data-category-id="{{ category.id }}"
+                                style="border-left: 4px solid {{ category.color }};">
+                            {% if category.icon %}
+                            <i class="{{ category.icon }}"></i>
+                            {% endif %}
+                            {{ category.name }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Items Grid -->
+                <div class="col-md-9">
+                    <div id="items-container" class="item-grid">
+                        <!-- Items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Shopping Cart -->
+        <div class="col-md-4 pos-right-panel">
+            <div class="cart-section">
+                <!-- Customer Section -->
+                <div class="p-3 border-bottom">
+                    <h6 class="mb-2">Customer</h6>
+                    <div class="position-relative">
+                        <input type="text" id="customer-search" class="form-control"
+                               placeholder="Search patient or enter customer name">
+                        <div id="patient-search-results" class="patient-search-results"></div>
+                    </div>
+                    <input type="hidden" id="selected-patient-id" value="">
+                    <input type="text" id="customer-phone" class="form-control mt-2"
+                           placeholder="Phone number (optional)">
+                </div>
+
+                <!-- Cart Items -->
+                <div class="cart-items">
+                    <h6 class="mb-3">Cart Items</h6>
+                    <div id="cart-items-list">
+                        <p class="text-muted text-center">No items in cart</p>
+                    </div>
+                </div>
+
+                <!-- Cart Totals -->
+                <div class="cart-totals">
+                    <div class="row mb-2">
+                        <div class="col-6">Subtotal:</div>
+                        <div class="col-6 text-right" id="cart-subtotal">$0.00</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">Tax:</div>
+                        <div class="col-6 text-right" id="cart-tax">$0.00</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <input type="number" id="discount-amount" class="form-control form-control-sm"
+                                   placeholder="Discount" min="0" step="0.01">
+                        </div>
+                        <div class="col-6 text-right" id="cart-discount">-$0.00</div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Total:</strong></div>
+                        <div class="col-6 text-right"><strong id="cart-total">$0.00</strong></div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select id="payment-method" class="form-control">
+                            <option value="CASH">Cash</option>
+                            <option value="CARD">Card</option>
+                            <option value="DIGITAL">Digital Payment</option>
+                            <option value="INSURANCE">Insurance</option>
+                            <option value="CREDIT">Credit</option>
+                        </select>
+                    </div>
+
+                    <!-- Amount Received -->
+                    <div class="mb-3">
+                        <label class="form-label">Amount Received</label>
+                        <input type="number" id="amount-received" class="form-control"
+                               min="0" step="0.01" placeholder="0.00">
+                        <small class="text-muted">Change: $<span id="change-amount">0.00</span></small>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <button id="checkout-btn" class="btn btn-success checkout-btn" disabled>
+                        Complete Sale
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal fade" id="receipt-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Complete</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="receipt-content">
+                <!-- Receipt will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="printReceipt()">Print Receipt</button>
+                <button type="button" class="btn btn-secondary" onclick="newSale()">New Sale</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// PoS Application JavaScript
+let cart = [];
+let selectedPatient = null;
+let currentItems = [];
+
+// Initialize on page load
+$(document).ready(function() {
+    // Load first category items
+    if ($('.category-btn').length > 0) {
+        $('.category-btn').first().click();
+    }
+
+    // Event listeners
+    $('.category-btn').click(loadCategoryItems);
+    $('#item-search').on('input', searchItems);
+    $('#customer-search').on('input', searchPatients);
+    $('#discount-amount').on('input', calculateTotals);
+    $('#amount-received').on('input', calculateChange);
+    $('#checkout-btn').click(processCheckout);
+
+    // Hide patient search results when clicking elsewhere
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#customer-search, #patient-search-results').length) {
+            $('#patient-search-results').hide();
+        }
+    });
+});
+
+// Load items for selected category
+function loadCategoryItems() {
+    const categoryId = $(this).data('category-id');
+    $('.category-btn').removeClass('active');
+    $(this).addClass('active');
+
+    // Get items for this category
+    const items = {% for cat_id, items in items_by_category.items %}
+        {{ cat_id }} == categoryId ? {{ items|safe }} :
+    {% endfor %} [];
+
+    displayItems(items);
+}
+
+// Display items in grid
+function displayItems(items) {
+    const container = $('#items-container');
+    container.empty();
+
+    items.forEach(item => {
+        const itemHtml = `
+            <div class="item-card" onclick="addToCart(${item.id})">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">$${item.selling_price}</div>
+                <small class="text-muted">Stock: ${item.current_stock}</small>
+            </div>
+        `;
+        container.append(itemHtml);
+    });
+}
+
+// Search items
+function searchItems() {
+    const query = $('#item-search').val();
+    if (query.length < 2) {
+        $('#search-results').hide();
+        return;
+    }
+
+    $.ajax({
+        url: '{% url "billing:pos_search_items" %}',
+        data: { q: query },
+        success: function(data) {
+            displaySearchResults(data.items);
+        }
+    });
+}
+
+// Display search results
+function displaySearchResults(items) {
+    const container = $('#search-results');
+    container.empty();
+
+    if (items.length === 0) {
+        container.html('<p class="text-muted">No items found</p>').show();
+        return;
+    }
+
+    items.forEach(item => {
+        const itemHtml = `
+            <div class="item-card d-inline-block m-1" onclick="addToCart(${item.id})" style="width: 150px;">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">$${item.price}</div>
+            </div>
+        `;
+        container.append(itemHtml);
+    });
+
+    container.show();
+}
+
+// Search patients
+function searchPatients() {
+    const query = $('#customer-search').val();
+    if (query.length < 2) {
+        $('#patient-search-results').hide();
+        return;
+    }
+
+    $.ajax({
+        url: '{% url "billing:pos_search_patients" %}',
+        data: { q: query },
+        success: function(data) {
+            displayPatientResults(data.patients);
+        }
+    });
+}
+
+// Display patient search results
+function displayPatientResults(patients) {
+    const container = $('#patient-search-results');
+    container.empty();
+
+    if (patients.length === 0) {
+        container.html('<div class="patient-result-item text-muted">No patients found</div>').show();
+        return;
+    }
+
+    patients.forEach(patient => {
+        const patientHtml = `
+            <div class="patient-result-item" onclick="selectPatient(${patient.id}, '${patient.first_name} ${patient.last_name}', '${patient.phone}')">
+                <strong>${patient.first_name} ${patient.last_name}</strong> (${patient.patient_id})
+                <br><small class="text-muted">${patient.phone}</small>
+            </div>
+        `;
+        container.append(patientHtml);
+    });
+
+    container.show();
+}
+
+// Select patient
+function selectPatient(id, name, phone) {
+    selectedPatient = { id, name, phone };
+    $('#customer-search').val(name);
+    $('#customer-phone').val(phone);
+    $('#selected-patient-id').val(id);
+    $('#patient-search-results').hide();
+}
+
+// Add item to cart
+function addToCart(itemId) {
+    // Find existing item in cart
+    const existingIndex = cart.findIndex(item => item.id === itemId);
+
+    if (existingIndex >= 0) {
+        cart[existingIndex].quantity++;
+    } else {
+        // Get item details from search or category items
+        const item = findItemDetails(itemId);
+        if (item) {
+            cart.push({
+                id: itemId,
+                name: item.name,
+                price: item.price || item.selling_price,
+                tax_rate: item.tax_rate || 0,
+                quantity: 1
+            });
+        }
+    }
+
+    updateCartDisplay();
+    calculateTotals();
+}
+
+// Find item details
+function findItemDetails(itemId) {
+    // This would typically come from the server
+    // For now, we'll use a simplified approach
+    return {
+        id: itemId,
+        name: `Item ${itemId}`,
+        price: 10.00,
+        tax_rate: 0
+    };
+}
+
+// Update cart display
+function updateCartDisplay() {
+    const container = $('#cart-items-list');
+
+    if (cart.length === 0) {
+        container.html('<p class="text-muted text-center">No items in cart</p>');
+        return;
+    }
+
+    container.empty();
+
+    cart.forEach((item, index) => {
+        const itemHtml = `
+            <div class="cart-item">
+                <div class="flex-grow-1">
+                    <strong>${item.name}</strong>
+                    <br><small>$${item.price.toFixed(2)} each</small>
+                </div>
+                <div class="quantity-controls">
+                    <button class="quantity-btn" onclick="decreaseQuantity(${index})">-</button>
+                    <input type="number" class="quantity-input" value="${item.quantity}"
+                           onchange="updateQuantity(${index}, this.value)" min="1">
+                    <button class="quantity-btn" onclick="increaseQuantity(${index})">+</button>
+                </div>
+                <div class="ml-2">
+                    <strong>$${(item.price * item.quantity).toFixed(2)}</strong>
+                    <br><button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.append(itemHtml);
+    });
+
+    $('#checkout-btn').prop('disabled', cart.length === 0);
+}
+
+// Cart manipulation functions
+function increaseQuantity(index) {
+    cart[index].quantity++;
+    updateCartDisplay();
+    calculateTotals();
+}
+
+function decreaseQuantity(index) {
+    if (cart[index].quantity > 1) {
+        cart[index].quantity--;
+        updateCartDisplay();
+        calculateTotals();
+    }
+}
+
+function updateQuantity(index, quantity) {
+    const qty = parseInt(quantity) || 1;
+    cart[index].quantity = Math.max(1, qty);
+    updateCartDisplay();
+    calculateTotals();
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartDisplay();
+    calculateTotals();
+}
+
+// Calculate totals
+function calculateTotals() {
+    let subtotal = 0;
+    let tax = 0;
+
+    cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+        tax += itemTotal * (item.tax_rate / 100);
+    });
+
+    const discount = parseFloat($('#discount-amount').val()) || 0;
+    const total = subtotal + tax - discount;
+
+    $('#cart-subtotal').text(`$${subtotal.toFixed(2)}`);
+    $('#cart-tax').text(`$${tax.toFixed(2)}`);
+    $('#cart-discount').text(`-$${discount.toFixed(2)}`);
+    $('#cart-total').text(`$${total.toFixed(2)}`);
+
+    calculateChange();
+}
+
+// Calculate change
+function calculateChange() {
+    const total = parseFloat($('#cart-total').text().replace('$', ''));
+    const received = parseFloat($('#amount-received').val()) || 0;
+    const change = Math.max(0, received - total);
+
+    $('#change-amount').text(change.toFixed(2));
+}
+
+// Process checkout
+function processCheckout() {
+    if (cart.length === 0) {
+        alert('Cart is empty');
+        return;
+    }
+
+    const total = parseFloat($('#cart-total').text().replace('$', ''));
+    const received = parseFloat($('#amount-received').val()) || 0;
+
+    if (received < total) {
+        alert('Insufficient payment amount');
+        return;
+    }
+
+    const transactionData = {
+        patient_id: $('#selected-patient-id').val() || null,
+        customer_name: selectedPatient ? '' : $('#customer-search').val(),
+        customer_phone: $('#customer-phone').val(),
+        payment_method: $('#payment-method').val(),
+        amount_received: received,
+        discount_amount: parseFloat($('#discount-amount').val()) || 0,
+        items: cart.map(item => ({
+            item_id: item.id,
+            quantity: item.quantity,
+            unit_price: item.price
+        }))
+    };
+
+    $.ajax({
+        url: '{% url "billing:pos_create_transaction" %}',
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(transactionData),
+        success: function(data) {
+            if (data.success) {
+                showReceipt(data);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        },
+        error: function() {
+            alert('Error processing transaction');
+        }
+    });
+}
+
+// Show receipt
+function showReceipt(transactionData) {
+    const receiptHtml = generateReceiptHtml(transactionData);
+    $('#receipt-content').html(receiptHtml);
+    $('#receipt-modal').modal('show');
+}
+
+// Generate receipt HTML
+function generateReceiptHtml(data) {
+    return `
+        <div class="text-center">
+            <h4>Receipt</h4>
+            <p>Transaction: ${data.transaction_number}</p>
+            <p>Total: $${data.total_amount}</p>
+            <p class="text-success">Transaction Completed Successfully!</p>
+        </div>
+    `;
+}
+
+// Print receipt
+function printReceipt() {
+    window.print();
+}
+
+// Start new sale
+function newSale() {
+    cart = [];
+    selectedPatient = null;
+    $('#customer-search').val('');
+    $('#customer-phone').val('');
+    $('#selected-patient-id').val('');
+    $('#discount-amount').val('');
+    $('#amount-received').val('');
+    $('#payment-method').val('CASH');
+    updateCartDisplay();
+    calculateTotals();
+    $('#receipt-modal').modal('hide');
+}
+</script>
+{% endblock %}

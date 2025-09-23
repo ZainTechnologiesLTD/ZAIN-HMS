@@ -1,0 +1,66 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}POS Transaction List{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-receipt me-2"></i>POS Transactions
+        </h1>
+        <a href="{% url 'billing:pos_sale' %}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> New Sale
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Transaction List</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Patient</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.id }}</td>
+                            <td>{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ transaction.patient.full_name }}</td>
+                            <td>{{ transaction.items.count }}</td>
+                            <td>${{ transaction.total_amount }}</td>
+                            <td>
+                                <span class="badge badge-success">{{ transaction.get_status_display }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'billing:pos_transaction_detail' transaction.pk %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <a href="{% url 'billing:pos_transaction_receipt' transaction.pk %}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-print"></i> Receipt
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No transactions found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

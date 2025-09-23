@@ -1,0 +1,207 @@
+    /* EMR Dashboard Hero Section */
+.emr-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-light);
+    border-radius: var(--border-radius-xl);
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    overflow: hidden;
+    }
+
+.emr-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    rgba(255,255,255,0.05) 2px,
+    rgba(255,255,255,0.05) 4px
+    );
+    animation: float 20s linear infinite;
+    }
+
+.emr-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 1;
+    }
+
+.emr-hero p {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+    }
+
+.emr-hero .btn {
+    position: relative;
+    z-index: 1;
+    margin-top: 15px;
+    }
+
+    /* EMR Stat Cards */
+.emr-stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    }
+
+.emr-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.02), rgba(118, 75, 162, 0.02));
+    z-index: 0;
+    }
+
+.emr-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-left-color: #764ba2;
+    }
+
+.emr-stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+    }
+
+.emr-stat-label {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+    }
+
+.emr-stat-icon {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 2.5rem;
+    color: rgba(102, 126, 234, 0.15);
+    z-index: 1;
+    }
+
+    /* Recent Records Section */
+.emr-recent-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 20px;
+    }
+
+.emr-section-title {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f8f9fa;
+    }
+
+.emr-record-item {
+    padding: 15px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    }
+
+.emr-record-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+    }
+
+.emr-record-item:last-child {
+    border-bottom: none;
+    }
+
+    /* Quick Actions */
+.emr-quick-actions {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 20px;
+    }
+
+.emr-action-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 15px 20px;
+    margin: 5px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    }
+
+.emr-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    color: white;
+    }
+
+    /* Animations */
+@keyframes float {
+0% { transform: translateX(-100px); }
+100% { transform: translateX(100px); }
+    }
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out;
+    }
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+    }
+
+.slide-up {
+    animation: slideUp 0.6s ease-out;
+    }
+
+@keyframes slideUp {
+from { opacity: 0; transform: translateY(30px); }
+to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive Design */
+@media (max-width: 768px) {
+.emr-hero {
+    padding: 25px;
+        }
+
+.emr-hero h1 {
+    font-size: 1.8rem;
+        }
+
+.emr-stat-value {
+    font-size: 2rem;
+        }
+    }

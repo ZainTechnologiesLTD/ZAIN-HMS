@@ -1,0 +1,229 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/appointments/appointment_calendar.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Calendar Header -->
+    <div class="calendar-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="calendar-title">📅 Appointment Calendar</h1>
+                <p class="calendar-subtitle">Visual overview of all appointments and schedules</p>
+
+                <div class="calendar-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total_this_month }}</div>
+                        <div class="stat-label">Total This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.today_count }}</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.this_week }}</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.active_doctors }}</div>
+                        <div class="stat-label">Active Doctors</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="quick-actions">
+                    <a href="{% url 'appointments:appointment_create' %}" class="quick-action-btn btn-primary-action">
+                        <i class="bi bi-plus-circle me-2"></i>New Appointment
+                    </a>
+                    <button onclick="refreshCalendar()" class="quick-action-btn btn-outline-action">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            <!-- Calendar Container -->
+            <div class="calendar-container">
+                <!-- Calendar Controls -->
+                <div class="calendar-controls">
+                    <div class="view-buttons">
+                        <button class="view-btn active" data-view="dayGridMonth">
+                            <i class="bi bi-calendar-month me-1"></i>Month
+                        </button>
+                        <button class="view-btn" data-view="timeGridWeek">
+                            <i class="bi bi-calendar-week me-1"></i>Week
+                        </button>
+                        <button class="view-btn" data-view="timeGridDay">
+                            <i class="bi bi-calendar-day me-1"></i>Day
+                        </button>
+                        <button class="view-btn" data-view="listWeek">
+                            <i class="bi bi-list-ul me-1"></i>List
+                        </button>
+                    </div>
+
+                    <div class="filter-dropdown">
+                        <button class="filter-btn" onclick="toggleFilters()">
+                            <i class="bi bi-funnel"></i>
+                            Filters
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="filter-menu" id="filterMenu">
+                            <div class="filter-group">
+                                <label class="filter-label">Status</label>
+                                <div class="filter-options">
+                                    <div class="filter-option active" data-filter="status" data-value="all">All</div>
+                                    <div class="filter-option" data-filter="status" data-value="scheduled">Scheduled</div>
+                                    <div class="filter-option" data-filter="status" data-value="confirmed">Confirmed</div>
+                                    <div class="filter-option" data-filter="status" data-value="completed">Completed</div>
+                                    <div class="filter-option" data-filter="status" data-value="cancelled">Cancelled</div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Priority</label>
+                                <div class="filter-options">
+                                    <div class="filter-option active" data-filter="priority" data-value="all">All</div>
+                                    <div class="filter-option" data-filter="priority" data-value="normal">Normal</div>
+                                    <div class="filter-option" data-filter="priority" data-value="high">High</div>
+                                    <div class="filter-option" data-filter="priority" data-value="urgent">Urgent</div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Doctor</label>
+                                <select class="form-select" id="doctorFilter">
+                                    <option value="all">All Doctors</option>
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor.id }}">Dr. {{ doctor.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar -->
+                <div id="appointmentCalendar"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <!-- Sidebar -->
+            <div class="appointment-sidebar">
+                <!-- Legend -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-palette"></i>
+                        Status Legend
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e3f2fd; border-color: #1976d2;"></div>
+                        <span>Scheduled</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e8f5e8; border-color: #2e7d32;"></div>
+                        <span>Confirmed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #fff3e0; border-color: #ef6c00;"></div>
+                        <span>In Progress</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e8f5e8; border-color: #2e7d32;"></div>
+                        <span>Completed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffebee; border-color: #c62828;"></div>
+                        <span>Cancelled</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(45deg, #dc3545, #fd7e14);"></div>
+                        <span>Urgent Priority</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-lightning"></i>
+                        Quick Actions
+                    </div>
+                    <div class="quick-actions">
+                        <a href="{% url 'appointments:appointment_create' %}" class="quick-action-btn btn-primary-action">
+                            <i class="bi bi-plus me-1"></i>New Appointment
+                        </a>
+                        <button onclick="goToToday()" class="quick-action-btn btn-outline-action">
+                            <i class="bi bi-calendar-check me-1"></i>Go to Today
+                        </button>
+                        <a href="{% url 'appointments:appointment_list' %}" class="quick-action-btn btn-outline-action">
+                            <i class="bi bi-list me-1"></i>List View
+                        </a>
+                        <button onclick="exportCalendar()" class="quick-action-btn btn-outline-action">
+                            <i class="bi bi-download me-1"></i>Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upcoming Appointments -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-clock"></i>
+                        Next 5 Appointments
+                    </div>
+                    <div class="upcoming-appointments" id="upcomingList">
+                        {% for appointment in next_appointments %}
+                        <div class="upcoming-item">
+                            <div class="upcoming-time">{{ appointment.appointment_time|time:"H:i" }}</div>
+                            <div class="upcoming-patient">{{ appointment.patient.get_full_name }}</div>
+                            <div class="upcoming-doctor">Dr. {{ appointment.doctor.get_full_name }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="bi bi-calendar-x"></i>
+                            <div class="mt-2">No upcoming appointments</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Detail Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Appointment Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="appointmentModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="viewFullDetails">View Full Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/fullcalendar/fullcalendar.min.js' %}"></script>
+<script src="{% static 'js/appointments/appointment_calendar.js' %}"></script>
+
+{% endblock %}

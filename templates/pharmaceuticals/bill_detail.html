@@ -1,0 +1,36 @@
+{% extends 'base/base_dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Bill Details - {{ bill.customer_name }}</h2>
+    <p><strong>Mobile:</strong> {{ bill.customer_mobile }}</p>
+    <p><strong>Total Amount:</strong> {{ bill.total_amount }}</p>
+    <p><strong>Date:</strong> {{ bill.created_at|date:"Y-m-d H:i" }}</p>
+
+    <h4>Items</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bill.items.all %}
+                <tr>
+                    <td>{{ item.medicine.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price }}</td>
+                    <td>{{ item.get_total_price }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No items in this bill.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

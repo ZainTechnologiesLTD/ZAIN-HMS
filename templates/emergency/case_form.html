@@ -1,0 +1,81 @@
+{# emergency/case_form.html #}
+<div class="modal-header">
+    <h5 class="modal-title">
+        {% if form.instance.pk %}
+            Update Emergency Case
+        {% else %}
+            New Emergency Case
+        {% endif %}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <form hx-post="{{ request.path }}" hx-swap="none">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                {{ form.patient_name.label_tag }}
+                {{ form.patient_name }}
+                {% if form.patient_name.errors %}
+                    <div class="invalid-feedback">{{ form.patient_name.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {{ form.age.label_tag }}
+                {{ form.age }}
+                {% if form.age.errors %}
+                    <div class="invalid-feedback">{{ form.age.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {{ form.contact_number.label_tag }}
+                {{ form.contact_number }}
+                {% if form.contact_number.errors %}
+                    <div class="invalid-feedback">{{ form.contact_number.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {{ form.priority.label_tag }}
+                {{ form.priority }}
+                {% if form.priority.errors %}
+                    <div class="invalid-feedback">{{ form.priority.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-12">
+                {{ form.chief_complaint.label_tag }}
+                {{ form.chief_complaint }}
+                {% if form.chief_complaint.errors %}
+                    <div class="invalid-feedback">{{ form.chief_complaint.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {{ form.status.label_tag }}
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <div class="invalid-feedback">{{ form.status.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {{ form.assigned_doctor.label_tag }}
+                {{ form.assigned_doctor }}
+                {% if form.assigned_doctor.errors %}
+                    <div class="invalid-feedback">{{ form.assigned_doctor.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-12">
+                {{ form.notes.label_tag }}
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div class="invalid-feedback">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            {{ form.vital_signs }}
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">
+                {% if form.instance.pk %}Update{% else %}Create{% endif %}
+            </button>
+        </div>
+    </form>
+</div>

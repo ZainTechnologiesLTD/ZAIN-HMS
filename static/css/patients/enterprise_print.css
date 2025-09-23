@@ -1,0 +1,568 @@
+/* Print-specific styles */
+@media print {
+body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 11px;
+    line-height: 1.3;
+    }
+
+.no-print {
+    display: none !important;
+    }
+
+.page-break {
+    page-break-before: always;
+    }
+
+.page-break-after {
+    page-break-after: always;
+    }
+
+.avoid-break {
+    page-break-inside: avoid;
+    }
+
+@page {
+    size: A4;
+    margin: 0.5in;
+    }
+}
+
+/* Global Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', serif;
+    margin: 0;
+    padding: 20px;
+    background: white;
+    color: #2c3e50;
+    line-height: 1.4;
+}
+
+/* Header Styles */
+.document-header {
+    background: linear-gradient(135deg, #053377 0%, #1e3d72 100%);
+    color: white;
+    padding: 25px;
+    margin: -20px -20px 30px -20px;
+    text-align: center;
+    position: relative;
+    border-bottom: 4px solid #053377;
+}
+
+.document-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
+}
+
+.document-subtitle {
+    font-size: 16px;
+    opacity: 0.95;
+    margin-bottom: 0;
+    font-weight: 300;
+}
+
+.hospital-info {
+    position: absolute;
+    left: 25px;
+    top: 25px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.hospital-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.hospital-details {
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+.document-meta {
+    position: absolute;
+    right: 25px;
+    top: 25px;
+    text-align: right;
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+.print-date {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.document-id {
+    background: rgba(255,255,255,0.2);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* Patient Photo Section */
+.patient-photo-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.patient-photo-container {
+    position: relative;
+    text-align: center;
+}
+
+.patient-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    border: 4px solid #053377;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.patient-photo-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    border: 4px solid #053377;
+    background: linear-gradient(135deg, #053377 0%, #1e3d72 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.patient-name-display {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 15px;
+    color: #053377;
+    text-align: center;
+}
+
+.patient-id-display {
+    background: #053377;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+}
+
+/* Information Sections */
+.info-section {
+    margin-bottom: 25px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.section-header {
+    background: linear-gradient(135deg, #053377 0%, #1e3d72 100%);
+    color: white;
+    padding: 12px 20px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header i {
+    font-size: 18px;
+}
+
+.section-content {
+    padding: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    margin-bottom: 15px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-label i {
+    color: #053377;
+    font-size: 11px;
+}
+
+.info-value {
+    color: #212529;
+    font-size: 14px;
+    min-height: 18px;
+    line-height: 1.4;
+}
+
+/* Medical Information Special Styling */
+.medical-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+}
+
+.medical-section .section-header {
+    background: linear-gradient(135deg, #856404 0%, #a0710a 100%);
+}
+
+.emergency-section {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.emergency-section .section-header {
+    background: linear-gradient(135deg, #721c24 0%, #8b2126 100%);
+}
+
+.insurance-section {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+}
+
+.insurance-section .section-header {
+    background: linear-gradient(135deg, #0c5460 0%, #0e5f6a 100%);
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-vip {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-emergency {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+0% { opacity: 1; }
+50% { opacity: 0.7; }
+100% { opacity: 1; }
+}
+
+/* Medical History Tables */
+.medical-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+    .medical-table th,
+.medical-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.medical-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
+}
+
+.medical-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Vitals Chart Placeholder */
+.vitals-chart {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 15px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.vitals-chart i {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+/* Notes Section */
+.notes-section {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.note-item {
+    padding: 15px;
+    margin-bottom: 12px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #053377;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.note-date {
+    font-size: 11px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.note-author {
+    font-size: 11px;
+    color: #053377;
+    font-weight: 600;
+}
+
+.note-content {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #495057;
+}
+
+/* QR Code Section */
+.qr-section {
+    text-align: center;
+    margin: 30px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.qr-placeholder {
+    width: 100px;
+    height: 100px;
+    background: #dee2e6;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.qr-placeholder i {
+    font-size: 36px;
+    color: #6c757d;
+}
+
+/* Footer */
+.document-footer {
+    margin-top: 40px;
+    padding-top: 25px;
+    border-top: 3px solid #053377;
+    text-align: center;
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.footer-item {
+    text-align: center;
+}
+
+.footer-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 10px;
+}
+
+.footer-value {
+    color: #212529;
+    font-size: 12px;
+}
+
+.confidential-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+    font-weight: 600;
+    color: #856404;
+    text-align: center;
+}
+
+.signature-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.signature-line {
+    border-bottom: 2px solid #053377;
+    width: 200px;
+    margin: 0 auto 10px auto;
+}
+
+.signature-label {
+    text-align: center;
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* Print Button */
+.print-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
+
+.print-btn {
+    background: #053377;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.print-btn:hover {
+    background: #1e3d72;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+.document-header {
+    padding: 20px;
+    }
+
+.document-title {
+    font-size: 24px;
+    }
+
+    .hospital-info,
+.document-meta {
+    position: static;
+    text-align: center;
+    margin-bottom: 15px;
+    }
+
+.info-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    }
+
+.footer-content {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    }
+
+.print-controls {
+    position: static;
+    margin-bottom: 20px;
+    justify-content: center;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .info-section,
+    .medical-table,
+    .qr-section,
+.signature-section {
+    border-width: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+.status-emergency {
+    animation: none;
+    }
+
+.print-btn {
+    transition: none;
+    }
+}

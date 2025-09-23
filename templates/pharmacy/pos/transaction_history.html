@@ -1,0 +1,387 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Pharmacy PoS - Transaction History{% endblock %}
+
+{% block extra_css %}
+
+{% include 'shared/ultra_modern_date_picker_2025.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="fas fa-history text-primary"></i>
+            Transaction History
+        </h3>
+        <div>
+            <a href="{% url 'pharmacy:pos_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to PoS
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row stats-cards">
+        <div class="col-md-3">
+            <div class="stat-card success">
+                <h2 class="mb-1">${{ today_sales|floatformat:2 }}</h2>
+                <p class="mb-0">Today's Sales</p>
+                <small>{{ today_transactions }} transactions</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card info">
+                <h2 class="mb-1">${{ this_month_sales|floatformat:2 }}</h2>
+                <p class="mb-0">This Month</p>
+                <small>{{ this_month_transactions }} transactions</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card warning">
+                <h2 class="mb-1">{{ avg_transaction_value|floatformat:2 }}</h2>
+                <p class="mb-0">Avg Transaction</p>
+                <small>Last 30 days</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h2 class="mb-1">{{ total_customers }}</h2>
+                <p class="mb-0">Unique Customers</p>
+                <small>This month</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Date From</label>
+                <input type="date" class="form-control" name="date_from" value="{{ request.GET.date_from }}" placeholder="DD/MM/YYYY">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date To</label>
+                <input type="date" class="form-control" name="date_to" value="{{ request.GET.date_to }}" placeholder="DD/MM/YYYY">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Payment Method</label>
+                <select class="form-select" name="payment_method">
+                    <option value="">All Methods</option>
+                    <option value="CASH" {% if request.GET.payment_method == 'CASH' %}selected{% endif %}>Cash</option>
+                    <option value="CARD" {% if request.GET.payment_method == 'CARD' %}selected{% endif %}>Card</option>
+                    <option value="MOBILE_MONEY" {% if request.GET.payment_method == 'MOBILE_MONEY' %}selected{% endif %}>Mobile Money</option>
+                    <option value="MIXED" {% if request.GET.payment_method == 'MIXED' %}selected{% endif %}>Mixed</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Customer/Receipt</label>
+                <input type="text" class="form-control" name="search"
+                       placeholder="Search by customer name or receipt number..."
+                       value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="">All Status</option>
+                    <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                    <option value="REFUNDED" {% if request.GET.status == 'REFUNDED' %}selected{% endif %}>Refunded</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="btn-group" role="group">
+                    <a href="?preset=today" class="btn btn-outline-primary {% if request.GET.preset == 'today' %}active{% endif %}">Today</a>
+                    <a href="?preset=yesterday" class="btn btn-outline-primary {% if request.GET.preset == 'yesterday' %}active{% endif %}">Yesterday</a>
+                    <a href="?preset=this_week" class="btn btn-outline-primary {% if request.GET.preset == 'this_week' %}active{% endif %}">This Week</a>
+                    <a href="?preset=this_month" class="btn btn-outline-primary {% if request.GET.preset == 'this_month' %}active{% endif %}">This Month</a>
+                    <a href="?" class="btn btn-outline-secondary">Clear Filters</a>
+                </div>
+
+                <div class="float-end">
+                    <a href="{% url 'pharmacy:pos_export_transactions' %}?{{ request.GET.urlencode }}"
+                       class="btn btn-success">
+                        <i class="fas fa-download"></i> Export Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction List -->
+    <div class="row">
+        <div class="col-12">
+            {% if transactions %}
+                {% for transaction in transactions %}
+                <div class="transaction-card">
+                    <div class="transaction-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-receipt text-primary"></i>
+                                    {{ transaction.receipt_number }}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ transaction.created_at|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>{{ transaction.customer_name|default:"Walk-in Customer" }}</strong>
+                                {% if transaction.customer_phone %}
+                                <br><small class="text-muted">{{ transaction.customer_phone }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <h5 class="mb-0 text-success">${{ transaction.total_amount|floatformat:2 }}</h5>
+                                <small class="text-muted">{{ transaction.items.count }} items</small>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <span class="badge status-badge
+                                    {% if transaction.status == 'COMPLETED' %}bg-success
+                                    {% elif transaction.status == 'REFUNDED' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                                <br>
+                                <small class="text-muted">{{ transaction.get_payment_method_display }}</small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#transaction-{{ transaction.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="{% url 'pharmacy:pos_receipt' transaction.id %}"
+                                       class="btn btn-sm btn-outline-success" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    {% if transaction.status == 'COMPLETED' and transaction.can_refund %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick="processRefund('{{ transaction.id }}')">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Details (Collapsible) -->
+                    <div class="collapse" id="transaction-{{ transaction.id }}">
+                        <div class="transaction-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6 class="fw-bold mb-3">Items Sold</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Medicine</th>
+                                                    <th>Qty</th>
+                                                    <th>Unit Price</th>
+                                                    <th>Discount</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in transaction.items.all %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ item.medicine.name }}</strong>
+                                                        {% if item.medicine.generic_name %}
+                                                        <br><small class="text-muted">{{ item.medicine.generic_name }}</small>
+                                                        {% endif %}
+                                                        {% if item.medicine.batch_number %}
+                                                        <br><small class="text-muted">Batch: {{ item.medicine.batch_number }}</small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ item.quantity }}</td>
+                                                    <td>${{ item.unit_price|floatformat:2 }}</td>
+                                                    <td>
+                                                        {% if item.discount_amount > 0 %}
+                                                            ${{ item.discount_amount|floatformat:2 }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><strong>${{ item.total_amount|floatformat:2 }}</strong></td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="fw-bold mb-3">Transaction Summary</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td>Subtotal:</td>
+                                            <td class="text-end">${{ transaction.subtotal|floatformat:2 }}</td>
+                                        </tr>
+                                        {% if transaction.discount_amount > 0 %}
+                                        <tr>
+                                            <td>Discount:</td>
+                                            <td class="text-end text-danger">-${{ transaction.discount_amount|floatformat:2 }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if transaction.tax_amount > 0 %}
+                                        <tr>
+                                            <td>Tax:</td>
+                                            <td class="text-end">${{ transaction.tax_amount|floatformat:2 }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr class="table-success">
+                                            <td><strong>Total:</strong></td>
+                                            <td class="text-end"><strong>${{ transaction.total_amount|floatformat:2 }}</strong></td>
+                                        </tr>
+                                    </table>
+
+                                    <h6 class="fw-bold mb-2 mt-4">Payment Details</h6>
+                                    {% for payment in transaction.payments.all %}
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ payment.get_payment_method_display }}:</span>
+                                            <span>${{ payment.amount|floatformat:2 }}</span>
+                                        </div>
+                                        {% if payment.reference_number %}
+                                        <small class="text-muted">Ref: {{ payment.reference_number }}</small>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+
+                                    {% if transaction.change_amount > 0 %}
+                                    <div class="mt-2 pt-2 border-top">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>Change Given:</strong>
+                                            <strong class="text-success">${{ transaction.change_amount|floatformat:2 }}</strong>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="mt-3 pt-3 border-top">
+                                        <small class="text-muted">
+                                            <strong>Cashier:</strong> {{ transaction.created_by.get_full_name }}<br>
+                                            <strong>Date:</strong> {{ transaction.created_at|date:"M d, Y H:i:s" }}<br>
+                                            {% if transaction.prescription %}
+                                            <strong>Prescription:</strong> #{{ transaction.prescription.id }}<br>
+                                            {% endif %}
+                                            {% if transaction.notes %}
+                                            <strong>Notes:</strong> {{ transaction.notes }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Transaction pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                                    &laquo; Previous
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                                    Next &raquo;
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                        <h5>No Transactions Found</h5>
+                        <p class="text-muted">No transactions match your current filters.</p>
+                        <a href="{% url 'pharmacy:pos_sale' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Start New Sale
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Refund Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Process Refund</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="refundForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        This action will refund the transaction and update inventory. This cannot be undone.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Refund Reason</label>
+                        <select class="form-select" name="refund_reason" required>
+                            <option value="">Select reason...</option>
+                            <option value="CUSTOMER_REQUEST">Customer Request</option>
+                            <option value="DEFECTIVE_PRODUCT">Defective Product</option>
+                            <option value="WRONG_MEDICATION">Wrong Medication</option>
+                            <option value="EXPIRED_PRODUCT">Expired Product</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" name="notes" rows="3"
+                                  placeholder="Additional notes about the refund..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-undo"></i> Process Refund
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/pos/transaction_history.js' %}"></script>
+{% endblock %}

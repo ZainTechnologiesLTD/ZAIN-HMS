@@ -1,0 +1,202 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Bed Management - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:ipd_list' %}">IPD</a></li>
+<li class="breadcrumb-item active" aria-current="page">Bed Management</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-bed me-2"></i>Bed Management
+        </h1>
+        <div>
+            <a href="{% url 'ipd:bed_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add New Bed
+            </a>
+            <a href="{% url 'ipd:room_list' %}" class="btn btn-success">
+                <i class="fas fa-door-open me-1"></i> Manage Rooms
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Beds</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_beds }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bed fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Available Beds</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ available_beds }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bed fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Occupied Beds</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ occupied_beds }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bed fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filter Beds</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="room" class="form-label">Filter by Room</label>
+                    <select name="room" id="room" class="form-select">
+                        <option value="">All Rooms</option>
+                        {% for room in rooms %}
+                            <option value="{{ room.id }}" {% if selected_room == room.id|stringformat:"s" %}selected{% endif %}>
+                                Room {{ room.number }} ({{ room.room_type }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <a href="{% url 'ipd:bed_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Beds List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Beds List</h6>
+        </div>
+        <div class="card-body">
+            {% if beds %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Bed Number</th>
+                                <th>Room</th>
+                                <th>Room Type</th>
+                                <th>Floor</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bed in beds %}
+                            <tr>
+                                <td><strong>{{ bed.number }}</strong></td>
+                                <td>{{ bed.room.number }}</td>
+                                <td>
+                                    <span class="badge badge-info">{{ bed.room.room_type }}</span>
+                                </td>
+                                <td>Floor {{ bed.room.floor }}</td>
+                                <td>
+                                    {% if bed.available %}
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-check-circle me-1"></i>Available
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-danger">
+                                            <i class="fas fa-times-circle me-1"></i>Occupied
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'ipd:bed_update' bed.pk %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="{% url 'ipd:bed_delete' bed.pk %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Bed pagination" class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_room %}&room={{ selected_room }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_room %}&room={{ selected_room }}{% endif %}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-bed fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-600">No Beds Found</h5>
+                    <p class="text-gray-500">Create your first bed to get started.</p>
+                    <a href="{% url 'ipd:bed_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add First Bed
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Order #{{ object.order_number }} - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-file-medical me-2"></i>Radiology Order #{{ object.order_number }}
+                    </h4>
+                    <div class="d-flex gap-2">
+                        {% if object.status == 'pending' %}
+                            <a href="{% url 'radiology:order_update' object.pk %}" class="btn btn-primary">
+                                <i class="fas fa-edit me-1"></i>Edit Order
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'radiology:order_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Orders
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Order Information -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Order Information
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label text-muted">Order Number</label>
+                                            <div class="fw-bold">{{ object.order_number }}</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label text-muted">Status</label>
+                                            <div>
+                                                {% if object.status == 'pending' %}
+                                                    <span class="badge bg-warning fs-6">Pending</span>
+                                                {% elif object.status == 'in_progress' %}
+                                                    <span class="badge bg-primary fs-6">In Progress</span>
+                                                {% elif object.status == 'completed' %}
+                                                    <span class="badge bg-success fs-6">Completed</span>
+                                                {% elif object.status == 'cancelled' %}
+                                                    <span class="badge bg-danger fs-6">Cancelled</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label text-muted">Priority</label>
+                                            <div>
+                                                {% if object.priority == 'routine' %}
+                                                    <span class="badge bg-secondary">Routine</span>
+                                                {% elif object.priority == 'urgent' %}
+                                                    <span class="badge bg-warning">Urgent</span>
+                                                {% elif object.priority == 'stat' %}
+                                                    <span class="badge bg-danger">STAT</span>
+                                                {% endif %}
+                                                {% if object.urgent %}
+                                                    <span class="badge bg-danger ms-1">URGENT</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label text-muted">Created</label>
+                                            <div class="fw-bold">{{ object.created_at|date:"M d, Y H:i" }}</div>
+                                        </div>
+                                    </div>
+
+                                    {% if object.clinical_indication %}
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Clinical Indication</label>
+                                            <div class="border rounded p-2 bg-light">
+                                                {{ object.clinical_indication }}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if object.notes %}
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Additional Notes</label>
+                                            <div class="border rounded p-2 bg-light">
+                                                {{ object.notes }}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patient & Doctor Information -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-users me-2"></i>Patient & Doctor Information
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Patient Information -->
+                                    <div class="border rounded p-3 mb-3">
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-user-injured me-2"></i>Patient Information
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label text-muted small">Name</label>
+                                                <div class="fw-bold">{{ object.patient.get_full_name }}</div>
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label text-muted small">Patient ID</label>
+                                                <div class="fw-bold">{{ object.patient.patient_id }}</div>
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label text-muted small">Date of Birth</label>
+                                                <div>{{ object.patient.date_of_birth|date:"M d, Y" }}</div>
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label text-muted small">Gender</label>
+                                                <div>{{ object.patient.get_gender_display }}</div>
+                                            </div>
+                                            {% if object.patient.phone %}
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label text-muted small">Phone</label>
+                                                    <div>{{ object.patient.phone }}</div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Doctor Information -->
+                                    <div class="border rounded p-3">
+                                        <h6 class="text-success mb-3">
+                                            <i class="fas fa-user-md me-2"></i>Ordering Doctor
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label text-muted small">Name</label>
+                                                <div class="fw-bold">Dr. {{ object.ordering_doctor.get_full_name }}</div>
+                                            </div>
+                                            {% if object.ordering_doctor.specialization %}
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label text-muted small">Specialization</label>
+                                                    <div>{{ object.ordering_doctor.specialization }}</div>
+                                                </div>
+                                            {% endif %}
+                                            {% if object.ordering_doctor.license_number %}
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label text-muted small">License</label>
+                                                    <div>{{ object.ordering_doctor.license_number }}</div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ordered Studies -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-x-ray me-2"></i>Ordered Studies
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if object.items.exists %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Study Type</th>
+                                                <th>Code</th>
+                                                <th>Modality</th>
+                                                <th>Laterality</th>
+                                                <th>Price</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in object.items.all %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ item.study_type.name }}</strong>
+                                                        {% if item.study_type.preparation_instructions %}
+                                                            <br><small class="text-muted">{{ item.study_type.preparation_instructions|truncatechars:50 }}</small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><code>{{ item.study_type.code }}</code></td>
+                                                    <td>
+                                                        <span class="badge bg-info">{{ item.study_type.get_modality_display }}</span>
+                                                    </td>
+                                                    <td>
+                                                        {% if item.laterality %}
+                                                            <span class="badge bg-secondary">{{ item.get_laterality_display }}</span>
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if item.study_type.price %}
+                                                            <span class="text-success fw-bold">${{ item.study_type.price }}</span>
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if item.status == 'pending' %}
+                                                            <span class="badge bg-warning">Pending</span>
+                                                        {% elif item.status == 'in_progress' %}
+                                                            <span class="badge bg-primary">In Progress</span>
+                                                        {% elif item.status == 'completed' %}
+                                                            <span class="badge bg-success">Completed</span>
+                                                        {% elif item.status == 'cancelled' %}
+                                                            <span class="badge bg-danger">Cancelled</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Total Cost -->
+                                <div class="row mt-3">
+                                    <div class="col-md-6 offset-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between">
+                                                    <strong>Total Estimated Cost:</strong>
+                                                    <strong class="text-success">
+                                                        ${% if object.items.exists %}
+                                                            {% for item in object.items.all %}
+                                                                {% if forloop.first %}
+                                                                    {% widthratio item.study_type.price 1 1 as running_total %}
+                                                                {% else %}
+                                                                    {% widthratio running_total|add:item.study_type.price 1 1 as running_total %}
+                                                                {% endif %}
+                                                                {% if forloop.last %}
+                                                                    {{ running_total|default:"0" }}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            0.00
+                                                        {% endif %}
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-x-ray fa-3x text-muted mb-3"></i>
+                                    <h6 class="text-muted">No Studies Ordered</h6>
+                                    <p class="text-muted">No imaging studies have been added to this order.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Order Actions</h6>
+                                    <small class="text-muted">Manage this radiology order</small>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    {% if object.status == 'pending' %}
+                                        <button type="button" class="btn btn-primary" onclick="updateStatus('in_progress')">
+                                            <i class="fas fa-play me-1"></i>Start Processing
+                                        </button>
+                                        <a href="{% url 'radiology:order_update' object.pk %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-edit me-1"></i>Edit Order
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" onclick="updateStatus('cancelled')">
+                                            <i class="fas fa-times me-1"></i>Cancel Order
+                                        </button>
+                                    {% elif object.status == 'in_progress' %}
+                                        <button type="button" class="btn btn-success" onclick="updateStatus('completed')">
+                                            <i class="fas fa-check me-1"></i>Mark Complete
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" onclick="updateStatus('cancelled')">
+                                            <i class="fas fa-times me-1"></i>Cancel Order
+                                        </button>
+                                    {% elif object.status == 'completed' %}
+                                        <span class="badge bg-success fs-6">Order Completed</span>
+                                    {% elif object.status == 'cancelled' %}
+                                        <span class="badge bg-danger fs-6">Order Cancelled</span>
+                                    {% endif %}
+
+                                    <a href="{% url 'radiology:order_list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>Back to Orders
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<script src="{% static 'js/radiology/order_detail.js' %}"></script>

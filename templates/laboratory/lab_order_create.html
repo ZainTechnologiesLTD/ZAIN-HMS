@@ -1,0 +1,169 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Create Lab Order{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Create Lab Order</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'laboratory:dashboard' %}">Laboratory</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'laboratory:lab_order_list' %}">Orders</a></li>
+                        <li class="breadcrumb-item active">Create</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" id="labOrderForm">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Patient and Doctor Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Patient & Doctor Information</h5>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.patient.id_for_label }}" class="form-label">Patient *</label>
+                                    {{ form.patient }}
+                                    {% if form.patient.errors %}
+                                        <div class="text-danger">{{ form.patient.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.doctor.id_for_label }}" class="form-label">Doctor *</label>
+                                    {{ form.doctor }}
+                                    {% if form.doctor.errors %}
+                                        <div class="text-danger">{{ form.doctor.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                                    {{ form.priority }}
+                                    {% if form.priority.errors %}
+                                        <div class="text-danger">{{ form.priority.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Clinical Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Clinical Information</h5>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.clinical_history.id_for_label }}" class="form-label">Clinical History</label>
+                                    {{ form.clinical_history }}
+                                    {% if form.clinical_history.errors %}
+                                        <div class="text-danger">{{ form.clinical_history.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.provisional_diagnosis.id_for_label }}" class="form-label">Provisional Diagnosis</label>
+                                    {{ form.provisional_diagnosis }}
+                                    {% if form.provisional_diagnosis.errors %}
+                                        <div class="text-danger">{{ form.provisional_diagnosis.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.special_instructions.id_for_label }}" class="form-label">Special Instructions</label>
+                                    {{ form.special_instructions }}
+                                    {% if form.special_instructions.errors %}
+                                        <div class="text-danger">{{ form.special_instructions.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Selection -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3">Select Tests</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th width="50">Select</th>
+                                                <th>Test Name</th>
+                                                <th>Category</th>
+                                                <th>Sample Type</th>
+                                                <th>Price</th>
+                                                <th>Reporting Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for test in lab_tests %}
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="selected_tests" value="{{ test.id }}"
+                                                           class="form-check-input test-checkbox"
+                                                           data-price="{{ test.price }}">
+                                                </td>
+                                                <td>{{ test.name }}</td>
+                                                <td>{{ test.category.name }}</td>
+                                                <td>{{ test.get_sample_type_display }}</td>
+                                                <td>${{ test.price }}</td>
+                                                <td>{{ test.reporting_time_hours }} hrs</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="6" class="text-center">No tests available</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="row">
+                            <div class="col-md-6 offset-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Order Summary</h6>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Selected Tests:</span>
+                                            <span id="selected-count">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Total Amount:</span>
+                                            <span id="total-amount">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="text-end">
+                                    <a href="{% url 'laboratory:lab_order_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                                    <button type="submit" class="btn btn-success" id="submitBtn" disabled>Create Order</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/laboratory/lab_order_create.js' %}"></script>

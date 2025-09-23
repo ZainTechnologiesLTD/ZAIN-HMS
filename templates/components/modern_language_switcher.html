@@ -1,0 +1,38 @@
+{% load static %}
+<!-- Modern URL-based Language Switcher Component -->
+{% load i18n %}
+
+<div class="language-switcher">
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-globe"></i>
+            <span class="language-name">
+                {% get_current_language as CURRENT_LANGUAGE %}
+                {% get_available_languages as AVAILABLE_LANGUAGES %}
+                {% for code, name in AVAILABLE_LANGUAGES %}
+                    {% if code == CURRENT_LANGUAGE %}{{ name }}{% endif %}
+                {% endfor %}
+            </span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+            {% get_available_languages as AVAILABLE_LANGUAGES %}
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% for code, name in AVAILABLE_LANGUAGES %}
+                <li>
+                    <a class="dropdown-item {% if code == CURRENT_LANGUAGE %}active{% endif %}"
+                       href="javascript:void(0);"
+                       onclick="switchLanguage('{{ code }}');">
+                        <span class="flag-icon">
+                            {% if code == 'en' %}🇺🇸{% elif code == 'es' %}🇪🇸{% elif code == 'fr' %}🇫🇷{% elif code == 'ar' %}🇸🇦{% elif code == 'hi' %}🇮🇳{% elif code == 'pt' %}🇵🇹{% elif code == 'de' %}🇩🇪{% elif code == 'it' %}🇮🇹{% else %}🌍{% endif %}
+                        </span>
+                        {{ name }}
+                        {% if code == CURRENT_LANGUAGE %}<i class="fas fa-check ms-auto"></i>{% endif %}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Modern URL-based Language Switching Script -->
+<script src="{% static 'js/components/modern_language_switcher.js' %}"></script>

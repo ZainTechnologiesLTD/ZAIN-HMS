@@ -1,0 +1,116 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Barcode Scanner" %} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/core/barcode_scanner.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="scanner-container">
+    <!-- Scanner Header -->
+    <div class="scanner-header">
+        <h1><i class="bi bi-upc-scan me-3"></i>{% trans "Hospital Barcode Scanner" %}</h1>
+        <p class="mb-0">{% trans "Scan barcodes on hospital documents or enter barcode manually" %}</p>
+    </div>
+
+    <!-- Scanner Method Selection -->
+    <div class="scanner-methods">
+        <div class="scanner-method" onclick="selectScannerMethod('barcode')" id="barcode-method">
+            <i class="bi bi-upc-scan"></i>
+            <h5>{% trans "Barcode Input" %}</h5>
+            <p class="text-muted mb-0">{% trans "Type or scan barcode directly" %}</p>
+        </div>
+        <div class="scanner-method" onclick="selectScannerMethod('camera')" id="camera-method">
+            <i class="fas fa-camera"></i>
+            <h5>{% trans "Camera Scanner" %}</h5>
+            <p class="text-muted mb-0">{% trans "Use camera to scan barcodes" %}</p>
+        </div>
+    </div>
+
+    <!-- Barcode Input Section -->
+    <div class="barcode-input-section" id="barcode-input-section">
+        <h4><i class="bi bi-upc-scan me-2"></i>{% trans "Enter Barcode" %}</h4>
+        <p class="text-muted">{% trans "Type the barcode number or scan directly with a barcode scanner" %}</p>
+
+        <input type="text"
+               id="barcode-input"
+               class="barcode-input"
+               placeholder="{% trans 'Enter barcode here...' %}"
+               autofocus>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="searchBarcode()">
+                <i class="fas fa-search me-2"></i>{% trans "Search" %}
+            </button>
+            <button class="btn btn-outline-secondary" onclick="clearInput()">
+                <i class="fas fa-times me-2"></i>{% trans "Clear" %}
+            </button>
+        </div>
+
+        <div class="manual-search-section">
+            <h6>{% trans "Manual Search" %}</h6>
+            <p class="text-muted small">{% trans "Can't find what you're looking for? Try manual search:" %}</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <input type="text" id="manual-search" class="form-control" placeholder="{% trans 'Search by name, ID, phone...' %}">
+                <button class="btn btn-outline-info" onclick="manualSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Section -->
+    <div class="camera-section" id="camera-section">
+        <h4><i class="fas fa-camera me-2"></i>{% trans "Camera Barcode Scanner" %}</h4>
+        <p class="text-muted">{% trans "Position the barcode within the green frame" %}</p>
+
+        <div class="camera-container">
+            <video id="camera-feed" autoplay playsinline></video>
+            <div class="camera-overlay"></div>
+        </div>
+
+        <div class="camera-controls">
+            <button class="btn btn-success" onclick="startCamera()" id="start-camera">
+                <i class="fas fa-play me-2"></i>{% trans "Start Camera" %}
+            </button>
+            <button class="btn btn-danger" onclick="stopCamera()" id="stop-camera" style="display: none;">
+                <i class="fas fa-stop me-2"></i>{% trans "Stop Camera" %}
+            </button>
+            <button class="btn btn-warning" onclick="toggleFlash()" id="toggle-flash" style="display: none;">
+                <i class="fas fa-lightbulb me-2"></i>{% trans "Flash" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">{% trans "Loading..." %}</span>
+        </div>
+        <p class="mt-3">{% trans "Searching hospital records..." %}</p>
+    </div>
+
+    <!-- Search Results -->
+    <div class="search-results" id="search-results">
+        <div class="results-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>{% trans "Search Results" %}</h5>
+        </div>
+        <div class="results-list" id="results-list">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="error-message" id="error-message"></div>
+    <div class="success-message" id="success-message"></div>
+</div>
+
+<!-- Load ZXing Barcode Scanner Library -->
+<script src="{% static 'vendor/zxing/index.min.js' %}"></script>
+<script src="{% static 'js/core/barcode_scanner.js' %}"></script>
+
+{% endblock %}

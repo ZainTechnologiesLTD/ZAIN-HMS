@@ -1,0 +1,94 @@
+.search-box {
+    margin-bottom: 15px;
+    }
+.search-input-container {
+    position: relative;
+    }
+.search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    }
+.search-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+.search-results {
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: white;
+    display: none;
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+.search-result-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f1f1;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    }
+.search-result-item:hover {
+    background-color: #f8f9fa;
+    }
+.search-result-item:last-child {
+    border-bottom: none;
+    }
+.search-result-name {
+    font-weight: 500;
+    color: #333;
+    }
+.search-result-details {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+    }
+.selected-item {
+    background-color: #e8f4fd;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    display: none;
+    position: relative;
+    }
+.selected-item-name {
+    font-weight: 500;
+    color: #007bff;
+    }
+.selected-item-details {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+    }
+.remove-selection {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    }
+.remove-selection:hover {
+    color: #a71e2a;
+    }
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 15px;
+    color: #666;
+    }
+.no-results {
+    padding: 15px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    }

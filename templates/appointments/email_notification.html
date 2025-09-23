@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Confirmation</title>
+
+    <link rel="stylesheet" href="{% static 'css/appointments/email_notification.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 ZAIN HMS</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Appointment Confirmation</p>
+        </div>
+
+        <div class="content">
+            <h2 style="color: #495057; margin-bottom: 20px;">
+                Dear {{ appointment.patient.get_full_name }},
+            </h2>
+
+            <p style="font-size: 16px; color: #6c757d; margin-bottom: 25px;">
+                Your appointment has been successfully scheduled. Please find the details below:
+            </p>
+
+            <div class="appointment-card">
+                <h3 style="margin: 0 0 20px 0; color: #495057;">
+                    📋 Appointment Details
+                </h3>
+
+                <div class="appointment-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">📅</span>
+                        <span class="detail-label">Date:</span>
+                        <span class="detail-value">{{ appointment.appointment_date|date:"F j, Y" }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-icon">🕒</span>
+                        <span class="detail-label">Time:</span>
+                        <span class="detail-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-icon">👨‍⚕️</span>
+                        <span class="detail-label">Doctor:</span>
+                        <span class="detail-value">Dr. {{ appointment.doctor.get_full_name }}</span>
+                    </div>
+
+                    {% if appointment.department %}
+                    <div class="detail-item">
+                        <span class="detail-icon">🏥</span>
+                        <span class="detail-label">Department:</span>
+                        <span class="detail-value">{{ appointment.department }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="detail-item">
+                        <span class="detail-icon">🎫</span>
+                        <span class="detail-label">Serial No:</span>
+                        <span class="detail-value">{{ appointment.serial_number }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-icon">📋</span>
+                        <span class="detail-label">Appointment No:</span>
+                        <span class="detail-value">{{ appointment.appointment_number }}</span>
+                    </div>
+
+                    {% if appointment.chief_complaint %}
+                    <div class="detail-item">
+                        <span class="detail-icon">📝</span>
+                        <span class="detail-label">Reason:</span>
+                        <span class="detail-value">{{ appointment.chief_complaint }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="alert">
+                <strong>⚠️ Important:</strong> Please arrive 15 minutes before your scheduled appointment time. Bring a valid ID and any relevant medical documents.
+            </div>
+
+            {% if appointment.notes %}
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <strong>📌 Additional Notes:</strong><br>
+                {{ appointment.notes }}
+            </div>
+            {% endif %}
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ request.build_absolute_uri }}/appointments/{{ appointment.id }}/" class="btn">
+                    View Appointment Details
+                </a>
+            </div>
+
+            <div style="margin: 30px 0; padding: 20px; background: #e8f4fd; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                <h4 style="margin: 0 0 15px 0; color: #0369a1;">📞 Need Help?</h4>
+                <p style="margin: 0; color: #075985;">
+                    If you need to reschedule or cancel your appointment, please contact us at least 24 hours in advance.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p style="margin: 0 0 10px 0;">
+                <strong>ZAIN HMS - Hospital Management System</strong>
+            </p>
+            <p style="margin: 0;">
+                This is an automated message. Please do not reply to this email.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

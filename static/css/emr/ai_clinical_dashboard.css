@@ -1,0 +1,199 @@
+.ai-clinical-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    }
+
+.dashboard-header {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    }
+
+.ai-metric-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid #4CAF50;
+    }
+
+.ai-metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+.ai-metric-card.critical {
+    border-left-color: #f44336;
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+
+.ai-metric-card.warning {
+    border-left-color: #ff9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+
+.ai-metric-card.info {
+    border-left-color: #2196F3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    }
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    }
+
+.alert-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #e74c3c;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    }
+
+.alert-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+.alert-severity-critical {
+    border-left-color: #e74c3c;
+    background: linear-gradient(90deg, rgba(231, 76, 60, 0.05) 0%, white 100%);
+    }
+
+.alert-severity-high {
+    border-left-color: #f39c12;
+    background: linear-gradient(90deg, rgba(243, 156, 18, 0.05) 0%, white 100%);
+    }
+
+.alert-severity-medium {
+    border-left-color: #f1c40f;
+    background: linear-gradient(90deg, rgba(241, 196, 15, 0.05) 0%, white 100%);
+    }
+
+.recommendation-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #3498db;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    }
+
+.recommendation-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+.patient-risk-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #e74c3c;
+    }
+
+.risk-score {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    }
+
+.risk-high { color: #e74c3c; }
+.risk-medium { color: #f39c12; }
+.risk-low { color: #27ae60; }
+
+.ai-performance-chart {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    }
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+    }
+
+.chart-container {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    }
+
+.chart-container canvas {
+    max-height: 350px !important;
+    width: 100% !important;
+    }
+
+.card {
+    transition: all 0.3s ease;
+    }
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    }
+
+.ai-status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    }
+
+.ai-online { background-color: #27ae60; }
+.ai-offline { background-color: #e74c3c; }
+
+.real-time-update {
+    animation: pulse 2s infinite;
+    }
+
+@keyframes pulse {
+0% { opacity: 1; }
+50% { opacity: 0.7; }
+100% { opacity: 1; }
+    }
+
+.btn-ai-action {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    }
+
+.btn-ai-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    color: white;
+    }

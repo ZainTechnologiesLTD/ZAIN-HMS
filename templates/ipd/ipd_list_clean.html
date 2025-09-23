@@ -1,0 +1,211 @@
+{# templates/ipd/ipd_list_clean.html #}
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}IPD Records - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">IPD Records</li>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ipd/ipd_list_clean.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-bed me-2"></i>IPD Management
+        </h1>
+        <div>
+            <a href="{% url 'ipd:ipd_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>New IPD Record
+            </a>
+            {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+            <div class="btn-group ms-2">
+                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-cog me-1"></i>Manage
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'ipd:room_list' %}">
+                        <i class="fas fa-door-open me-1"></i>Manage Rooms
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'ipd:bed_list' %}">
+                        <i class="fas fa-bed me-1"></i>Manage Beds
+                    </a></li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Records</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ipd_records|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bed fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Admissions</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% for record in ipd_records %}{% if record.status == 'admitted' %}1{% endif %}{% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-injured fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IPD Records Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-table me-2"></i>IPD Records
+            </h6>
+            <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                <i class="fas fa-sync me-1"></i>Refresh
+            </button>
+        </div>
+        <div class="card-body">
+            {% if ipd_records %}
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Room/Bed</th>
+                            <th>Admission Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in ipd_records %}
+                        <tr class="ipd-card">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ record.patient.get_full_name }}</div>
+                                        <small class="text-muted">ID: {{ record.patient.patient_id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <div class="fw-bold">Dr. {{ record.doctor.get_full_name }}</div>
+                                    <small class="text-muted">{{ record.doctor.specialization|default:"General" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">Room {{ record.room.room_number }}</span>
+                                <br><small>Bed {{ record.bed.bed_number }}</small>
+                            </td>
+                            <td>
+                                <div>{{ record.admission_date|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ record.admission_date|timesince }} ago</small>
+                            </td>
+                            <td>
+                                {% if record.status == 'admitted' %}
+                                    <span class="badge bg-success patient-status-badge">Active</span>
+                                {% elif record.status == 'discharged' %}
+                                    <span class="badge bg-info patient-status-badge">Discharged</span>
+                                {% else %}
+                                    <span class="badge bg-warning patient-status-badge">{{ record.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'ipd:ipd_detail' record.pk %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'ipd:ipd_update' record.pk %}" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'ipd:ipd_delete' record.pk %}" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-bed fa-3x text-gray-300 mb-3"></i>
+                <h5 class="text-muted">No IPD Records Found</h5>
+                <p class="text-muted">Click the "New IPD Record" button to add your first record.</p>
+                <a href="{% url 'ipd:ipd_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Create First Record
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/ipd/ipd_list_clean.js' %}"></script>
+{% endblock %}

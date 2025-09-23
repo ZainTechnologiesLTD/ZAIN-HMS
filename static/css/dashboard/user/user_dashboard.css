@@ -1,0 +1,172 @@
+/* Beautiful User Dashboard CSS - ZAIN HMS User Interface */
+
+/* Dashboard Layout */
+.user-dashboard {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+/* Card Headers */
+.card-header-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border: none;
+}
+
+.card-header-custom h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Dashboard Widgets */
+.widget {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+}
+
+.widget-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.widget-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.widget-icon.patients {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.widget-icon.appointments {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.widget-icon.revenue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.widget-icon.reports {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* Stats Display */
+.stat-display {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Navigation */
+.user-nav {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Buttons */
+.btn-user-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 25px;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-user-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.quick-action-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.quick-action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #667eea;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+.user-dashboard {
+    padding: 1rem 0;
+    }
+
+.dashboard-card {
+    margin-bottom: 1rem;
+    }
+
+.quick-actions {
+    grid-template-columns: 1fr;
+    }
+
+.stat-display {
+    font-size: 1.5rem;
+    }
+}

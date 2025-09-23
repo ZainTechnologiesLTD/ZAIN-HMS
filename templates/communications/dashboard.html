@@ -1,0 +1,202 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Communications Dashboard{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/communications/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">
+                Communications Dashboard
+            </h3>
+            <p class="text-muted mb-0">Monitor and manage all patient communications</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'communications:template_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-chat-square-text me-2"></i>Manage Templates
+            </a>
+            <a href="{% url 'communications:history' %}" class="btn btn-primary">
+                <i class="bi bi-clock-history me-2"></i>View History
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="comm-stat-card text-center">
+                <h4>{{ stats.total_today }}</h4>
+                <small>Today's Messages</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="comm-stat-card text-center" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                <h4>{{ stats.total_week }}</h4>
+                <small>This Week</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="comm-stat-card text-center" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                <h4>{{ templates_count }}</h4>
+                <small>Templates</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="comm-stat-card text-center" style="background: linear-gradient(135deg, #dc3545, #e83e8c);">
+                <h4>{% for status in stats.by_status %}{% if status.status == 'delivered' %}{{ status.count }}{% endif %}{% endfor %}</h4>
+                <small>Delivered</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <!-- Channel Distribution -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Messages by Channel</h5>
+                </div>
+                <div class="card-body">
+                    {% for channel in stats.by_channel %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="channel-badge
+                                    {% if channel.channel == 'whatsapp' %}bg-success text-white
+                                    {% elif channel.channel == 'telegram' %}bg-info text-white
+                                    {% elif channel.channel == 'viber' %}bg-primary text-white
+                                    {% elif channel.channel == 'email' %}bg-secondary text-white
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {% if channel.channel == 'whatsapp' %}<i class="bi bi-whatsapp me-1"></i>
+                                    {% elif channel.channel == 'telegram' %}<i class="bi bi-telegram me-1"></i>
+                                    {% elif channel.channel == 'viber' %}<i class="bi bi-chat-dots me-1"></i>
+                                    {% elif channel.channel == 'email' %}<i class="bi bi-envelope me-1"></i>{% endif %}
+                                    {{ channel.channel|capfirst }}
+                                </span>
+                            </div>
+                            <span class="fw-bold">{{ channel.count }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">No communications yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Distribution -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {% for status in stats.by_status %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="status-badge
+                                    {% if status.status == 'delivered' %}bg-success text-white
+                                    {% elif status.status == 'sent' %}bg-primary text-white
+                                    {% elif status.status == 'failed' %}bg-danger text-white
+                                    {% elif status.status == 'pending' %}bg-warning text-dark
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {% if status.status == 'delivered' %}<i class="bi bi-check2 me-1"></i>
+                                    {% elif status.status == 'sent' %}<i class="bi bi-check me-1"></i>
+                                    {% elif status.status == 'failed' %}<i class="bi bi-x-circle me-1"></i>
+                                    {% elif status.status == 'pending' %}<i class="bi bi-clock me-1"></i>{% endif %}
+                                    {{ status.status|capfirst }}
+                                </span>
+                            </div>
+                            <span class="fw-bold">{{ status.count }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">No communications yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Communications -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Communications</h5>
+            <a href="{% url 'communications:history' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body">
+            {% if stats.recent_logs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Patient</th>
+                                <th>Appointment</th>
+                                <th>Channel</th>
+                                <th>Status</th>
+                                <th>Sent By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in stats.recent_logs %}
+                                <tr>
+                                    <td>
+                                        <small>{{ log.sent_at|date:"M d, Y" }}<br>
+                                        {{ log.sent_at|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">{{ log.patient.get_full_name }}</div>
+                                        <small class="text-muted">{{ log.patient.patient_id }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">{{ log.appointment.appointment_date|date:"M d" }}</div>
+                                        <small class="text-muted">{{ log.appointment.appointment_time|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="channel-badge
+                                            {% if log.channel == 'whatsapp' %}bg-success text-white
+                                            {% elif log.channel == 'telegram' %}bg-info text-white
+                                            {% elif log.channel == 'viber' %}bg-primary text-white
+                                            {% elif log.channel == 'email' %}bg-secondary text-white
+                                            {% else %}bg-light text-dark{% endif %}">
+                                            {% if log.channel == 'whatsapp' %}<i class="bi bi-whatsapp"></i>
+                                            {% elif log.channel == 'telegram' %}<i class="bi bi-telegram"></i>
+                                            {% elif log.channel == 'viber' %}<i class="bi bi-chat-dots"></i>
+                                            {% elif log.channel == 'email' %}<i class="bi bi-envelope"></i>{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge
+                                            {% if log.status == 'delivered' %}bg-success text-white
+                                            {% elif log.status == 'sent' %}bg-primary text-white
+                                            {% elif log.status == 'failed' %}bg-danger text-white
+                                            {% elif log.status == 'pending' %}bg-warning text-dark
+                                            {% else %}bg-light text-dark{% endif %}">
+                                            {{ log.status|capfirst }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ log.sent_by.get_full_name|default:log.sent_by.username }}</small>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-chat-square-dots display-1 text-muted"></i>
+                    <h5 class="mt-3">No communications yet</h5>
+                    <p class="text-muted">Communications will appear here once patients start receiving messages.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

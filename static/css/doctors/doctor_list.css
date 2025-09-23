@@ -1,0 +1,45 @@
+.doctor-card {
+    transition: transform 0.2s;
+    }
+.doctor-card:hover {
+    transform: translateY(-2px);
+    }
+.doctor-avatar {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    }
+.status-badge {
+    font-size: 0.85em;
+    }
+.btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    }
+.search-form {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    }
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+.table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    }
+.table td {
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+    }
+.content-page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 15px;
+    }

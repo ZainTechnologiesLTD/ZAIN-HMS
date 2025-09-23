@@ -1,0 +1,925 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Billing - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Home</a></li>
+<li class="breadcrumb-item active" aria-current="page">Billing</li>
+{% include 'shared/ultra_modern_date_picker_2025.html' %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/common.css' %}">
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{# <style>
+    .bill-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-fast);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .bill-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .bill-card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .bill-card-header.paid {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    }
+
+    .bill-card-header.pending {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+    }
+
+    .bill-card-header.overdue {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+    }
+
+    .bill-number {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .bill-date {
+        opacity: 0.8;
+        font-size: 0.875rem;
+    }
+
+    .bill-amount {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        text-align: right;
+    }
+
+    .amount-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .amount-currency {
+        font-size: 0.875rem;
+        opacity: 0.8;
+    }
+
+    .bill-status-badge {
+        position: absolute;
+        bottom: 1rem;
+        right: 1.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+    }
+
+    .bill-card-body {
+        padding: 1.5rem;
+    }
+
+    .patient-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .patient-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .patient-details h6 {
+        margin: 0 0 0.25rem 0;
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .patient-id {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+
+    .bill-items-summary {
+        margin-bottom: 1.5rem;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--gray-100);
+        font-size: 0.875rem;
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--gray-800);
+    }
+
+    .item-name {
+        color: var(--gray-600);
+    }
+
+    .item-amount {
+        font-weight: 500;
+        color: var(--gray-800);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .billing-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--primary-color);
+        transition: all var(--transition-fast);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-card.revenue {
+        border-left-color: var(--success-color);
+    }
+
+    .stat-card.pending {
+        border-left-color: var(--warning-color);
+    }
+
+    .stat-card.overdue {
+        border-left-color: var(--danger-color);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number.revenue {
+        color: var(--success-color);
+    }
+
+    .stat-number.pending {
+        color: var(--warning-color);
+    }
+
+    .stat-number.overdue {
+        color: var(--danger-color);
+    }
+
+    .stat-label {
+        color: var(--gray-600);
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-change {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+
+    .filters-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+    }
+
+    .search-input-wrapper input {
+        padding-left: 2.75rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+        z-index: 2;
+    }
+
+    .bills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .table-view {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .bill-list-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        transition: background-color var(--transition-fast);
+    }
+
+    .bill-list-item:hover {
+        background: var(--gray-50);
+    }
+
+    .bill-list-item:last-child {
+        border-bottom: none;
+    }
+
+    .bill-list-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .bill-list-number {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .bill-list-details {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .bill-list-amount {
+        text-align: right;
+        margin-right: 1rem;
+    }
+
+    .bill-amount-large {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+
+    .bill-status {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.25rem;
+    }
+
+    .status-paid { color: var(--success-color); }
+    .status-pending { color: var(--warning-color); }
+    .status-overdue { color: var(--danger-color); }
+    .status-cancelled { color: var(--gray-500); }
+
+    .bill-list-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .payment-methods {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .payment-method {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+
+    .payment-method:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .overdue-indicator {
+        background: var(--danger-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        animation: pulse 2s infinite;
+    }
+
+    .quick-actions {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .quick-action-card {
+        background: var(--gray-50);
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--gray-700);
+        transition: all var(--transition-fast);
+    }
+
+    .quick-action-card:hover {
+        border-color: var(--primary-color);
+        background: rgba(59, 130, 246, 0.05);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .bills-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .billing-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .bill-list-details {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .bill-list-actions {
+            flex-direction: column;
+        }
+
+        .bill-amount {
+            position: static;
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .amount-value {
+            font-size: 1.5rem;
+        }
+    } #}
+{% endblock %}
+
+{% block content %}
+<div x-data="billingManager()" x-init="init()">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="fas fa-file-invoice-dollar me-3 text-primary"></i>Billing Management
+            </h1>
+            <p class="text-muted mb-0">Manage hospital bills, payments and invoices</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="viewMode" id="gridView" checked>
+                <label class="btn btn-outline-primary" for="gridView">
+                    <i class="fas fa-th-large"></i> Grid
+                </label>
+                <input type="radio" class="btn-check" name="viewMode" id="listView">
+                <label class="btn btn-outline-primary" for="listView">
+                    <i class="fas fa-list"></i> List
+                </label>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?export=excel">
+                        <i class="fas fa-file-excel me-2"></i>Excel Report
+                    </a></li>
+                    <li><a class="dropdown-item" href="?export=pdf">
+                        <i class="fas fa-file-pdf me-2"></i>PDF Report
+                    </a></li>
+                    <li><a class="dropdown-item" href="?export=csv">
+                        <i class="fas fa-file-csv me-2"></i>CSV Export
+                    </a></li>
+                </ul>
+            </div>
+
+            <a href="{% url 'billing:create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create Bill
+            </a>
+        </div>
+    </div>
+
+    <!-- Billing Statistics -->
+    <div class="billing-stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_bills|default:0 }}</div>
+            <div class="stat-label">Total Bills</div>
+            <div class="stat-change">
+                <i class="fas fa-arrow-up text-success"></i>
+                +{{ new_bills_today|default:0 }} today
+            </div>
+        </div>
+        <div class="stat-card revenue">
+            <div class="stat-number revenue">${{ total_revenue|default:0|floatformat:2 }}</div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-change">This month</div>
+        </div>
+        <div class="stat-card pending">
+            <div class="stat-number pending">${{ pending_amount|default:0|floatformat:2 }}</div>
+            <div class="stat-label">Pending Payments</div>
+            <div class="stat-change">{{ pending_bills_count|default:0 }} bills</div>
+        </div>
+        <div class="stat-card overdue">
+            <div class="stat-number overdue">${{ overdue_amount|default:0|floatformat:2 }}</div>
+            <div class="stat-label">Overdue Payments</div>
+            <div class="stat-change">{{ overdue_bills_count|default:0 }} bills</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h6 class="mb-3">
+            <i class="fas fa-bolt me-2"></i>Quick Actions
+        </h6>
+        <div class="quick-actions-grid">
+            <a href="{% url 'billing:create' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <h6>Create Bill</h6>
+                <p class="text-muted small mb-0">Generate new invoice</p>
+            </a>
+
+            <a href="{% url 'billing:payment_record' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <h6>Record Payment</h6>
+                <p class="text-muted small mb-0">Process payment</p>
+            </a>
+
+            <a href="{% url 'billing:overdue_bills' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h6>Overdue Bills</h6>
+                <p class="text-muted small mb-0">{{ overdue_bills_count|default:0 }} overdue</p>
+            </a>
+
+            <a href="{% url 'billing:reports' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h6>Reports</h6>
+                <p class="text-muted small mb-0">Financial analytics</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-section">
+        <form method="GET" class="filters-grid" hx-get="{% url 'billing:bill_list' %}" hx-target="#billsList" hx-trigger="submit, change">
+            <div class="search-input-wrapper">
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Search by bill number, patient name..."
+                       value="{{ request.GET.search }}"
+                       hx-get="{% url 'billing:bill_list' %}"
+                       hx-target="#billsList"
+                       hx-trigger="keyup changed delay:300ms">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+
+            <div>
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="PAID" {% if request.GET.status == 'PAID' %}selected{% endif %}>Paid</option>
+                    <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="OVERDUE" {% if request.GET.status == 'OVERDUE' %}selected{% endif %}>Overdue</option>
+                    <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Date Range</label>
+                <div class="d-flex gap-2">
+                    <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}" placeholder="DD/MM/YYYY">
+                    <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}" placeholder="DD/MM/YYYY">
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">Amount Range</label>
+                <div class="d-flex gap-2">
+                    <input type="number" name="amount_min" class="form-control" placeholder="Min" value="{{ request.GET.amount_min }}">
+                    <input type="number" name="amount_max" class="form-control" placeholder="Max" value="{{ request.GET.amount_max }}">
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">Payment Method</label>
+                <select name="payment_method" class="form-select">
+                    <option value="">All Methods</option>
+                    <option value="CASH" {% if request.GET.payment_method == 'CASH' %}selected{% endif %}>Cash</option>
+                    <option value="CARD" {% if request.GET.payment_method == 'CARD' %}selected{% endif %}>Card</option>
+                    <option value="INSURANCE" {% if request.GET.payment_method == 'INSURANCE' %}selected{% endif %}>Insurance</option>
+                    <option value="BANK_TRANSFER" {% if request.GET.payment_method == 'BANK_TRANSFER' %}selected{% endif %}>Bank Transfer</option>
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="{% url 'billing:bill_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bills List -->
+    <div id="billsList">
+        <!-- Grid View -->
+        <div id="gridViewContent" class="bills-grid">
+            {% for bill in bills %}
+            <div class="bill-card" data-bill-id="{{ bill.id }}">
+                <div class="bill-card-header {{ bill.status|lower }}">
+                    <div class="bill-number">Bill #{{ bill.bill_number }}</div>
+                    <div class="bill-date">{{ bill.created_at|date:"M d, Y" }}</div>
+
+                    <div class="bill-amount">
+                        <div class="amount-value">${{ bill.total_amount|floatformat:2 }}</div>
+                        <div class="amount-currency">USD</div>
+                    </div>
+
+                    <div class="bill-status-badge">
+                        {{ bill.get_status_display }}
+                    </div>
+                </div>
+
+                <div class="bill-card-body">
+                    <div class="patient-info">
+                        <div class="patient-avatar">
+                            {{ bill.patient.first_name.0 }}{{ bill.patient.last_name.0 }}
+                        </div>
+                        <div class="patient-details">
+                            <h6>{{ bill.patient.get_full_name }}</h6>
+                            <div class="patient-id">ID: {{ bill.patient.patient_id }}</div>
+                        </div>
+                    </div>
+
+                    <div class="bill-items-summary">
+                        {% for item in bill.bill_items.all|slice:":3" %}
+                        <div class="item-row">
+                            <span class="item-name">{{ item.description|truncatechars:25 }}</span>
+                            <span class="item-amount">${{ item.amount|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if bill.bill_items.count > 3 %}
+                        <div class="item-row">
+                            <span class="item-name">+{{ bill.bill_items.count|add:"-3" }} more items</span>
+                            <span class="item-amount">...</span>
+                        </div>
+                        {% endif %}
+                        <div class="item-row">
+                            <span class="item-name">Total</span>
+                            <span class="item-amount">${{ bill.total_amount|floatformat:2 }}</span>
+                        </div>
+                    </div>
+
+                    {% if bill.is_overdue %}
+                    <div class="mb-3">
+                        <span class="overdue-indicator">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Overdue by {{ bill.days_overdue }} days
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <div class="action-buttons">
+                        <a href="{% url 'billing:bill_detail' bill.id %}" class="btn btn-sm btn-outline-primary btn-action">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        {% if bill.status == 'PENDING' %}
+                        <button class="btn btn-sm btn-outline-success btn-action" onclick="recordPayment({{ bill.id }})">
+                            <i class="fas fa-credit-card me-1"></i>Pay
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'billing:bill_print' bill.id %}" class="btn btn-sm btn-outline-secondary btn-action" target="_blank">
+                            <i class="fas fa-print me-1"></i>Print
+                        </a>
+                        {% if bill.status == 'PENDING' %}
+                        <div class="dropdown w-100">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'billing:bill_edit' bill.id %}">
+                                    <i class="fas fa-edit me-2"></i>Edit
+                                </a></li>
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-envelope me-2"></i>Send Reminder
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="cancelBill({{ bill.id }})">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if bill.status == 'PENDING' %}
+                    <div class="payment-methods">
+                        <a href="#" class="payment-method" onclick="recordPayment({{ bill.id }}, 'CASH')">
+                            <i class="fas fa-money-bill me-1"></i>Cash
+                        </a>
+                        <a href="#" class="payment-method" onclick="recordPayment({{ bill.id }}, 'CARD')">
+                            <i class="fas fa-credit-card me-1"></i>Card
+                        </a>
+                        <a href="#" class="payment-method" onclick="recordPayment({{ bill.id }}, 'INSURANCE')">
+                            <i class="fas fa-shield-alt me-1"></i>Insurance
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-file-invoice"></i>
+                    <h5>No Bills Found</h5>
+                    <p>Try adjusting your search criteria or create a new bill</p>
+                    <a href="{% url 'billing:create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Bill
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- List View -->
+        <div id="listViewContent" class="table-view d-none">
+            {% for bill in bills %}
+            <div class="bill-list-item" data-bill-id="{{ bill.id }}">
+                <div class="bill-list-info">
+                    <div class="bill-list-number">Bill #{{ bill.bill_number }}</div>
+                    <div class="bill-list-details">
+                        <span><i class="fas fa-user me-1"></i>{{ bill.patient.get_full_name }}</span>
+                        <span><i class="fas fa-calendar me-1"></i>{{ bill.created_at|date:"M d, Y" }}</span>
+                        <span><i class="fas fa-clock me-1"></i>{{ bill.due_date|date:"M d, Y"|default:"No due date" }}</span>
+                        {% if bill.payment_method %}
+                        <span><i class="fas fa-credit-card me-1"></i>{{ bill.get_payment_method_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bill-list-amount">
+                    <div class="bill-amount-large">${{ bill.total_amount|floatformat:2 }}</div>
+                    <div class="bill-status status-{{ bill.status|lower }}">{{ bill.get_status_display }}</div>
+                </div>
+
+                <div class="bill-list-actions">
+                    <a href="{% url 'billing:bill_detail' bill.id %}"
+                       class="btn btn-sm btn-outline-primary"
+                       data-bs-toggle="tooltip" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    {% if bill.status == 'PENDING' %}
+                    <button class="btn btn-sm btn-outline-success"
+                            onclick="recordPayment({{ bill.id }})"
+                            data-bs-toggle="tooltip" title="Record Payment">
+                        <i class="fas fa-credit-card"></i>
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'billing:bill_print' bill.id %}"
+                       class="btn btn-sm btn-outline-secondary"
+                       target="_blank"
+                       data-bs-toggle="tooltip" title="Print Bill">
+                        <i class="fas fa-print"></i>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'billing:bill_detail' bill.id %}">
+                                <i class="fas fa-eye me-2"></i>View Details
+                            </a></li>
+                            {% if bill.status == 'PENDING' %}
+                            <li><a class="dropdown-item" href="{% url 'billing:bill_edit' bill.id %}">
+                                <i class="fas fa-edit me-2"></i>Edit Bill
+                            </a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-envelope me-2"></i>Send Reminder
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-copy me-2"></i>Duplicate
+                            </a></li>
+                            {% if bill.status == 'PENDING' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="cancelBill({{ bill.id }})">
+                                <i class="fas fa-times me-2"></i>Cancel Bill
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-file-invoice"></i>
+                <h5>No Bills Found</h5>
+                <p>Try adjusting your search criteria or create a new bill</p>
+                <a href="{% url 'billing:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create First Bill
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Bills pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    <input type="hidden" id="billId" name="bill_id">
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="">Select Method</option>
+                            <option value="CASH">Cash</option>
+                            <option value="CARD">Credit/Debit Card</option>
+                            <option value="INSURANCE">Insurance</option>
+                            <option value="BANK_TRANSFER">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" name="amount" class="form-control" step="0.01" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Reference Number (Optional)</label>
+                        <input type="text" name="reference" class="form-control" placeholder="Transaction/Check number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Additional payment notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitPayment()">Record Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script src="{% static 'js/billing.js' %}"></script>
+
+{% endblock %}

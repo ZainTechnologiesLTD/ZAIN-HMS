@@ -1,0 +1,47 @@
+<!-- Enhanced Communication Status Badges -->
+<div class="communication-badges">
+    {% if has_activity %}
+        <div class="communication-status d-flex gap-1 align-items-center flex-wrap">
+            {% for channel, status in statuses.items %}
+                {% if status.status != 'none' %}
+                    <span class="comm-badge status-{{ status.status }}"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="{{ channel|capfirst }}: {{ status.status|capfirst }}{% if last_time %} • {{ last_time }}{% endif %}">
+                        {% if channel == 'whatsapp' %}
+                            <i class="bi bi-whatsapp"></i>
+                        {% elif channel == 'telegram' %}
+                            <i class="bi bi-telegram"></i>
+                        {% elif channel == 'viber' %}
+                            <i class="bi bi-chat-dots"></i>
+                        {% elif channel == 'email' %}
+                            <i class="bi bi-envelope"></i>
+                        {% else %}
+                            <i class="bi bi-chat"></i>
+                        {% endif %}
+                        <span class="channel-initial">{{ channel|first|upper }}</span>
+                        {% if status.status == 'read' %}
+                            <i class="bi bi-check2-all ms-1" style="font-size: 0.7rem;"></i>
+                        {% elif status.status == 'delivered' %}
+                            <i class="bi bi-check2 ms-1" style="font-size: 0.7rem;"></i>
+                        {% elif status.status == 'sent' %}
+                            <i class="bi bi-check ms-1" style="font-size: 0.7rem;"></i>
+                        {% elif status.status == 'failed' %}
+                            <i class="bi bi-x ms-1" style="font-size: 0.7rem;"></i>
+                        {% elif status.status == 'pending' %}
+                            <i class="bi bi-clock ms-1" style="font-size: 0.7rem;"></i>
+                        {% endif %}
+                    </span>
+                {% endif %}
+            {% endfor %}
+            {% if last_time %}
+                <small class="text-muted ms-2 comm-time">{{ last_time }}</small>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="comm-none">
+            <i class="bi bi-dash-circle me-1"></i>
+            <span>None</span>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,350 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "System Configuration" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "System Configuration" %}{% endblock %}
+
+{% block page_subtitle %}{% trans "Manage hospital system settings and configuration" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.config-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.config-header {
+    background: linear-gradient(135deg, #053377 0%, #0856a3 100%);
+    color: white;
+    padding: 1.5rem;
+    border-bottom: none;
+}
+
+.config-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.config-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.config-body {
+    padding: 2rem;
+}
+
+.setting-group {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.setting-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.setting-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.setting-description {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #053377;
+    box-shadow: 0 0 0 0.2rem rgba(5, 51, 119, 0.25);
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #053377 0%, #0856a3 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 51, 119, 0.3);
+    color: white;
+}
+
+.alert-info {
+    background-color: #e0f2fe;
+    border: 1px solid #81d4fa;
+    color: #0277bd;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item active">{% trans "System Configuration" %}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Dashboard" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Info -->
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>{% trans "Important:" %}</strong>
+        {% trans "System configuration changes may require server restart to take full effect. Please coordinate with your system administrator." %}
+    </div>
+
+    <!-- System Information Section -->
+    <div class="config-section">
+        <div class="config-header">
+            <h4><i class="bi bi-gear-wide-connected me-2"></i>{% trans "System Information" %}</h4>
+            <p>{% trans "Current system status and basic information" %}</p>
+        </div>
+        <div class="config-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <label class="setting-label">{% trans "System Version" %}</label>
+                        <div class="setting-description">{% trans "Current ZAIN HMS version" %}</div>
+                        <input type="text" class="form-control" value="2.5.1" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <label class="setting-label">{% trans "Database Status" %}</label>
+                        <div class="setting-description">{% trans "Database connection status" %}</div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-success me-2">
+                                <i class="bi bi-check-circle"></i> {% trans "Connected" %}
+                            </span>
+                            <small class="text-muted">SQLite</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospital Settings Section -->
+    <div class="config-section">
+        <div class="config-header">
+            <h4><i class="bi bi-building me-2"></i>{% trans "Hospital Settings" %}</h4>
+            <p>{% trans "Configure basic hospital information and settings" %}</p>
+        </div>
+        <div class="config-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="setting-group">
+                            <label class="setting-label" for="hospital_name">{% trans "Hospital Name" %}</label>
+                            <div class="setting-description">{% trans "Official name of the hospital" %}</div>
+                            <input type="text" class="form-control" id="hospital_name" name="hospital_name" value="ZAIN Hospital">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="setting-group">
+                            <label class="setting-label" for="hospital_code">{% trans "Hospital Code" %}</label>
+                            <div class="setting-description">{% trans "Unique identifier for the hospital" %}</div>
+                            <input type="text" class="form-control" id="hospital_code" name="hospital_code" value="ZH001">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="setting-group">
+                            <label class="setting-label" for="timezone">{% trans "Timezone" %}</label>
+                            <div class="setting-description">{% trans "System timezone for appointments and logs" %}</div>
+                            <select class="form-select" id="timezone" name="timezone">
+                                <option value="UTC">UTC</option>
+                                <option value="Asia/Dhaka" selected>Asia/Dhaka</option>
+                                <option value="America/New_York">America/New_York</option>
+                                <option value="Europe/London">Europe/London</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="setting-group">
+                            <label class="setting-label" for="language">{% trans "Default Language" %}</label>
+                            <div class="setting-description">{% trans "Default system language" %}</div>
+                            <select class="form-select" id="language" name="language">
+                                <option value="en" selected>English</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="ar">العربية</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Security Settings Section -->
+    <div class="config-section">
+        <div class="config-header">
+            <h4><i class="bi bi-shield-check me-2"></i>{% trans "Security Settings" %}</h4>
+            <p>{% trans "Configure system security and access controls" %}</p>
+        </div>
+        <div class="config-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <label class="setting-label" for="session_timeout">{% trans "Session Timeout" %}</label>
+                        <div class="setting-description">{% trans "Minutes before user session expires" %}</div>
+                        <input type="number" class="form-control" id="session_timeout" name="session_timeout" value="30" min="5" max="480">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <label class="setting-label" for="password_expiry">{% trans "Password Expiry" %}</label>
+                        <div class="setting-description">{% trans "Days before password expires (0 = never)" %}</div>
+                        <input type="number" class="form-control" id="password_expiry" name="password_expiry" value="90" min="0" max="365">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable_2fa" name="enable_2fa" checked>
+                            <label class="form-check-label setting-label" for="enable_2fa">
+                                {% trans "Enable Two-Factor Authentication" %}
+                            </label>
+                            <div class="setting-description">{% trans "Require 2FA for admin users" %}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable_audit_log" name="enable_audit_log" checked>
+                            <label class="form-check-label setting-label" for="enable_audit_log">
+                                {% trans "Enable Audit Logging" %}
+                            </label>
+                            <div class="setting-description">{% trans "Log all user actions for security auditing" %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Maintenance Section -->
+    <div class="config-section">
+        <div class="config-header">
+            <h4><i class="bi bi-tools me-2"></i>{% trans "System Maintenance" %}</h4>
+            <p>{% trans "System maintenance and optimization settings" %}</p>
+        </div>
+        <div class="config-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <label class="setting-label">{% trans "Database Backup" %}</label>
+                        <div class="setting-description">{% trans "Automatic database backup schedule" %}</div>
+                        <select class="form-select" name="backup_frequency">
+                            <option value="daily" selected>{% trans "Daily" %}</option>
+                            <option value="weekly">{% trans "Weekly" %}</option>
+                            <option value="monthly">{% trans "Monthly" %}</option>
+                            <option value="disabled">{% trans "Disabled" %}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="setting-group">
+                        <label class="setting-label">{% trans "Log Retention" %}</label>
+                        <div class="setting-description">{% trans "Days to keep system logs" %}</div>
+                        <input type="number" class="form-control" name="log_retention" value="90" min="7" max="365">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle me-1"></i>{% trans "Cancel" %}
+        </a>
+        <button type="submit" class="btn btn-save">
+            <i class="bi bi-check-circle me-1"></i>{% trans "Save Configuration" %}
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form submission handling
+    const saveBtn = document.querySelector('.btn-save');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Show loading state
+            this.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i>Saving...';
+            this.disabled = true;
+
+            // Simulate save (replace with actual form submission)
+            setTimeout(() => {
+                this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Saved Successfully!';
+                this.classList.remove('btn-save');
+                this.classList.add('btn', 'btn-success');
+
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Save Configuration';
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-save');
+                    this.disabled = false;
+                }, 2000);
+            }, 1500);
+        });
+    }
+});
+</script>
+
+<style>
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,49 @@
+.doctor-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    }
+.user-selection-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 10px;
+    padding: 2rem;
+    background: white;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+.user-option {
+    border: 2px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    }
+.user-option:hover {
+    border-color: #667eea;
+    background-color: #f8f9fc;
+    }
+.user-option.selected {
+    border-color: #667eea;
+    background-color: #e8f0fe;
+    }
+.user-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+.user-info h6 {
+    margin: 0;
+    color: #2c3e50;
+    }
+.user-info small {
+    color: #6c757d;
+    }
+.user-badge {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    }

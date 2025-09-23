@@ -1,0 +1,91 @@
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    overflow: hidden;
+    position: relative;
+    }
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+.stats-card .card-body {
+    padding: 2rem;
+    position: relative;
+    z-index: 2;
+    }
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+    }
+
+.stats-card.patients { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stats-card.appointments { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.stats-card.doctors { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stats-card.revenue { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.stats-card.emergency { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.stats-card.nurses { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+
+.quick-action-btn {
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid #e3f2fd;
+    background: white;
+    text-decoration: none;
+    display: block;
+    }
+
+.quick-action-btn:hover {
+    background: #f8f9fa;
+    border-color: #2196f3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
+    }
+
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    padding: 1.5rem;
+    }
+
+.activity-item {
+    padding: 1rem;
+    border-left: 4px solid #2196f3;
+    background: white;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+    }
+
+.activity-item:hover {
+    transform: translateX(5px);
+    }
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }

@@ -1,0 +1,256 @@
+<!-- apps/billing/templates/billing/ai_revenue_analytics.html -->
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}AI Revenue Analytics - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/dashboard/dashboard.css' %}" rel="stylesheet">
+<style>
+    .analytics-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .prediction-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .ai-metric {
+        text-align: center;
+        padding: 20px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-chart-area text-primary"></i> AI Revenue Analytics</h2>
+                    <p class="text-muted">Advanced revenue forecasting and business intelligence</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshAnalytics()">
+                        <i class="fas fa-sync"></i> Refresh Analytics
+                    </button>
+                    <button class="btn btn-success" onclick="exportAnalytics()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Forecasting -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-line"></i> Revenue Forecast</h5>
+                <canvas id="revenueForecastChart" height="400"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="analytics-card">
+                <h5><i class="fas fa-robot"></i> AI Predictions</h5>
+
+                <div class="ai-metric">
+                    <h4 id="nextMonthRevenue">$0</h4>
+                    <small>Next Month Forecast</small>
+                </div>
+
+                <div class="ai-metric">
+                    <h4 id="quarterRevenue">$0</h4>
+                    <small>Quarter Forecast</small>
+                </div>
+
+                <div class="ai-metric">
+                    <h4 id="accuracyScore">0%</h4>
+                    <small>Prediction Accuracy</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-pie"></i> Revenue Distribution</h5>
+                <canvas id="revenueDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-bar"></i> Payment Trends</h5>
+                <canvas id="paymentTrendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Insights -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-lightbulb text-warning"></i> AI Business Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div id="businessInsights">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                            <p>AI is analyzing revenue patterns...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadRevenueAnalytics();
+    });
+
+    function loadRevenueAnalytics() {
+        // Load revenue forecast data
+        fetch('/billing/api/revenue-forecast/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    initializeRevenueForecastChart(data);
+                    updatePredictionMetrics(data);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading revenue analytics:', error);
+            });
+    }
+
+    function initializeRevenueForecastChart(data) {
+        const ctx = document.getElementById('revenueForecastChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [...data.historical.months, ...data.forecast.months],
+                datasets: [{
+                    label: 'Historical Revenue',
+                    data: [...data.historical.revenues, ...Array(data.forecast.months.length).fill(null)],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    fill: true
+                }, {
+                    label: 'AI Forecast',
+                    data: [...Array(data.historical.months.length).fill(null), ...data.forecast.revenues],
+                    borderColor: '#f093fb',
+                    backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                    borderDash: [5, 5],
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + (value / 1000) + 'K';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Revenue Forecast Analysis'
+                    }
+                }
+            }
+        });
+    }
+
+    function updatePredictionMetrics(data) {
+        // Update AI prediction metrics
+        if (data.forecast.revenues.length > 0) {
+            document.getElementById('nextMonthRevenue').textContent =
+                '$' + Math.round(data.forecast.revenues[0] / 1000) + 'K';
+        }
+
+        if (data.forecast.revenues.length >= 3) {
+            const quarterSum = data.forecast.revenues.slice(0, 3).reduce((a, b) => a + b, 0);
+            document.getElementById('quarterRevenue').textContent =
+                '$' + Math.round(quarterSum / 1000) + 'K';
+        }
+
+        if (data.accuracy_metrics) {
+            document.getElementById('accuracyScore').textContent =
+                data.accuracy_metrics.average_accuracy + '%';
+        }
+    }
+
+    function refreshAnalytics() {
+        // Show loading
+        Swal.fire({
+            title: 'Refreshing Analytics...',
+            text: 'AI is updating revenue forecasts and insights',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Reload analytics data
+        setTimeout(() => {
+            loadRevenueAnalytics();
+            Swal.close();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Analytics Updated!',
+                text: 'Revenue forecasts have been refreshed with latest data.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }, 2000);
+    }
+
+    function exportAnalytics() {
+        // Export analytics report
+        window.open('/billing/api/export-analytics-report/', '_blank');
+    }
+</script>
+{% endblock %}

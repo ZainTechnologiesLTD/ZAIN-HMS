@@ -1,0 +1,122 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% block title %}Edit {{ template.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-1" style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">
+        Edit Template: {{ template.name }}
+      </h3>
+      <p class="text-muted mb-0">Update the communication template</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'communications:template_detail' template.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Details</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Template Details</h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Template Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ template.name }}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="channel" class="form-label">Channel <span class="text-danger">*</span></label>
+                <select class="form-select" id="channel" name="channel" required>
+                  {% for ch in channels %}
+                    <option value="{{ ch }}" {% if template.channel == ch %}selected{% endif %}>{{ ch|title }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="template_type" class="form-label">Template Type</label>
+                <select class="form-select" id="template_type" name="template_type">
+                  <option value="">Select Type</option>
+                  {% for type in template_types %}
+                    <option value="{{ type }}" {% if template.template_type == type %}selected{% endif %}>{{ type|title }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <div class="form-check mt-4">
+                  <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if template.is_active %}checked{% endif %}>
+                  <label class="form-check-label" for="is_active">
+                    Active Template
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3" id="subject-field" {% if template.channel != 'email' %}style="display: none;"{% endif %}>
+              <label for="subject_template" class="form-label">Subject Template</label>
+              <input type="text" class="form-control" id="subject_template" name="subject_template"
+                     value="{{ template.subject_template }}" {% if template.channel == 'email' %}required{% endif %}>
+              <small class="text-muted">Required for email templates</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="message_template" class="form-label">Message Template <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="message_template" name="message_template" rows="6" required>{{ template.message_template }}</textarea>
+              <small class="text-muted">Available variables: {patient_name}, {appointment_date}, {appointment_time}, {doctor_name}, {hospital_name}</small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Update Template
+              </button>
+              <a href="{% url 'communications:template_detail' template.id %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Template Info</h6>
+        </div>
+        <div class="card-body">
+          <div class="small text-muted">
+            <div class="mb-2"><strong>Created:</strong> {{ template.created_at|date:'F j, Y' }}</div>
+            <div class="mb-2"><strong>Last Updated:</strong> {{ template.updated_at|date:'F j, Y' }}</div>
+            <div class="mb-2"><strong>Total Uses:</strong> 0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-code me-2"></i>Available Variables</h6>
+        </div>
+        <div class="card-body">
+          <div class="small">
+            <div class="mb-2"><code>{patient_name}</code> - Patient's full name</div>
+            <div class="mb-2"><code>{appointment_date}</code> - Date of appointment</div>
+            <div class="mb-2"><code>{appointment_time}</code> - Time of appointment</div>
+            <div class="mb-2"><code>{doctor_name}</code> - Doctor's name</div>
+            <div class="mb-2"><code>{hospital_name}</code> - Hospital name</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/templates/edit.js' %}"></script>

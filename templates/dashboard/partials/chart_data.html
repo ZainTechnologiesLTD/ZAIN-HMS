@@ -1,0 +1,57 @@
+<!-- Chart Partial Template for HTMX Updates (parameterized) -->
+<div class="chart-container" style="height: 220px;">
+    <canvas id="{{ chart_id }}" data-is-currency="{{ is_currency|yesno:'true,false' }}" height="200"></canvas>
+</div>
+
+<!-- Embed data as JSON to avoid inline JS parsing issues -->
+<script id="{{ chart_id }}-data" type="application/json">{{ chart_data|safe }}</script>
+
+<script>
+(function(){
+    try {
+        var dataEl = document.getElementById('{{ chart_id }}-data');
+        var parsed = { labels: [], values: [] };
+        if (dataEl) {
+            try { parsed = JSON.parse(dataEl.textContent || dataEl.innerText || '{}'); } catch(e) { parsed = { labels: [], values: [] }; }
+        }
+        var canvas = document.getElementById('{{ chart_id }}');
+        var isCurrency = canvas && canvas.getAttribute('data-is-currency') === 'true';
+        var ctx = canvas && canvas.getContext('2d');
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: parsed.labels || [],
+                datasets: [{
+                    label: '{{ dataset_label|default:"Series"|escapejs }}',
+                    data: parsed.values || [],
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true, position: 'top' } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value){
+                                var v = Number(value);
+                                if (isNaN(v)) return value;
+                                return isCurrency ? ('$' + v.toLocaleString()) : v.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Failed to render chart {{ chart_id }}', e);
+    }
+})();
+</script>

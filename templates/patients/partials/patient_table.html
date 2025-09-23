@@ -1,0 +1,206 @@
+<!-- Patient Table Container (for HTMX updates) -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">
+                        <input type="checkbox" x-model="selectAll" @change="toggleSelectAll()" class="form-check-input">
+                    </th>
+                    <th>Patient</th>
+                    <th>Contact</th>
+                    <th>Medical Info</th>
+                    <th>Status</th>
+                    <th>Registration</th>
+                    <th style="width: 150px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td>
+                        <input type="checkbox"
+                               class="form-check-input"
+                               value="{{ patient.pk }}"
+                               x-model="selectedPatients">
+                    </td>
+                    <td>
+                        <div class="patient-info">
+                            <div class="patient-avatar">
+                                {% if patient.profile_picture %}
+                                    <img src="{{ patient.profile_picture.url }}" alt="{{ patient.full_name }}" class="avatar">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="patient-details">
+                                <div class="patient-name">{{ patient.full_name }}</div>
+                                <div class="patient-id">ID: {{ patient.patient_id }}</div>
+                                <div class="patient-age">{{ patient.age }} years old</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <i class="fas fa-phone text-primary"></i>
+                                <span>{{ patient.phone }}</span>
+                            </div>
+                            {% if patient.email %}
+                            <div class="contact-item">
+                                <i class="fas fa-envelope text-info"></i>
+                                <span>{{ patient.email }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="contact-item">
+                                <i class="fas fa-map-marker-alt text-secondary"></i>
+                                <span>{{ patient.city }}, {{ patient.state }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="medical-info">
+                            <div class="medical-item">
+                                <i class="fas fa-tint text-danger"></i>
+                                <span>{{ patient.get_blood_group_display }}</span>
+                            </div>
+                            <div class="medical-item">
+                                <i class="fas fa-venus-mars text-info"></i>
+                                <span>{{ patient.get_gender_display }}</span>
+                            </div>
+                            {% if patient.allergies %}
+                            <div class="medical-item">
+                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                                <span>Allergies</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="status-badges">
+                            {% if patient.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                            {% if patient.is_vip %}
+                                <span class="badge bg-warning">VIP</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="registration-info">
+                            <div class="reg-date">
+                                <i class="fas fa-calendar text-primary"></i>
+                                <span>{{ patient.registration_date|date:"M d, Y" }}</span>
+                            </div>
+                            {% if patient.registered_by %}
+                            <div class="reg-by">
+                                <i class="fas fa-user-tie text-secondary"></i>
+                                <span>{{ patient.registered_by.get_full_name }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'patients:detail' patient.pk %}"
+                               class="btn btn-sm btn-outline-primary"
+                               title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'patients:update' patient.pk %}"
+                               class="btn btn-sm btn-outline-warning"
+                               title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    title="Delete"
+                                    @click="confirmDelete('{{ patient.pk }}', '{{ patient.full_name }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="empty-title">No Patients Found</div>
+                            <div class="empty-text">
+                                {% if request.GET.q %}
+                                    No patients match your search criteria. Try adjusting your filters.
+                                {% else %}
+                                    Get started by adding your first patient to the system.
+                                {% endif %}
+                            </div>
+                            {% if not request.GET.q %}
+                                <a href="{% url 'patients:create' %}" class="btn btn-primary">
+                                    <i class="fas fa-user-plus me-2"></i>Add First Patient
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Patient pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                   hx-target="#patient-table-container"
+                   hx-indicator="#loading-indicator">First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                   hx-target="#patient-table-container"
+                   hx-indicator="#loading-indicator">Previous</a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link"
+                       hx-get="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                       hx-target="#patient-table-container"
+                       hx-indicator="#loading-indicator">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                   hx-target="#patient-table-container"
+                   hx-indicator="#loading-indicator">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                   hx-target="#patient-table-container"
+                   hx-indicator="#loading-indicator">Last</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

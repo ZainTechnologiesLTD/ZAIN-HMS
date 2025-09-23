@@ -1,0 +1,86 @@
+/*
+ * ZAIN HMS - CSS Variables & Design System
+ * Core design tokens for consistent styling across all public pages
+ * Version: 1.0 - Base variables and design system
+ */
+
+:root {
+    /* Primary Brand Colors */
+    --primary-color: #053377;
+    --primary-dark: #1e3a8a;
+    --primary-light: #3730a3;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    --primary-gradient-alt: linear-gradient(135deg, #1e3a8a 0%, #3730a3 30%, #581c87 100%);
+
+    /* Secondary Colors */
+    --secondary-color: #f8f9fa;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+
+    /* Neutral Colors */
+    --text-primary: #2c3e50;
+    --text-secondary: #6c757d;
+    --text-muted: #868e96;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-light: #f1f3f4;
+
+    /* Interactive Elements */
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 16px;
+    --transition: all 0.3s ease;
+    --shadow: 0 2px 10px rgba(0,0,0,0.1);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.15);
+
+    /* Authentication Colors */
+    --auth-bg: #ffffff;
+    --auth-text: #2c3e50;
+    --auth-input-bg: #f8f9fa;
+    --auth-border: #e9ecef;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+/* Landing page body */
+.landing-page {
+    background: var(--bg-primary);
+}
+
+/* Authentication pages body */
+.auth-page {
+    background: var(--primary-gradient);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.auth-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}

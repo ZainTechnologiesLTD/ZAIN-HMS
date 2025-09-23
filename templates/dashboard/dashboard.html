@@ -1,0 +1,717 @@
+<!-- Unified Dashboard Template - Best of all dashboards -->
+{% extends 'base/base_dashboard.html' %}
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+
+{% block page_subtitle %}
+    {% if user.role == 'SUPERADMIN' %}
+        {% trans "System Administrator Dashboard" %}
+    {% elif user.role == 'ADMIN' %}
+        {% trans "Hospital Administrator Dashboard" %}
+    {% elif user.role == 'DOCTOR' %}
+        {% trans "Doctor Dashboard" %}
+    {% elif user.role == 'NURSE' %}
+        {% trans "Nurse Dashboard" %}
+    {% elif user.role == 'RECEPTIONIST' %}
+        {% trans "Reception Dashboard" %}
+    {% elif user.role == 'PATIENT' %}
+        {% trans "Patient Portal" %}
+    {% else %}
+        {% trans "Welcome to ZAIN HMS" %}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<!-- Dashboard Styles - Optimized and Consolidated -->
+<link rel="stylesheet" href="{% static 'css/dashboard/user/dashboard_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard/user/user_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard/dashboard_fixes.css' %}">
+{% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' %}
+<link rel="stylesheet" href="{% static 'css/admin/admin.css' %}">
+{% endif %}
+
+<style>
+/* Dashboard-specific overrides with consistent naming and reduced specificity */
+:root {
+    --dashboard-primary: #053377;
+    --dashboard-sidebar-width: 281px;
+    --dashboard-sidebar-collapsed: 80px;
+    --dashboard-transition: 0.3s ease;
+    --dashboard-z-index: 1050;
+}
+
+/* Ensure proper background coverage for dashboard */
+html, body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Unified sidebar positioning - no conflicts */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--dashboard-sidebar-width);
+    z-index: var(--dashboard-z-index);
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width var(--dashboard-transition), transform var(--dashboard-transition);
+}
+
+.sidebar.collapsed {
+    width: var(--dashboard-sidebar-collapsed);
+}
+
+.main-content {
+    margin-left: var(--dashboard-sidebar-width);
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    transition: margin-left var(--dashboard-transition);
+}
+
+.sidebar.collapsed + .main-content,
+.sidebar.collapsed ~ .main-content {
+    margin-left: var(--dashboard-sidebar-collapsed);
+}
+
+/* Consistent footer without layout conflicts */
+.main-footer {
+    background: var(--dashboard-primary);
+    color: white;
+    border-top: none;
+    margin: 0;
+    width: 100%;
+}
+
+.main-footer .text-muted {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Stats Grid - Modern styling */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.patients::before {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.appointments::before {
+    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.doctors::before {
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.revenue::before {
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.stat-card.patients .stat-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.appointments .stat-icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.doctors .stat-icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.revenue .stat-icon {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.stat-card .mt-3 {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Beautiful Activity Section */
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    padding: 1rem;
+    border-radius: 12px;
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 0.875rem;
+}
+
+.activity-title {
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.activity-description {
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+}
+
+.beautiful-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    border: 1px solid #e5e7eb;
+}
+
+.beautiful-card h3 {
+    color: #1f2937;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+/* Chart container fixes */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    margin-bottom: 2rem;
+}
+
+.chart-container canvas {
+    max-height: 300px !important;
+    width: 100% !important;
+}
+
+/* Prevent chart containers from shrinking */
+.row .chart-container {
+    min-height: 300px;
+}
+
+/* Fix for charts appearing below stats cards */
+.charts-section {
+    margin-top: 2rem;
+    order: 2;
+}
+
+.stats-grid {
+    order: 1;
+}
+
+/* Mobile responsive - single breakpoint */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .sidebar.collapsed + .main-content,
+    .sidebar.collapsed ~ .main-content {
+        margin-left: 0;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+</style>
+
+{% block content %}
+<!-- Beautiful Dashboard Hero Section -->
+<div class="dashboard-hero fade-in">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-3">
+                <i class="fas fa-hospital-user" style="margin-right: 15px; color: #f39c12;"></i>
+                {% trans "Welcome back" %}, {{ user.get_full_name|default:user.username }}!
+            </h1>
+            <p class="mb-3">
+                {% if hospital %}
+                    <i class="fas fa-building" style="margin-right: 10px;"></i>
+                    {% trans "Managing" %} <strong>{{ hospital.name }}</strong>
+                {% else %}
+                    <i class="fas fa-heartbeat" style="margin-right: 10px;"></i>
+                    {% trans "ZAIN HMS - Unified Hospital Management System" %}
+                {% endif %}
+            </p>
+            <div class="welcome-badge">
+                <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
+                <span>{{ user.get_role_display|default:"User" }}</span>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end align-items-center flex-column">
+                <div class="mb-2" style="font-size: 1.1rem; font-weight: 600;">
+                    <i class="fas fa-calendar-alt" style="margin-right: 10px;"></i>
+                    {{ today|date:"l, F j, Y" }}
+                </div>
+                <div style="font-size: 1rem; opacity: 0.9;">
+                    <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                    <span id="current-time">{{ now|date:"g:i A" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Beautiful Role-based Statistics -->
+{% if user.role == 'ADMIN' or user.role == 'SUPERADMIN' or user.is_superuser %}
+    <!-- Admin/SuperAdmin Dashboard -->
+    <div class="stats-grid slide-up">
+        <div class="stat-card patients">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ total_patients|default:0|intcomma }}</div>
+            <div class="stat-label">{% trans "Total Patients" %}</div>
+            <div class="mt-3 text-success">
+                <i class="fas fa-arrow-up"></i> +{{ new_patients_today|default:0 }} {% trans "today" %}
+            </div>
+        </div>
+
+        <div class="stat-card appointments">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-number">{{ today_appointments|default:0 }}</div>
+            <div class="stat-label">{% trans "Today's Appointments" %}</div>
+            <div class="mt-3 text-info">
+                <i class="fas fa-clock"></i> {{ pending_appointments|default:0 }} {% trans "pending" %}
+            </div>
+        </div>
+
+        <div class="stat-card doctors">
+            <div class="stat-icon">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="stat-number">{{ total_staff|default:0 }}</div>
+            <div class="stat-label">{% trans "Staff Members" %}</div>
+            <div class="mt-3 text-warning">
+                <i class="fas fa-stethoscope"></i> {{ total_doctors|default:0 }} {% trans "doctors" %}
+            </div>
+        </div>
+
+        <div class="stat-card revenue">
+            <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-number">${{ revenue_today|default:0|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "Today's Revenue" %}</div>
+            <div class="mt-3 text-success">
+                <i class="fas fa-chart-line"></i> ${{ revenue_month|default:0|floatformat:0 }} {% trans "this month" %}
+            </div>
+        </div>
+    </div>
+
+    {% if user.role == 'SUPERADMIN' or user.is_superuser %}
+    <!-- Superadmin Admin Access Panel -->
+    <div class="beautiful-card" style="border: 2px solid #007bff; background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);">
+        <h3>
+            <i class="fas fa-shield-alt" style="color: #007bff;"></i>
+            {% trans "Administrator Access" %}
+        </h3>
+        <div class="alert alert-info mb-3">
+            <i class="fas fa-info-circle"></i>
+            {{ message|default:"You have full access to both frontend interface and Django Admin" }}
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <a href="{% url 'admin:index' %}" class="btn btn-primary btn-lg w-100" target="_blank">
+                    <i class="fas fa-cogs"></i> Django Admin
+                    <small class="d-block">Complete system management</small>
+                </a>
+            </div>
+            <div class="col-md-6 mb-3">
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-users-cog"></i> User Management
+                    <small class="d-block">Manage system users</small>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="beautiful-card">
+        <h3>
+            <i class="fas fa-bolt" style="color: #f39c12;"></i>
+            {% trans "Quick Actions" %}
+        </h3>
+        <div class="quick-actions-unified">
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-user-plus"></i>
+                <h5>{% trans "Add Patient" %}</h5>
+                <small>{% trans "Register new patient" %}</small>
+            </a>
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-calendar-plus"></i>
+                <h5>{% trans "New Appointment" %}</h5>
+                <small>{% trans "Schedule appointment" %}</small>
+            </a>
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <h5>{% trans "Create Invoice" %}</h5>
+                <small>{% trans "Generate bill" %}</small>
+            </a>
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-chart-bar"></i>
+                <h5>{% trans "View Reports" %}</h5>
+                <small>{% trans "Analytics dashboard" %}</small>
+            </a>
+        </div>
+    </div>
+
+{% elif user.role == 'DOCTOR' %}
+    <!-- Doctor Dashboard -->
+    <div class="stats-grid slide-up">
+        <div class="stat-card appointments">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-number">{{ doctor_appointments_today|default:0 }}</div>
+            <div class="stat-label">{% trans "Today's Appointments" %}</div>
+        </div>
+
+        <div class="stat-card patients">
+            <div class="stat-icon">
+                <i class="fas fa-user-injured"></i>
+            </div>
+            <div class="stat-number">{{ doctor_patients|default:0 }}</div>
+            <div class="stat-label">{% trans "My Patients" %}</div>
+        </div>
+
+        <div class="stat-card emergency">
+            <div class="stat-icon">
+                <i class="fas fa-ambulance"></i>
+            </div>
+            <div class="stat-number">{{ pending_consultations|default:0 }}</div>
+            <div class="stat-label">{% trans "Pending Consultations" %}</div>
+        </div>
+    </div>
+
+{% elif user.role == 'NURSE' %}
+    <!-- Nurse Dashboard -->
+    <div class="stats-grid slide-up">
+        <div class="stat-card patients">
+            <div class="stat-icon">
+                <i class="fas fa-user-injured"></i>
+            </div>
+            <div class="stat-number">{{ assigned_patients|default:0 }}</div>
+            <div class="stat-label">{% trans "Assigned Patients" %}</div>
+        </div>
+
+        <div class="stat-card appointments">
+            <div class="stat-icon">
+                <i class="fas fa-syringe"></i>
+            </div>
+            <div class="stat-number">{{ pending_treatments|default:0 }}</div>
+            <div class="stat-label">{% trans "Pending Treatments" %}</div>
+        </div>
+
+        <div class="stat-card emergency">
+            <div class="stat-icon">
+                <i class="fas fa-heart-pulse"></i>
+            </div>
+            <div class="stat-number">{{ vital_checks|default:0 }}</div>
+            <div class="stat-label">{% trans "Vital Checks Due" %}</div>
+        </div>
+    </div>
+
+{% elif user.role == 'RECEPTIONIST' %}
+    <!-- Receptionist Dashboard -->
+    <div class="stats-grid slide-up">
+        <div class="stat-card appointments">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-number">{{ reception_appointments|default:0 }}</div>
+            <div class="stat-label">{% trans "Today's Appointments" %}</div>
+        </div>
+
+        <div class="stat-card patients">
+            <div class="stat-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="stat-number">{{ new_registrations|default:0 }}</div>
+            <div class="stat-label">{% trans "New Registrations" %}</div>
+        </div>
+
+        <div class="stat-card revenue">
+            <div class="stat-icon">
+                <i class="fas fa-cash-register"></i>
+            </div>
+            <div class="stat-number">${{ reception_payments|default:0|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "Payments Received" %}</div>
+        </div>
+    </div>
+
+{% elif user.role == 'PATIENT' %}
+    <!-- Patient Dashboard -->
+    <div class="stats-grid slide-up">
+        <div class="stat-card appointments">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-number">{{ total_upcoming_appointments|default:0 }}</div>
+            <div class="stat-label">{% trans "Upcoming Appointments" %}</div>
+            <div class="mt-3 text-info">
+                <i class="fas fa-info-circle"></i> {% trans "Next visit scheduled" %}
+            </div>
+        </div>
+
+        <div class="stat-card billing">
+            <div class="stat-icon">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <div class="stat-number">{{ total_pending_bills|default:0 }}</div>
+            <div class="stat-label">{% trans "Pending Bills" %}</div>
+            <div class="mt-3 text-warning">
+                <i class="fas fa-exclamation-triangle"></i> {% trans "Awaiting payment" %}
+            </div>
+        </div>
+
+        <div class="stat-card medical">
+            <div class="stat-icon">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <div class="stat-number">{{ recent_lab_results|length|default:0 }}</div>
+            <div class="stat-label">{% trans "Recent Lab Results" %}</div>
+            <div class="mt-3 text-success">
+                <i class="fas fa-check-circle"></i> {% trans "Results available" %}
+            </div>
+        </div>
+
+        <div class="stat-card radiology">
+            <div class="stat-icon">
+                <i class="fas fa-x-ray"></i>
+            </div>
+            <div class="stat-number">{{ recent_radiology|length|default:0 }}</div>
+            <div class="stat-label">{% trans "Recent Imaging" %}</div>
+            <div class="mt-3 text-primary">
+                <i class="fas fa-image"></i> {% trans "Reports available" %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Quick Actions -->
+    <div class="beautiful-card">
+        <h3>
+            <i class="fas fa-bolt" style="color: #f39c12;"></i>
+            {% trans "My Health Actions" %}
+        </h3>
+        <div class="quick-actions-unified">
+            <a href="{% url 'accounts:profile_edit' %}" class="quick-action-unified">
+                <i class="fas fa-user-edit"></i>
+                <h5>{% trans "Update Profile" %}</h5>
+                <small>{% trans "Edit personal information" %}</small>
+            </a>
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-calendar-plus"></i>
+                <h5>{% trans "Book Appointment" %}</h5>
+                <small>{% trans "Schedule a visit" %}</small>
+            </a>
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-file-medical"></i>
+                <h5>{% trans "Medical Records" %}</h5>
+                <small>{% trans "View health history" %}</small>
+            </a>
+            <a href="#" class="quick-action-unified">
+                <i class="fas fa-comments"></i>
+                <h5>{% trans "Message Doctor" %}</h5>
+                <small>{% trans "Contact healthcare provider" %}</small>
+            </a>
+        </div>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    {% if upcoming_appointments %}
+    <div class="beautiful-card">
+        <h3>
+            <i class="fas fa-calendar-check" style="color: #28a745;"></i>
+            {% trans "Upcoming Appointments" %}
+        </h3>
+        <div class="row">
+            {% for appointment in upcoming_appointments %}
+            <div class="col-md-6 mb-3">
+                <div class="appointment-card-patient">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ appointment.appointment_date|date:"M d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}</h6>
+                            <p class="mb-1 text-primary">
+                                <i class="fas fa-user-md"></i>
+                                {% if appointment.doctor.user.get_full_name %}
+                                    {{ appointment.doctor.user.get_full_name }}
+                                {% else %}
+                                    {{ appointment.doctor.user.username }}
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> {{ appointment.get_status_display }}
+                            </small>
+                        </div>
+                        <div class="appointment-status status-{{ appointment.status|lower }}">
+                            {{ appointment.get_status_display }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Bills -->
+    {% if pending_bills %}
+    <div class="beautiful-card">
+        <h3>
+            <i class="fas fa-file-invoice-dollar" style="color: #ffc107;"></i>
+            {% trans "Pending Bills" %}
+        </h3>
+        <div class="row">
+            {% for bill in pending_bills %}
+            <div class="col-md-4 mb-3">
+                <div class="bill-card-patient">
+                    <div class="bill-header">
+                        <h6 class="mb-1">{{ bill.invoice_number|default:"Invoice" }}</h6>
+                        <small class="text-muted">{{ bill.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <div class="bill-amount">
+                        <span class="amount">${{ bill.total_amount|floatformat:2 }}</span>
+                        <span class="status status-{{ bill.status|lower }}">{{ bill.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+{% endif %}
+
+<!-- Recent Activity -->
+<div class="beautiful-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">
+            <i class="fas fa-clock"></i>
+            {% trans "Recent Activity" %}
+        </h3>
+        <a href="{% url 'dashboard:activity_logs' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-list"></i> {% trans "View All" %}
+        </a>
+    </div>
+    <div class="activity-list">
+        {% for activity in recent_activities|slice:":5" %}
+        <div class="activity-item d-flex align-items-start mb-3">
+            <div class="activity-avatar me-3">
+                <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                    <i class="fas fa-{{ activity.icon|default:'info-circle' }}"></i>
+                </div>
+            </div>
+            <div class="activity-content flex-grow-1">
+                <div class="activity-title fw-semibold">{{ activity.title }}</div>
+                <div class="activity-description text-muted small">{{ activity.description }}</div>
+                <div class="activity-time text-muted small">
+                    <i class="fas fa-clock me-1"></i>
+                    {{ activity.timestamp|timesince }} {% trans "ago" %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-info-circle fa-2x mb-2"></i>
+            <p>{% trans "No recent activity to display" %}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Beautiful Dashboard JavaScript -->
+<script src="{% static 'js/dashboard/user/dashboard.js' %}"></script>
+<script src="{% static 'js/dashboard/dashboard_fixes.js' %}"></script>
+{% endblock %}
+
+{% block post_base_js %}
+<!-- Clean sidebar system is already loaded from base template -->
+{% endblock %}

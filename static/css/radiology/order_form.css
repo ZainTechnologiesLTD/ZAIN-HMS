@@ -1,0 +1,116 @@
+.study-type-card {
+    transition: all 0.2s ease;
+    border: 2px solid #e9ecef;
+    }
+
+.study-type-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    }
+
+.study-type-card.border-success {
+    border-color: #198754 !important;
+    background-color: #f8fff9;
+    }
+
+.laterality-section {
+    display: none;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    margin-top: 10px;
+    padding-top: 10px;
+    }
+
+.tab-pane {
+    min-height: 300px;
+    }
+
+.nav-tabs .nav-link {
+    border-radius: 0.375rem 0.375rem 0 0;
+    }
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: #fff;
+    }
+
+    /* Enhanced search dropdown styles */
+.dropdown-menu {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 0.375rem;
+    overflow: hidden;
+    }
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.15s ease-in-out;
+    }
+
+.dropdown-item:last-child {
+    border-bottom: none;
+    }
+
+.dropdown-item:hover {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    }
+
+.dropdown-item i {
+    color: #6c757d;
+    }
+
+.dropdown-item:hover i {
+    color: #1565c0;
+    }
+
+    /* Selection display styles */
+#selectedPatient, #selectedDoctor {
+    border: 1px solid #d1ecf1;
+    background-color: #d1ecf1;
+    border-radius: 0.375rem;
+    }
+
+    /* Search input focus styles */
+#patientSearchInput:focus, #doctorSearchInput:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Clear button styles */
+.btn-outline-secondary:hover {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+    }
+
+    /* Position relative for dropdown containers */
+.position-relative {
+    position: relative;
+    }
+
+
+.study-type-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.study-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.study-type-card.border-success {
+    border-color: #198754 !important;
+    background-color: #f8fff9;
+}
+
+.form-check-input:checked + .form-check-label {
+    color: #198754;
+}
+
+.laterality-section {
+    border-top: 1px solid #e9ecef;
+    padding-top: 0.5rem;
+}

@@ -1,0 +1,35 @@
+.comm-stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    transition: transform 0.3s ease;
+    }
+
+.comm-stat-card:hover {
+    transform: translateY(-5px);
+    }
+
+.comm-stat-card h4 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    }
+
+.channel-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: 500;
+    margin: 0.25rem;
+    display: inline-block;
+    }
+
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    }

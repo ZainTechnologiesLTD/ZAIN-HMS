@@ -1,0 +1,144 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+{% load i18n %}
+
+{% block title %}{% trans "Notifications" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Notifications Center" %}{% endblock %}
+
+{% block page_subtitle %}
+    {% trans "Stay updated with all system notifications and alerts" %}
+{% endblock %}
+
+{% block extra_css %}
+<!-- Beautiful Notifications Dashboard CSS -->
+<link rel="stylesheet" href="{% static 'css/dashboard/user_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications/all.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard/admin.css' %}">
+
+
+{% endblock %}
+
+{% block content %}
+<!-- Notifications Dashboard Hero Section -->
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-0">
+                    <i class="fas fa-bell me-2 text-primary"></i>{% trans "Notifications Center" %}
+                </h4>
+                <p class="text-muted mb-0">{% trans "Manage and send notifications to your hospital users" %}</p>
+            </div>
+            <div class="btn-group">
+                <a href="{% url 'notifications:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>{% trans "Create Notification" %}
+                </a>
+                <a href="{% url 'notifications:create_bulk' %}" class="btn btn-success">
+                    <i class="fas fa-broadcast-tower me-2"></i>{% trans "Send Bulk" %}
+                </a>
+            </div>
+        </div>
+
+<!-- Notification Filters -->
+<div class="notification-filters fade-in">
+    <h5 class="mb-3">
+        <i class="fas fa-filter me-2"></i>{% trans "Filter Notifications" %}
+    </h5>
+    <a href="?filter=all" class="filter-tab {% if not request.GET.filter or request.GET.filter == 'all' %}active{% endif %}">
+        <i class="fas fa-list me-2"></i>{% trans "All" %}
+    </a>
+    <a href="?filter=unread" class="filter-tab {% if request.GET.filter == 'unread' %}active{% endif %}">
+        <i class="fas fa-envelope me-2"></i>{% trans "Unread" %}
+    </a>
+    <a href="?filter=important" class="filter-tab {% if request.GET.filter == 'important' %}active{% endif %}">
+        <i class="fas fa-exclamation-circle me-2"></i>{% trans "Important" %}
+    </a>
+    <a href="?filter=system" class="filter-tab {% if request.GET.filter == 'system' %}active{% endif %}">
+        <i class="fas fa-cog me-2"></i>{% trans "System" %}
+    </a>
+</div>
+
+<!-- Notifications List -->
+<div class="fade-in">
+    {% if notifications %}
+        {% for notification in notifications %}
+        <div class="notification-card {% if not notification.is_read %}unread{% endif %} {{ notification.type|lower }}">
+            <div class="d-flex align-items-start">
+                <div class="notification-icon">
+                    {% if notification.type == 'SUCCESS' %}
+                        <i class="fas fa-check-circle text-success"></i>
+                    {% elif notification.type == 'WARNING' %}
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                    {% elif notification.type == 'ERROR' %}
+                        <i class="fas fa-times-circle text-danger"></i>
+                    {% elif notification.type == 'INFO' %}
+                        <i class="fas fa-info-circle text-info"></i>
+                    {% else %}
+                        <i class="fas fa-bell text-primary"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    {% if notification.title %}
+                        <div class="notification-title">{{ notification.title }}</div>
+                    {% endif %}
+                    <div class="notification-message">{{ notification.message }}</div>
+                    <div class="notification-time">
+                        <i class="fas fa-clock me-1"></i>
+                        {{ notification.created_at|naturaltime }}
+                    </div>
+                    {% if notification.link %}
+                        <div class="notification-actions">
+                            <a href="{{ notification.link }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>{% trans "View Details" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if not notification.is_read %}
+                    <div>
+                        <span class="badge bg-warning">{% trans "New" %}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Pagination if needed -->
+        {% if is_paginated %}
+        <nav aria-label="{% trans 'Notifications pagination' %}">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-notifications">
+            <i class="fas fa-bell-slash"></i>
+            <h4>{% trans "No Notifications" %}</h4>
+            <p>{% trans "You're all caught up! No notifications to display at this time." %}</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Auto-refresh script -->
+
+{% endblock %}
+<script src="{% static 'js/notifications/all.js' %}"></script>

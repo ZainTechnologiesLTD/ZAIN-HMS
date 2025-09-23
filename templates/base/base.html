@@ -1,0 +1,190 @@
+<!-- templates/base.html -->
+{% load static %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZAIN HMS - Unified Hospital Management System{% endblock %}</title>
+
+    <!-- Meta Tags for SEO and Security -->
+    <meta name="description" content="ZAIN HMS - Unified Hospital Management System - Complete healthcare solution">
+    <meta name="keywords" content="hospital, management, healthcare, medical, HMS, ZAIN, unified">
+    <meta name="author" content="ZAIN Technologies">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <!-- X-Frame-Options should be set in HTTP headers, not meta tags -->
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/templates/base.css' %}">
+
+    <!-- Font Awesome Icons - Local Version for Consistency -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/all.min.css' %}">
+
+    <!-- Font Optimization Styles -->
+
+
+    <!-- Font Awesome Optimization CSS -->
+    <link rel="stylesheet" href="{% static 'css/font-awesome-optimization.css' %}">
+
+    <!-- Chart.js for Analytics (UMD build, CSP-compliant) -->
+    <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+
+    <!-- HTMX for Dynamic Content (use jsdelivr to satisfy CSP) -->
+    <script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
+
+    <!-- Alpine.js for Reactive Components -->
+    <script defer src="{% static 'vendor/alpinejs/alpine.min.js' %}"></script>
+
+    <!-- Custom CSS -->
+
+
+    {% block extra_css %}{% endblock %}
+
+    <!-- Font Awesome Optimizer -->
+    <script src="{% static 'js/font-awesome-optimizer.js' %}" defer></script>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 9999;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Main Content Area (No Sidebar for base.html - used for public/auth/error pages) -->
+    <div class="main-content" style="margin-left: 0; padding-left: 0;">
+        <!-- Breadcrumb for Public Pages -->
+        {% block breadcrumb_section %}
+        <nav aria-label="breadcrumb" class="container mt-3">
+            <ol class="breadcrumb mb-0">
+                {% block breadcrumb %}
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        {% endblock %}
+                    </ol>
+                </nav>
+
+                <div class="user-profile">
+                    <!-- Notifications -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-link p-0 position-relative" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell fa-lg text-muted"></i>
+                            {% if notifications_count %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ notifications_count }}
+                            </span>
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Notifications</h6></li>
+                            {% for notification in recent_notifications %}
+                            <li><a class="dropdown-item" href="#">{{ notification.message }}</a></li>
+                            {% empty %}
+                            <li><span class="dropdown-item-text">No new notifications</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar">
+                                {{ user.first_name.0|default:'U' }}{{ user.last_name.0|default:'' }}
+                            </div>
+                            <div class="user-info ms-2">
+                                <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="user-role">{{ user.get_role_display|default:'User' }}</div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user me-2"></i> Profile
+                            </a></li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-cog me-2"></i> Settings
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content will be handled by the main section below -->
+        <main class="content-container">
+            <!-- Hospital Context Display - Unified System -->
+            {% if user.is_authenticated %}
+            <!-- Context available via context processors -->
+            {% endif %}
+
+            {# 2FA Reminder Banner (dismissible) #}
+            {% include 'components/2fa_reminder.html' %}
+
+            <!-- Page Header -->
+            {% block page_header %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+                <div>
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </div>
+            {% endblock %}
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Main Content -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    <!-- Custom JavaScript for Public/Auth Pages -->
+
+
+    {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/templates/base.js' %}"></script>
+</body>
+</html>

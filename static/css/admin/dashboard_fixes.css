@@ -1,0 +1,389 @@
+/* Dashboard CSS Quick Fixes for Display Issues */
+/* Add this to fix KPI cards, charts, and grid layouts */
+
+/* Fix for KPI cards not displaying properly */
+.kpi-cluster {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.kpi-card {
+    flex: 1 1 calc(16.666% - 1rem) !important;
+    min-width: 150px !important;
+    background: white !important;
+    border-radius: 0.75rem !important;
+    padding: 1rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e5e7eb !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Fix KPI card animations */
+.kpi-animate-in {
+    animation: kpiSlideIn 0.6s ease-out forwards !important;
+}
+
+@keyframes kpiSlideIn {
+from {
+    opacity: 0;
+    transform: translateY(20px);
+    }
+to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+/* Fix KPI value display */
+.kpi-value {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+    line-height: 1.2 !important;
+    margin: 0.5rem 0 !important;
+}
+
+.kpi-label {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.kpi-sub {
+    font-size: 0.75rem !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Fix chart containers */
+.charts-section {
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.charts-section .main-card {
+    height: auto !important;
+    min-height: 280px !important;
+}
+
+.charts-section .card-body {
+    height: 220px !important;
+    position: relative !important;
+    padding: 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.charts-section canvas {
+    max-height: 180px !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+/* Fix quick actions grid */
+.quick-action-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+}
+
+.quick-action-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 1rem !important;
+    background: #f8f9fa !important;
+    border-radius: 0.5rem !important;
+    text-decoration: none !important;
+    color: #374151 !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid transparent !important;
+}
+
+.quick-action-item:hover {
+    background: white !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    transform: translateY(-2px) !important;
+    border-color: #e5e7eb !important;
+    color: #374151 !important;
+    text-decoration: none !important;
+}
+
+.quick-action-item .icon {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+    padding: 0.75rem !important;
+    border-radius: 0.5rem !important;
+}
+
+.quick-action-item .icon.primary { background: #dbeafe; color: #2563eb; }
+.quick-action-item .icon.success { background: #d1fae5; color: #059669; }
+.quick-action-item .icon.warning { background: #fef3c7; color: #d97706; }
+.quick-action-item .icon.info { background: #dbeafe; color: #2563eb; }
+.quick-action-item .icon.danger { background: #fee2e2; color: #dc2626; }
+.quick-action-item .icon.secondary { background: #f3f4f6; color: #6b7280; }
+
+.quick-action-item span {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+}
+
+/* Fix activity feed */
+.activity-feed {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    padding: 0 !important;
+}
+
+.activity-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    padding: 1rem !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.activity-item:hover {
+    background-color: #f9fafb !important;
+}
+
+.activity-item:last-child {
+    border-bottom: none !important;
+}
+
+.activity-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: #e5e7eb !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 0.75rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: #6b7280 !important;
+}
+
+.activity-content {
+    flex: 1 !important;
+}
+
+.activity-content p {
+    margin: 0 !important;
+    font-size: 0.875rem !important;
+    color: #374151 !important;
+}
+
+.activity-content .time {
+    font-size: 0.75rem !important;
+    color: #9ca3af !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Fix pending tasks */
+.pending-card .list-group-item {
+    padding: 0.75rem 1rem !important;
+    border: none !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    background: transparent !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.pending-card .list-group-item:hover {
+    background-color: #f9fafb !important;
+}
+
+.pending-card .list-group-item:last-child {
+    border-bottom: none !important;
+}
+
+/* Fix main cards */
+.main-card {
+    background: white !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e5e7eb !important;
+    overflow: hidden !important;
+}
+
+.main-card .card-header {
+    background: #f9fafb !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 1rem 1.25rem !important;
+    font-weight: 600 !important;
+}
+
+.main-card .card-body {
+    padding: 1.25rem !important;
+}
+
+/* Fix admin hero section */
+.admin-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 2rem !important;
+    border-radius: 0.75rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.admin-hero h1 {
+    color: white !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.admin-hero .badge {
+    background: rgba(255,255,255,0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+/* Responsive fixes */
+@media (max-width: 1200px) {
+.kpi-card {
+    flex: 1 1 calc(33.333% - 1rem) !important;
+    }
+}
+
+@media (max-width: 768px) {
+.kpi-card {
+    flex: 1 1 calc(50% - 1rem) !important;
+    }
+
+.quick-actions-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+.admin-hero {
+    padding: 1.5rem !important;
+    text-align: center !important;
+    }
+}
+
+@media (max-width: 576px) {
+.kpi-card {
+    flex: 1 1 100% !important;
+    }
+
+.quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+.admin-hero h1 {
+    font-size: 1.5rem !important;
+    }
+}
+
+/* Fix HTMX loading indicators */
+.htmx-indicator {
+    display: none !important;
+}
+
+.htmx-request .htmx-indicator {
+    display: block !important;
+}
+
+.htmx-request.htmx-swapping {
+    opacity: 0.8 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+/* Loading states */
+.loading-placeholder {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 2rem !important;
+    color: #9ca3af !important;
+}
+
+.loading-placeholder .spinner-border {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    margin-right: 0.5rem !important;
+}
+
+/* Error states */
+.error-state {
+    text-align: center !important;
+    padding: 2rem !important;
+    color: #9ca3af !important;
+}
+
+.error-state .bi-exclamation-triangle {
+    color: #f59e0b !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Ensure proper z-index stacking */
+.main-card {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.charts-section {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* Fix dashboard layout spacing */
+.content-inner {
+    padding: 1rem !important;
+}
+
+@media (min-width: 768px) {
+.content-inner {
+    padding: 1.5rem !important;
+    }
+}
+
+/* Fix Bootstrap overrides that might be causing issues */
+.row {
+    margin-left: -0.75rem !important;
+    margin-right: -0.75rem !important;
+}
+
+.row > * {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+}
+
+/* Animation performance improvements */
+* {
+    transform-style: preserve-3d !important;
+    backface-visibility: hidden !important;
+}
+
+.kpi-card, .quick-action-item, .activity-item {
+    will-change: transform !important;
+}
+
+/* Print styles */
+@media print {
+.sidebar, .main-header, .htmx-indicator {
+    display: none !important;
+    }
+
+.main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    }
+
+.charts-section {
+    page-break-inside: avoid !important;
+    }
+}

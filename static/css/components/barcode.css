@@ -1,0 +1,80 @@
+.barcode-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.barcode-display {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.barcode-image {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.barcode-info {
+    margin-top: 5px;
+}
+
+.barcode-info small {
+    font-size: 11px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.barcode-placeholder {
+    padding: 20px;
+    color: #6c757d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.barcode-placeholder i {
+    font-size: 24px;
+}
+
+/* Print styles */
+@media print {
+.barcode-container {
+    margin: 15px 0;
+    }
+
+.barcode-display {
+    border: 2px solid #000;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: #fff;
+    }
+
+.barcode-image {
+    border: 1px solid #000;
+    border-radius: 0;
+    }
+
+.barcode-info small {
+    color: #000;
+    font-weight: bold;
+    }
+}
+
+/* Hospital barcode reader optimization */
+.barcode-image {
+    /* Ensure high contrast for barcode scanners */
+    filter: contrast(1.2);
+    /* Standard barcode height for hospital scanners */
+    min-height: 30px;
+    max-height: 50px;
+}

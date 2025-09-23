@@ -1,0 +1,9 @@
+{% load static %}
+<script>
+// Analytics Data for Dashboard
+window.analyticsData = {
+    appointmentTrends: {{ appointment_trends|safe }},
+    departmentStats: {{ department_stats|safe }}
+};
+</script>
+<script src="{% static 'js/analytics/dashboard_clean.js' %}"></script>

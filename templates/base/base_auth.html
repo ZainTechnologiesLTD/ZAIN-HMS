@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZAIN HMS - Hospital Management System{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}">
+
+    <!-- Consolidated Public Styles -->
+    <link rel="stylesheet" href="{% static 'css/public/public-v2.css' %}">
+
+    <!-- HTMX Framework -->
+    <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+
+    <!-- Alpine.js Framework -->
+    <script src="{% static 'vendor/alpinejs/alpine.min.js' %}" defer></script>
+
+    {% block extra_css %}{% endblock %}
+
+</head>
+<body class="auth-body" data-theme="auto" x-data="twoFactorController()">
+    <div class="min-vh-100 d-flex flex-column" style="background:radial-gradient(circle at 20% 20%, #eef4ff, #dbeafe 35%, #c7d2fe 70%);">
+    <div class="auth-container flex-grow-1 d-flex flex-column justify-content-center position-relative">
+        <!-- Unified Header -->
+        {% include 'components/public_navbar.html' %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Unified Footer -->
+    {% include 'components/public_footer.html' %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Consolidated Public JavaScript -->
+    <script src="{% static 'js/public/public-v2.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,93 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Transaction Detail - {{ transaction.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-receipt me-2"></i>Transaction Details
+        </h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'billing:pos_transaction_receipt' transaction.pk %}" class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-print fa-sm text-white-50"></i> Print Receipt
+            </a>
+            <a href="{% url 'billing:pos_transaction_list' %}" class="btn btn-primary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Transaction Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Transaction ID:</strong> {{ transaction.id }}</p>
+                            <p><strong>Date:</strong> {{ transaction.created_at|date:"F d, Y H:i" }}</p>
+                            <p><strong>Patient:</strong> {{ transaction.patient.full_name }}</p>
+                            <p><strong>Status:</strong>
+                                <span class="badge badge-success">{{ transaction.get_status_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Subtotal:</strong> ${{ transaction.subtotal|floatformat:2 }}</p>
+                            <p><strong>Tax:</strong> ${{ transaction.tax_amount|floatformat:2 }}</p>
+                            <p><strong>Discount:</strong> ${{ transaction.discount_amount|floatformat:2 }}</p>
+                            <p><strong>Total:</strong> <strong>${{ transaction.total_amount|floatformat:2 }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Transaction Items</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in transaction.items.all %}
+                                <tr>
+                                    <td>{{ item.pos_item.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ item.unit_price|floatformat:2 }}</td>
+                                    <td>${{ item.total_price|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Patient Information</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ transaction.patient.full_name }}</p>
+                    <p><strong>Phone:</strong> {{ transaction.patient.phone }}</p>
+                    <p><strong>Email:</strong> {{ transaction.patient.email|default:"N/A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

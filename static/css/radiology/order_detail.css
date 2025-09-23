@@ -1,0 +1,19 @@
+.card-title {
+    color: #495057;
+}
+
+.badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}

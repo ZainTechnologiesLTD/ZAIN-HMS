@@ -1,0 +1,102 @@
+.schedule-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    }
+.schedule-card:hover {
+    box-shadow: 0 0.25rem 2rem rgba(58, 59, 69, 0.15);
+    transform: translateY(-3px);
+    border-color: var(--primary-color);
+    }
+.schedule-card.no-schedule {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.05);
+    }
+.schedule-card.has-schedule {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.05);
+    }
+.doctor-avatar {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 1.1rem;
+    }
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.75rem;
+    border: none;
+    transition: transform 0.2s ease;
+    }
+.stats-card:hover {
+    transform: translateY(-2px);
+    }
+.stats-card.success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+.stats-card.warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    }
+.stats-card.info {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    }
+.filter-card {
+    background: #f8f9fc;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    }
+.department-badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.5rem;
+    }
+.schedule-status {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    }
+.search-input {
+    border-radius: 0.5rem;
+    border: 2px solid #e3e6f0;
+    transition: all 0.2s ease;
+    }
+.search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(5, 51, 119, 0.25);
+    }
+.filter-select {
+    border-radius: 0.5rem;
+    border: 2px solid #e3e6f0;
+    }
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: 0.75rem;
+    }
+.schedule-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    }
+.no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+    }

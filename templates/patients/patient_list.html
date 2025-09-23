@@ -1,0 +1,824 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Patient Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vendor/datatables/dataTables.bootstrap5.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/patients/patient_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" x-data="patientManager()">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="page-title">
+                        <i class="fas fa-users me-3"></i>Patient Management
+                    </h1>
+                    <p class="page-subtitle">
+                        Comprehensive patient management system with advanced analytics
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" @click="exportData('excel')">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                        <a href="{% url 'patients:create' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Add Patient
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">{{ total_patients }}</div>
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                <span>Active</span>
+            </div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-value">{{ total_patients }}</div>
+            <div class="stat-label">Active Patients</div>
+            <div class="stat-change">
+                <span>100% active</span>
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-value">{{ vip_patients }}</div>
+            <div class="stat-label">VIP Patients</div>
+            <div class="stat-change">
+                <span>Special care</span>
+            </div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-label">Today's Appointments</div>
+            <div class="stat-change">
+                <span>Scheduled today</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h2 class="filters-title">
+                <i class="fas fa-filter me-2"></i>Search & Filters
+            </h2>
+            <div class="action-buttons">
+                <button class="btn btn-outline-secondary" @click="resetFilters()">
+                    <i class="fas fa-times me-2"></i>Reset
+                </button>
+            </div>
+        </div>
+
+        <form class="filters-grid"
+              hx-get="{% url 'patients:list' %}"
+              hx-target="#patient-table-container"
+              hx-trigger="change, submit"
+              hx-indicator="#loading-indicator">
+            <div class="filter-group">
+                <label class="filter-label">Search Patients</label>
+                <div class="search-input-group">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text"
+                           name="q"
+                           class="filter-input"
+                           placeholder="Name, ID, phone, email..."
+                           value="{{ search_form.q.value|default_if_none:'' }}"
+                           x-model="searchQuery"
+                           hx-trigger="keyup changed delay:300ms"
+                           hx-get="{% url 'patients:list' %}"
+                           hx-target="#patient-table-container"
+                           hx-indicator="#loading-indicator">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Gender</label>
+                <select name="gender" class="filter-input" x-model="filters.gender">
+                    <option value="">All Genders</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Other</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Blood Group</label>
+                <select name="blood_group" class="filter-input" x-model="filters.blood_group">
+                    <option value="">All Blood Groups</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select name="is_vip" class="filter-input" x-model="filters.is_vip">
+                    <option value="">All Patients</option>
+                    <option value="1">VIP Patients</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="htmx-indicator">
+        <div class="text-center p-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div x-show="selectedPatients.length > 0"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform -translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         class="bulk-actions">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="bulk-text">
+                <i class="fas fa-check-square me-2"></i>
+                <span x-text="selectedPatients.length"></span> patient(s) selected
+            </div>
+            <div class="bulk-buttons">
+                <button type="button" class="btn btn-outline-success btn-sm"
+                        @click="bulkAction('activate')">
+                    <i class="fas fa-check-circle me-1"></i>Activate
+                </button>
+                <button type="button" class="btn btn-outline-warning btn-sm"
+                        @click="bulkAction('deactivate')">
+                    <i class="fas fa-pause-circle me-1"></i>Deactivate
+                </button>
+                <button type="button" class="btn btn-outline-info btn-sm"
+                        @click="exportData('excel')">
+                    <i class="fas fa-download me-1"></i>Export Selected
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                        @click="showBulkDeleteModal = true">
+                    <i class="fas fa-trash me-1"></i>Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patients Table Container -->
+    <div id="patient-table-container">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" x-model="selectAll" @change="toggleSelectAll()" class="form-check-input">
+                            </th>
+                            <th>Patient</th>
+                            <th>Contact</th>
+                            <th>Medical Info</th>
+                            <th>Status</th>
+                            <th>Registration</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td>
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       value="{{ patient.pk }}"
+                                       x-model="selectedPatients">
+                            </td>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar">
+                                        {% if patient.profile_picture %}
+                                            <img src="{{ patient.profile_picture.url }}" alt="{{ patient.full_name }}" class="avatar">
+                                        {% else %}
+                                            <div class="avatar-placeholder">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="patient-details">
+                                        <div class="patient-name">{{ patient.full_name }}</div>
+                                        <div class="patient-id">ID: {{ patient.patient_id }}</div>
+                                        <div class="patient-age">{{ patient.age }} years old</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="contact-info">
+                                    <div class="contact-item">
+                                        <i class="fas fa-phone text-primary"></i>
+                                        <span>{{ patient.phone }}</span>
+                                    </div>
+                                    {% if patient.email %}
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope text-info"></i>
+                                        <span>{{ patient.email }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="contact-item">
+                                        <i class="fas fa-map-marker-alt text-secondary"></i>
+                                        <span>{{ patient.city }}, {{ patient.state }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="medical-info">
+                                    <div class="medical-item">
+                                        <i class="fas fa-tint text-danger"></i>
+                                        <span>{{ patient.get_blood_group_display }}</span>
+                                    </div>
+                                    <div class="medical-item">
+                                        <i class="fas fa-venus-mars text-info"></i>
+                                        <span>{{ patient.get_gender_display }}</span>
+                                    </div>
+                                    {% if patient.allergies %}
+                                    <div class="medical-item">
+                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        <span>Allergies</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="status-badges">
+                                    {% if patient.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                    {% if patient.is_vip %}
+                                        <span class="badge bg-warning">VIP</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="registration-info">
+                                    <div class="reg-date">
+                                        <i class="fas fa-calendar text-primary"></i>
+                                        <span>{{ patient.registration_date|date:"M d, Y" }}</span>
+                                    </div>
+                                    {% if patient.registered_by %}
+                                    <div class="reg-by">
+                                        <i class="fas fa-user-tie text-secondary"></i>
+                                        <span>{{ patient.registered_by.get_full_name }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'patients:detail' patient.pk %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'patients:update' patient.pk %}"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            title="Delete"
+                                            @click="confirmDelete('{{ patient.pk }}', '{{ patient.full_name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="empty-title">No Patients Found</div>
+                                    <div class="empty-text">
+                                        {% if request.GET.q %}
+                                            No patients match your search criteria. Try adjusting your filters.
+                                        {% else %}
+                                            Get started by adding your first patient to the system.
+                                        {% endif %}
+                                    </div>
+                                    {% if not request.GET.q %}
+                                        <a href="{% url 'patients:create' %}" class="btn btn-primary">
+                                            <i class="fas fa-user-plus me-2"></i>Add First Patient
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Patient pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                       hx-get="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                       hx-target="#patient-table-container"
+                       hx-indicator="#loading-indicator">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                       hx-get="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                       hx-target="#patient-table-container"
+                       hx-indicator="#loading-indicator">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           hx-get="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                           hx-target="#patient-table-container"
+                           hx-indicator="#loading-indicator">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                       hx-get="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                       hx-target="#patient-table-container"
+                       hx-indicator="#loading-indicator">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                       hx-get="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}{% if request.GET.blood_group %}&blood_group={{ request.GET.blood_group }}{% endif %}{% if request.GET.is_vip %}&is_vip={{ request.GET.is_vip }}{% endif %}"
+                       hx-target="#patient-table-container"
+                       hx-indicator="#loading-indicator">Last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade"
+         x-show="showDeleteModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Delete Patient
+                    </h5>
+                    <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="delete-icon mb-3">
+                            <i class="fas fa-user-times text-danger" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6>Are you sure you want to delete this patient?</h6>
+                        <p class="text-muted mb-3" x-text="'This will permanently delete ' + deletePatientName + ' from the system.'"></p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This action cannot be undone. All patient records, appointments, and medical history will be permanently removed.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="showDeleteModal = false">
+                        Cancel
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger"
+                            @click="deletePatient()"
+                            :disabled="isDeleting">
+                        <span x-show="!isDeleting">
+                            <i class="fas fa-trash me-2"></i>Delete Patient
+                        </span>
+                        <span x-show="isDeleting">
+                            <i class="fas fa-spinner fa-spin me-2"></i>Deleting...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Confirmation Modal -->
+    <div class="modal fade"
+         x-show="showBulkDeleteModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Delete Multiple Patients
+                    </h5>
+                    <button type="button" class="btn-close" @click="showBulkDeleteModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="delete-icon mb-3">
+                            <i class="fas fa-users-slash text-danger" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6>Are you sure you want to delete <span x-text="selectedPatients.length"></span> patient(s)?</h6>
+                        <p class="text-muted mb-3">This will permanently delete all selected patients from the system.</p>
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            This action cannot be undone. All patient records, appointments, and medical history will be permanently removed.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="showBulkDeleteModal = false">
+                        Cancel
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger"
+                            @click="bulkDelete()"
+                            :disabled="isBulkDeleting">
+                        <span x-show="!isBulkDeleting">
+                            <i class="fas fa-trash me-2"></i>Delete All Selected
+                        </span>
+                        <span x-show="isBulkDeleting">
+                            <i class="fas fa-spinner fa-spin me-2"></i>Deleting...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alpine.js Data Component -->
+<script>
+function patientManager() {
+    return {
+        // State
+        searchQuery: '',
+        filters: {
+            gender: '',
+            blood_group: '',
+            is_vip: ''
+        },
+        selectedPatients: [],
+        selectAll: false,
+
+        // Modals
+        showDeleteModal: false,
+        showBulkDeleteModal: false,
+
+        // Delete state
+        deletePatientId: null,
+        deletePatientName: '',
+        isDeleting: false,
+        isBulkDeleting: false,
+
+        // Methods
+        toggleSelectAll() {
+            if (this.selectAll) {
+                // Select all visible patient checkboxes
+                const checkboxes = document.querySelectorAll('input[type="checkbox"][value]');
+                this.selectedPatients = Array.from(checkboxes).map(cb => cb.value);
+            } else {
+                this.selectedPatients = [];
+            }
+        },
+
+        confirmDelete(patientId, patientName) {
+            this.deletePatientId = patientId;
+            this.deletePatientName = patientName;
+            this.showDeleteModal = true;
+        },
+
+        deletePatient() {
+            if (!this.deletePatientId) return;
+
+            this.isDeleting = true;
+
+            // Use HTMX to delete the patient
+            htmx.ajax('POST', `/en/patients/${this.deletePatientId}/delete/`, {
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                   document.querySelector('meta[name=csrf-token]')?.content
+                },
+                swap: 'none',
+                values: { confirm: 'yes' }
+            }).then(() => {
+                // Refresh the table
+                htmx.trigger(document.querySelector('#patient-table-container'), 'refresh');
+                this.showDeleteModal = false;
+                this.isDeleting = false;
+                this.deletePatientId = null;
+                this.deletePatientName = '';
+
+                // Show success message
+                this.showSuccessMessage('Patient deleted successfully');
+            }).catch(() => {
+                this.isDeleting = false;
+                this.showErrorMessage('Failed to delete patient');
+            });
+        },
+
+        bulkAction(action) {
+            if (this.selectedPatients.length === 0) {
+                this.showErrorMessage('Please select at least one patient');
+                return;
+            }
+
+            if (action === 'delete') {
+                this.showBulkDeleteModal = true;
+                return;
+            }
+
+            // Handle other bulk actions
+            const formData = new FormData();
+            formData.append('action', action);
+            this.selectedPatients.forEach(id => {
+                formData.append('patient_ids', id);
+            });
+
+            htmx.ajax('POST', '{% url "patients:patient_bulk_action" %}', {
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                   document.querySelector('meta[name=csrf-token]')?.content
+                },
+                body: formData,
+                swap: 'none'
+            }).then(() => {
+                htmx.trigger(document.querySelector('#patient-table-container'), 'refresh');
+                this.selectedPatients = [];
+                this.selectAll = false;
+                this.showSuccessMessage(`Bulk ${action} completed successfully`);
+            }).catch(() => {
+                this.showErrorMessage(`Failed to perform bulk ${action}`);
+            });
+        },
+
+        bulkDelete() {
+            this.isBulkDeleting = true;
+
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            this.selectedPatients.forEach(id => {
+                formData.append('patient_ids', id);
+            });
+
+            htmx.ajax('POST', '{% url "patients:patient_bulk_action" %}', {
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                   document.querySelector('meta[name=csrf-token]')?.content
+                },
+                body: formData,
+                swap: 'none'
+            }).then(() => {
+                htmx.trigger(document.querySelector('#patient-table-container'), 'refresh');
+                this.selectedPatients = [];
+                this.selectAll = false;
+                this.showBulkDeleteModal = false;
+                this.isBulkDeleting = false;
+                this.showSuccessMessage('Selected patients deleted successfully');
+            }).catch(() => {
+                this.isBulkDeleting = false;
+                this.showErrorMessage('Failed to delete selected patients');
+            });
+        },
+
+        resetFilters() {
+            this.searchQuery = '';
+            this.filters = {
+                gender: '',
+                blood_group: '',
+                is_vip: ''
+            };
+            // Trigger HTMX reload
+            htmx.trigger(document.querySelector('#patient-table-container'), 'refresh');
+        },
+
+        exportData(format) {
+            const params = new URLSearchParams();
+            if (this.searchQuery) params.append('q', this.searchQuery);
+            if (this.filters.gender) params.append('gender', this.filters.gender);
+            if (this.filters.blood_group) params.append('blood_group', this.filters.blood_group);
+            if (this.filters.is_vip) params.append('is_vip', this.filters.is_vip);
+            params.append('export', format);
+
+            window.location.href = `{% url 'patients:list' %}?${params.toString()}`;
+        },
+
+        showSuccessMessage(message) {
+            // Create a toast or alert for success message
+            this.showToast('success', message);
+        },
+
+        showErrorMessage(message) {
+            // Create a toast or alert for error message
+            this.showToast('error', message);
+        },
+
+        showToast(type, message) {
+            // Simple toast implementation
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            document.body.appendChild(toast);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => toast.remove(), 5000);
+        }
+    }
+}
+</script>
+
+<!-- Alpine.js Patient Manager -->
+<script src="{% static 'js/patients/patient_list_alpine.js' %}"></script>
+
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: block;
+    }
+    .htmx-request.htmx-indicator {
+        display: block;
+    }
+</style>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deletePatientModal" tabindex="-1" aria-labelledby="deletePatientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePatientModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Confirm Patient Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action will deactivate the patient record.
+                </div>
+                <p>Are you sure you want to delete the patient record for:</p>
+                <div class="patient-delete-info">
+                    <strong id="deletePatientName"></strong>
+                </div>
+                <p class="text-muted small mt-2">
+                    <i class="fas fa-info-circle me-1"></i>
+                    This will soft-delete the patient (set as inactive). The record will be preserved for audit purposes.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-1"></i>Delete Patient
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Confirmation Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkDeleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Confirm Bulk Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action will deactivate multiple patient records.
+                </div>
+                <p>Are you sure you want to delete <strong id="bulkDeleteCount">0</strong> selected patients?</p>
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    This will soft-delete the patients (set as inactive). The records will be preserved for audit purposes.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn">
+                    <i class="fas fa-trash me-1"></i>Delete Selected Patients
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Quick View Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Patient Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="patientModalBody">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading patient details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Alpine.js Patient Manager -->
+<script src="{% static 'js/patients/patient_list_alpine.js' %}"></script>
+
+<!-- jQuery and DataTables -->
+<script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'js/patients/patient_list.js' %}"></script>
+
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: block;
+    }
+    .htmx-request.htmx-indicator {
+        display: block;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-md-6 text-center">
+            <div class="error-page">
+                <div class="error-code">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                    <h1 class="display-1 text-danger">500</h1>
+                </div>
+                <h2 class="mb-3">Internal Server Error</h2>
+                <p class="text-muted mb-4">
+                    We're experiencing some technical difficulties. Our team has been notified and is working to resolve the issue.
+                </p>
+
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-tools me-2"></i>
+                    Please try again in a few minutes. If the problem persists, contact support.
+                </div>
+
+                <div class="mt-4">
+                    <button onclick="location.reload()" class="btn btn-danger me-2">
+                        <i class="fas fa-refresh me-2"></i>Try Again
+                    </button>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-home me-2"></i>Go to Dashboard
+                    </a>
+                    <a href="mailto:support@zainhms.com" class="btn btn-outline-secondary">
+                        <i class="fas fa-envelope me-2"></i>Contact Support
+                    </a>
+                </div>
+
+                <div class="mt-4">
+                    <small class="text-muted">
+                        Error ID: {{ request.META.REQUEST_TIME|default:"unknown" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

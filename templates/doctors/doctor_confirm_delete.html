@@ -1,0 +1,159 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Delete Doctor - {{ doctor.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/doctors/doctor_confirm_delete.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="delete-header text-center">
+    <div class="container">
+        <h1 class="display-5 mb-3">
+            <i class="fas fa-exclamation-triangle me-3"></i>Delete Doctor
+        </h1>
+        <p class="lead">Are you sure you want to delete this doctor?</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="delete-container">
+
+                <!-- Doctor Information -->
+                <div class="doctor-info">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            {% if doctor.image %}
+                                <img src="{{ doctor.image.url }}" alt="{{ doctor.get_full_name }}"
+                                     class="doctor-avatar">
+                            {% else %}
+                                <div class="doctor-avatar bg-primary d-flex align-items-center justify-content-center mx-auto text-white">
+                                    <i class="fas fa-user-md fa-2x"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h4 class="mb-2">{{ doctor.get_full_name }}</h4>
+                            <p class="mb-1">
+                                <i class="fas fa-stethoscope me-2"></i>
+                                <strong>Specialization:</strong> {{ doctor.get_specialization_display }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-id-card me-2"></i>
+                                <strong>License:</strong> {{ doctor.license_number }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-envelope me-2"></i>
+                                <strong>Email:</strong> {{ doctor.email }}
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar me-2"></i>
+                                <strong>Joining Date:</strong> {{ doctor.joining_date|date:"M d, Y" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warning Message -->
+                <div class="warning-box">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                        <div>
+                            <h5 class="mb-2 text-warning">Warning: This action cannot be undone!</h5>
+                            <p class="mb-0 text-muted">
+                                Deleting this doctor will permanently remove all their information from the system.
+                                This may affect related appointments and medical records.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="text-center">
+                        <p class="mb-4">
+                            <strong>Type the doctor's full name to confirm deletion:</strong>
+                        </p>
+                        <div class="mb-4">
+                            <input type="text" class="form-control text-center" id="confirmName" name="confirm_name"
+                                   placeholder="Enter: {{ doctor.get_full_name }}" required>
+                            <small class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle"></i>
+                                Please type exactly: <strong>{{ doctor.get_full_name }}</strong>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between pt-4">
+                        <a href="{% url 'doctors:doctor_list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <div>
+                            <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-outline-info btn-lg me-2">
+                                <i class="fas fa-eye me-2"></i>View Details
+                            </a>
+                            <button type="submit" class="btn btn-secondary btn-lg" id="deleteBtn" disabled>
+                                <i class="fas fa-trash me-2"></i>Delete Doctor (Type name to enable)
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmNameInput = document.getElementById('confirmName');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const expectedName = "{{ doctor.get_full_name }}";
+
+    console.log('Expected doctor name:', expectedName); // Debug log
+
+    confirmNameInput.addEventListener('input', function() {
+        const inputValue = this.value.trim();
+        console.log('Input value:', inputValue); // Debug log
+
+        if (inputValue === expectedName) {
+            deleteBtn.disabled = false;
+            deleteBtn.classList.add('btn-danger');
+            deleteBtn.classList.remove('btn-secondary');
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-secondary');
+            this.classList.remove('is-valid');
+            if (inputValue.length > 0) {
+                this.classList.add('is-invalid');
+            }
+        }
+    });
+
+    // Prevent accidental form submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (confirmNameInput.value.trim() !== expectedName) {
+            e.preventDefault();
+            alert('Please type the exact doctor name to confirm deletion.');
+            return false;
+        }
+
+        // Final confirmation
+        if (!confirm('Are you absolutely sure you want to delete this doctor? This action cannot be undone.')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

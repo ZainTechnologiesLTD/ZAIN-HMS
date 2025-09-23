@@ -1,0 +1,442 @@
+{% load i18n %}
+
+<!-- Dashboard Charts Partial Template -->
+<div class="charts-container"
+     x-data="{
+         charts: {},
+         loading: false,
+         error: null,
+         chartType: 'monthly',
+         dateRange: '30',
+
+         init() {
+             this.initCharts();
+             this.loadChartData();
+         },
+
+         initCharts() {
+             // Patient Statistics Chart
+             const patientCtx = document.getElementById('patientStatsChart');
+             if (patientCtx) {
+                 this.charts.patients = new Chart(patientCtx, {
+                     type: 'line',
+                     data: {
+                         labels: {{ chart_data.patient_labels|safe }},
+                         datasets: [{
+                             label: '{% trans "New Patients" %}',
+                             data: {{ chart_data.patient_data|safe }},
+                             borderColor: 'rgb(75, 192, 192)',
+                             backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                             tension: 0.4,
+                             fill: true
+                         }]
+                     },
+                     options: {
+                         responsive: true,
+                         maintainAspectRatio: false,
+                         plugins: {
+                             legend: {
+                                 display: false
+                             },
+                             tooltip: {
+                                 mode: 'index',
+                                 intersect: false,
+                             }
+                         },
+                         scales: {
+                             x: {
+                                 display: true,
+                                 grid: {
+                                     display: false
+                                 }
+                             },
+                             y: {
+                                 display: true,
+                                 beginAtZero: true,
+                                 grid: {
+                                     color: 'rgba(0,0,0,0.05)'
+                                 }
+                             }
+                         }
+                     }
+                 });
+             }
+
+             // Revenue Chart
+             const revenueCtx = document.getElementById('revenueChart');
+             if (revenueCtx) {
+                 this.charts.revenue = new Chart(revenueCtx, {
+                     type: 'bar',
+                     data: {
+                         labels: {{ chart_data.revenue_labels|safe }},
+                         datasets: [{
+                             label: '{% trans "Revenue" %}',
+                             data: {{ chart_data.revenue_data|safe }},
+                             backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                             borderColor: 'rgba(54, 162, 235, 1)',
+                             borderWidth: 1
+                         }]
+                     },
+                     options: {
+                         responsive: true,
+                         maintainAspectRatio: false,
+                         plugins: {
+                             legend: {
+                                 display: false
+                             }
+                         },
+                         scales: {
+                             x: {
+                                 grid: {
+                                     display: false
+                                 }
+                             },
+                             y: {
+                                 beginAtZero: true,
+                                 ticks: {
+                                     callback: function(value) {
+                                         return '$' + value.toLocaleString();
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                 });
+             }
+
+             // Department Distribution Chart
+             const departmentCtx = document.getElementById('departmentChart');
+             if (departmentCtx) {
+                 this.charts.departments = new Chart(departmentCtx, {
+                     type: 'doughnut',
+                     data: {
+                         labels: {{ chart_data.department_labels|safe }},
+                         datasets: [{
+                             data: {{ chart_data.department_data|safe }},
+                             backgroundColor: [
+                                 '#FF6384',
+                                 '#36A2EB',
+                                 '#FFCE56',
+                                 '#4BC0C0',
+                                 '#9966FF',
+                                 '#FF9F40'
+                             ],
+                             borderWidth: 0
+                         }]
+                     },
+                     options: {
+                         responsive: true,
+                         maintainAspectRatio: false,
+                         plugins: {
+                             legend: {
+                                 position: 'bottom',
+                                 labels: {
+                                     usePointStyle: true,
+                                     padding: 20
+                                 }
+                             }
+                         },
+                         cutout: '60%'
+                     }
+                 });
+             }
+         },
+
+         updateChartData(type, range) {
+             this.loading = true;
+             this.error = null;
+             this.chartType = type;
+             this.dateRange = range;
+
+             fetch(`{% url 'dashboard:api_charts' %}?type=${type}&range=${range}`)
+                 .then(response => response.json())
+                 .then(data => {
+                     this.updateCharts(data);
+                     this.loading = false;
+                 })
+                 .catch(error => {
+                     this.error = 'Failed to load chart data';
+                     this.loading = false;
+                 });
+         },
+
+         updateCharts(data) {
+             // Update patient chart
+             if (this.charts.patients && data.patient_data) {
+                 this.charts.patients.data.labels = data.patient_labels;
+                 this.charts.patients.data.datasets[0].data = data.patient_data;
+                 this.charts.patients.update();
+             }
+
+             // Update revenue chart
+             if (this.charts.revenue && data.revenue_data) {
+                 this.charts.revenue.data.labels = data.revenue_labels;
+                 this.charts.revenue.data.datasets[0].data = data.revenue_data;
+                 this.charts.revenue.update();
+             }
+
+             // Update department chart
+             if (this.charts.departments && data.department_data) {
+                 this.charts.departments.data.labels = data.department_labels;
+                 this.charts.departments.data.datasets[0].data = data.department_data;
+                 this.charts.departments.update();
+             }
+         },
+
+         loadChartData() {
+             this.updateChartData(this.chartType, this.dateRange);
+         }
+     }"
+     x-init="init()">
+
+    <!-- Chart Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
+                                {% trans "Analytics Dashboard" %}
+                            </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 justify-content-md-end">
+                                <!-- Chart Type Selector -->
+                                <div class="btn-group" role="group" aria-label="{% trans 'Chart type selector' %}">
+                                    <input type="radio"
+                                           class="btn-check"
+                                           name="chartType"
+                                           id="chartMonthly"
+                                           value="monthly"
+                                           x-model="chartType"
+                                           @change="updateChartData(chartType, dateRange)">
+                                    <label class="btn btn-outline-primary btn-sm" for="chartMonthly">
+                                        {% trans "Monthly" %}
+                                    </label>
+
+                                    <input type="radio"
+                                           class="btn-check"
+                                           name="chartType"
+                                           id="chartWeekly"
+                                           value="weekly"
+                                           x-model="chartType"
+                                           @change="updateChartData(chartType, dateRange)">
+                                    <label class="btn btn-outline-primary btn-sm" for="chartWeekly">
+                                        {% trans "Weekly" %}
+                                    </label>
+
+                                    <input type="radio"
+                                           class="btn-check"
+                                           name="chartType"
+                                           id="chartDaily"
+                                           value="daily"
+                                           x-model="chartType"
+                                           @change="updateChartData(chartType, dateRange)">
+                                    <label class="btn btn-outline-primary btn-sm" for="chartDaily">
+                                        {% trans "Daily" %}
+                                    </label>
+                                </div>
+
+                                <!-- Date Range Selector -->
+                                <select class="form-select form-select-sm"
+                                        style="width: auto;"
+                                        x-model="dateRange"
+                                        @change="updateChartData(chartType, dateRange)">
+                                    <option value="7">{% trans "Last 7 days" %}</option>
+                                    <option value="30" selected>{% trans "Last 30 days" %}</option>
+                                    <option value="90">{% trans "Last 90 days" %}</option>
+                                    <option value="365">{% trans "Last year" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div x-show="loading"
+         class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+         style="background: rgba(255,255,255,0.8); z-index: 1050;"
+         x-transition>
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">{% trans "Loading..." %}</span>
+            </div>
+            <p class="text-muted">{% trans "Updating charts..." %}</p>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div x-show="error"
+         class="alert alert-warning alert-dismissible"
+         role="alert"
+         x-transition>
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span x-text="error"></span>
+        <button type="button"
+                class="btn-close"
+                @click="error = null"
+                aria-label="{% trans 'Close' %}"></button>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="row">
+        <!-- Patient Statistics Chart -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-people me-2 text-primary"></i>
+                            {% trans "Patient Registration Trends" %}
+                        </h6>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#" @click.prevent="charts.patients?.toBase64Image()">
+                                        <i class="bi bi-download me-2"></i>
+                                        {% trans "Export Chart" %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'patients:list' %}">
+                                        <i class="bi bi-eye me-2"></i>
+                                        {% trans "View Patients" %}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="patientStatsChart"
+                                width="400"
+                                height="200"
+                                role="img"
+                                aria-label="{% trans 'Patient registration trends chart' %}"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Distribution Chart -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-pie-chart me-2 text-success"></i>
+                        {% trans "Department Distribution" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="departmentChart"
+                                width="400"
+                                height="300"
+                                role="img"
+                                aria-label="{% trans 'Department distribution chart' %}"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-currency-dollar me-2 text-warning"></i>
+                            {% trans "Revenue Overview" %}
+                        </h6>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-success">
+                                <i class="bi bi-arrow-up me-1"></i>
+                                +12.5%
+                            </span>
+                            <small class="text-muted">{% trans "vs last period" %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height: 350px;">
+                        <canvas id="revenueChart"
+                                width="400"
+                                height="200"
+                                role="img"
+                                aria-label="{% trans 'Revenue overview chart' %}"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Summary Statistics -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        {% trans "Key Metrics Summary" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item p-3 bg-light rounded">
+                                <div class="metric-value h4 mb-1 text-primary">
+                                    {{ chart_data.total_patients|default:"0" }}
+                                </div>
+                                <div class="metric-label small text-muted">
+                                    {% trans "Total Patients" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item p-3 bg-light rounded">
+                                <div class="metric-value h4 mb-1 text-success">
+                                    ${{ chart_data.total_revenue|default:"0"|floatformat:0 }}
+                                </div>
+                                <div class="metric-label small text-muted">
+                                    {% trans "Total Revenue" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item p-3 bg-light rounded">
+                                <div class="metric-value h4 mb-1 text-warning">
+                                    {{ chart_data.avg_daily_patients|default:"0" }}
+                                </div>
+                                <div class="metric-label small text-muted">
+                                    {% trans "Avg Daily Patients" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item p-3 bg-light rounded">
+                                <div class="metric-value h4 mb-1 text-info">
+                                    {{ chart_data.active_departments|default:"0" }}
+                                </div>
+                                <div class="metric-label small text-muted">
+                                    {% trans "Active Departments" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

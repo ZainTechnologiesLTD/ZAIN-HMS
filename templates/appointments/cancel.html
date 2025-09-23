@@ -1,0 +1,52 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Cancel Appointment{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-times-circle me-2"></i>Cancel Appointment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5>Are you sure you want to cancel this appointment?</h5>
+                        <p class="mb-0">This action cannot be undone.</p>
+                    </div>
+
+                    <div class="appointment-details mb-4">
+                        <h6>Appointment Details:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Patient:</strong> {{ appointment.patient.get_full_name }}</li>
+                            <li><strong>Doctor:</strong> {{ appointment.doctor.get_full_name }}</li>
+                            <li><strong>Date:</strong> {{ appointment.appointment_date|date:"M d, Y" }}</li>
+                            <li><strong>Time:</strong> {{ appointment.appointment_time|time:"g:i A" }}</li>
+                            <li><strong>Status:</strong> <span class="badge bg-{{ appointment.status|lower }}">{{ appointment.get_status_display }}</span></li>
+                        </ul>
+                    </div>
+
+                    <form method="post" action="{% url 'appointments:cancel_appointment' appointment.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="cancellation_reason" class="form-label">Cancellation Reason (Optional)</label>
+                            <textarea class="form-control" id="cancellation_reason" name="cancellation_reason" rows="3" placeholder="Please provide a reason for cancellation..."></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-2"></i>Yes, Cancel Appointment
+                            </button>
+                            <a href="{% url 'appointments:appointment_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Go Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

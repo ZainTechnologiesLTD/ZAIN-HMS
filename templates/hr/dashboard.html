@@ -1,0 +1,77 @@
+{% extends 'base/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "HR Dashboard" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Human Resources" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-people-fill me-2"></i>
+                    {% trans "HR Dashboard" %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "HR module is under development. Coming soon!" %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>{% trans "Employee Management" %}</h4>
+                                        <p class="mb-0">{% trans "Manage staff records" %}</p>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-person-workspace" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>{% trans "Payroll" %}</h4>
+                                        <p class="mb-0">{% trans "Salary management" %}</p>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-cash-stack" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>{% trans "Attendance" %}</h4>
+                                        <p class="mb-0">{% trans "Track work hours" %}</p>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

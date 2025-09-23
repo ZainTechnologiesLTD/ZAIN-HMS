@@ -1,0 +1,247 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ nurse.user.get_full_name }} - Nurse Details{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/nurses/nurse_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'nurses:nurse_list' %}">
+                        <i class="fas fa-user-nurse"></i> Nursing Staff
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ nurse.user.get_full_name }}
+                </li>
+            </ol>
+        </nav>
+        <div class="btn-group">
+            <a href="{% url 'nurses:nurse_update' nurse.pk %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i> Edit
+            </a>
+            <a href="{% url 'nurses:nurse_list' %}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left fa-sm"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card info-card">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user"></i> Personal Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-circle mb-3">
+                            <i class="fas fa-user-nurse fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="font-weight-bold">{{ nurse.user.get_full_name }}</h5>
+                        <p class="text-muted">{{ nurse.employee_id }}</p>
+                    </div>
+
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">
+                        <span class="{% if nurse.is_active %}status-active{% else %}status-inactive{% endif %}">
+                            <i class="fas fa-circle fa-sm"></i>
+                            {% if nurse.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">{{ nurse.user.email }}</div>
+
+                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-value">{{ nurse.phone_number }}</div>
+
+                    <div class="detail-label">Gender</div>
+                    <div class="detail-value">{{ nurse.get_gender_display }}</div>
+
+                    <div class="detail-label">Date of Birth</div>
+                    <div class="detail-value">{{ nurse.date_of_birth|date:"F d, Y" }}</div>
+
+                    <div class="detail-label">Address</div>
+                    <div class="detail-value">{{ nurse.address }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Information -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="row">
+                <!-- Work Details -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card info-card">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-briefcase"></i> Work Details
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="detail-label">Department</div>
+                            <div class="detail-value">
+                                {% if nurse.department %}
+                                    {{ nurse.department.name }}
+                                {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="detail-label">Shift</div>
+                            <div class="detail-value">
+                                <span class="shift-{{ nurse.shift }}">
+                                    <i class="fas fa-clock"></i>
+                                    {{ nurse.get_shift_display }}
+                                </span>
+                            </div>
+
+                            <div class="detail-label">Years of Experience</div>
+                            <div class="detail-value">{{ nurse.years_of_experience }} years</div>
+
+                            <div class="detail-label">Joining Date</div>
+                            <div class="detail-value">{{ nurse.joining_date|date:"F d, Y" }}</div>
+
+                            <div class="detail-label">Salary</div>
+                            <div class="detail-value">${{ nurse.salary|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualifications -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card info-card">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-graduation-cap"></i> Qualifications
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="detail-value">
+                                {{ nurse.qualifications|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Schedules -->
+            <div class="card info-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt"></i> Recent Schedules
+                    </h6>
+                    <small class="text-muted">Last 5 entries</small>
+                </div>
+                <div class="card-body">
+                    {% if schedules %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in schedules %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ schedule.date|date:"M d, Y" }}</strong><br>
+                                            <small class="text-muted">{{ schedule.date|date:"l" }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                {{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if schedule.notes %}
+                                                {{ schedule.notes|truncatewords:10 }}
+                                            {% else %}
+                                                <span class="text-muted">No notes</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            <i class="fas fa-calendar-times fa-2x d-block mb-2"></i>
+                            No schedules found
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Leave Requests -->
+            <div class="card info-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-minus"></i> Recent Leave Requests
+                    </h6>
+                    <small class="text-muted">Last 5 entries</small>
+                </div>
+                <div class="card-body">
+                    {% if leaves %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Period</th>
+                                        <th>Status</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for leave in leaves %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ leave.get_leave_type_display }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
+                                        </td>
+                                        <td>
+                                            <span class="badge leave-{{ leave.status }}">
+                                                {{ leave.get_status_display|upper }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {{ leave.reason|truncatewords:8 }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            <i class="fas fa-clipboard-list fa-2x d-block mb-2"></i>
+                            No leave requests found
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

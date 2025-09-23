@@ -1,0 +1,196 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Pharmacy Bills{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-receipt text-primary me-2"></i>
+                        Pharmacy Bills
+                    </h1>
+                    <p class="text-muted mb-0">Manage all pharmacy sales and transactions</p>
+                </div>
+                <div>
+                    <a href="{% url 'pharmacy:create_sale' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        New Sale
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" name="search" class="form-control"
+                                   placeholder="Search by bill number, patient name, or contact..."
+                                   value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bills Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if bills %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Bill #</th>
+                                        <th>Patient Name</th>
+                                        <th>Contact</th>
+                                        <th>Total Amount</th>
+                                        <th>Payment Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for bill in bills %}
+                                    <tr>
+                                        <td>
+                                            <strong class="text-primary">{{ bill.bill_number }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ bill.patient_name }}</div>
+                                        </td>
+                                        <td>
+                                            {% if bill.contact_number %}
+                                                <small class="text-muted">{{ bill.contact_number }}</small>
+                                            {% else %}
+                                                <small class="text-muted">N/A</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">${{ bill.total_amount|floatformat:2 }}</span>
+                                        </td>
+                                        <td>
+                                            {% if bill.payment_status == 'PAID' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif bill.payment_status == 'PENDING' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif bill.payment_status == 'PARTIAL' %}
+                                                <span class="badge bg-info">Partial</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ bill.created_at|naturaltime }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'pharmacy:bill_detail' bill.id %}"
+                                                   class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'pharmacy:print_bill' bill.id %}"
+                                                   class="btn btn-outline-info" title="Print Bill">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if bills.has_other_pages %}
+                        <nav aria-label="Bills pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if bills.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ bills.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in bills.paginator.page_range %}
+                                    {% if bills.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > bills.number|add:'-3' and num < bills.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if bills.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ bills.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No bills found</h5>
+                            <p class="text-muted">
+                                {% if request.GET.search %}
+                                    No bills match your search criteria.
+                                {% else %}
+                                    Start by creating your first pharmacy sale.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'pharmacy:create_sale' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                Create New Sale
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/pharmacy/bill_list.js' %}"></script>
+{% endblock %}

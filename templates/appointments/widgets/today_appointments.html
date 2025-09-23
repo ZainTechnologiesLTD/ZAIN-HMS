@@ -1,0 +1,121 @@
+{% load static %}
+
+<div class="appointment-dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="dashboard-title">📅 Today's Appointments</div>
+        <div class="dashboard-subtitle">{{ today|date:"l, F d, Y" }}</div>
+        <button class="refresh-btn" onclick="refreshAppointments()" title="Refresh">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="appointment-stats">
+        <div class="stat-item">
+            <div class="stat-number" id="totalToday">{{ today_appointments_count|default:0 }}</div>
+            <div class="stat-label">Total Today</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="pendingCount">{{ pending_appointments_count|default:0 }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="completedCount">{{ completed_appointments_count|default:0 }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="cancelledCount">{{ cancelled_appointments_count|default:0 }}</div>
+            <div class="stat-label">Cancelled</div>
+        </div>
+    </div>
+
+    <!-- Quick Filters -->
+    <div class="quick-filters">
+        <div class="filter-chip active" data-filter="all">All</div>
+        <div class="filter-chip" data-filter="scheduled">Scheduled</div>
+        <div class="filter-chip" data-filter="confirmed">Confirmed</div>
+        <div class="filter-chip" data-filter="in-progress">In Progress</div>
+        <div class="filter-chip" data-filter="completed">Completed</div>
+    </div>
+
+    <!-- Appointment List -->
+    <div class="appointment-list" id="appointmentList">
+        {% if today_appointments %}
+            {% for appointment in today_appointments %}
+            <div class="appointment-item" data-status="{{ appointment.status|lower }}">
+                <div class="priority-indicator priority-{{ appointment.priority|lower }}"></div>
+
+                <div class="appointment-time">
+                    <i class="bi bi-clock me-1"></i>
+                    {{ appointment.appointment_time|time:"H:i" }}
+                    {% if appointment.duration_minutes %}
+                        ({{ appointment.duration_minutes }}min)
+                    {% endif %}
+                </div>
+
+                <div class="appointment-patient">
+                    <i class="bi bi-person me-1"></i>
+                    {{ appointment.patient.get_full_name }}
+                </div>
+
+                <div class="appointment-doctor">
+                    <i class="bi bi-person-badge me-1"></i>
+                    Dr. {{ appointment.doctor.get_full_name }}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="appointment-status status-{{ appointment.status|lower }}">
+                        {{ appointment.get_status_display }}
+                    </span>
+
+                    {% if appointment.appointment_type %}
+                    <small class="text-muted">{{ appointment.appointment_type.name }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="appointment-item-actions">
+                    <div class="action-icon action-view"
+                         onclick="viewAppointment('{{ appointment.id }}')"
+                         title="View Details">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    {% if appointment.status in 'SCHEDULED,CONFIRMED' %}
+                    <div class="action-icon action-edit"
+                         onclick="editAppointment('{{ appointment.id }}')"
+                         title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-calendar-x"></i>
+                <h6>No appointments today</h6>
+                <p>There are no appointments scheduled for today.</p>
+                <a href="{% url 'appointments:appointment_create' %}" class="dashboard-btn btn-primary-dash">
+                    <i class="bi bi-plus me-1"></i>Schedule Appointment
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Actions -->
+    {% if today_appointments %}
+    <div class="dashboard-actions">
+        <a href="{% url 'appointments:appointment_create' %}" class="dashboard-btn btn-primary-dash">
+            <i class="bi bi-plus me-1"></i>New Appointment
+        </a>
+        <a href="{% url 'appointments:appointment_list' %}" class="dashboard-btn btn-outline-dash">
+            <i class="bi bi-calendar-check me-1"></i>View All
+        </a>
+        <button onclick="exportTodayAppointments()" class="dashboard-btn btn-outline-dash">
+            <i class="bi bi-download me-1"></i>Export
+        </button>
+    </div>
+    {% endif %}
+</div>
+<script src="{% static 'js/widgets/today_appointments.js' %}"></script>

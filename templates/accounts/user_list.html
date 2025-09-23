@@ -1,0 +1,176 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}User Management{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/accounts/user_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Modern Header -->
+    <div class="user-management-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h2 class="h3 mb-1">
+                    <i class="fas fa-users me-2"></i>User Management
+                </h2>
+                <p class="mb-0 opacity-75">Manage and monitor all system users</p>
+
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <span>{{ users|length }} Total Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{% for user in users %}{% if user.is_active %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %} Active</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' or request.user.role == 'ADMIN' or request.user.is_superuser %}
+            <a href="{% url 'accounts:user_create' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-plus me-2"></i>Add New User
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modern Table -->
+    <div class="modern-table">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Hospital</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">#{{ user.id }}</span>
+                                <button class="copy-id-btn" onclick="copyToClipboard('{{ user.id }}')" title="Copy ID">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                    {% else %}
+                                        {{ user.first_name|first|default:user.username|first|upper }}
+                                    {% endif %}
+                                </div>
+                                <div class="user-details">
+                                    <h6>{{ user.get_full_name|default:user.username }}</h6>
+                                    <small>@{{ user.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="role-badge {% if user.role == 'DOCTOR' %}role-doctor{% elif user.role == 'NURSE' %}role-nurse{% elif user.role == 'ADMIN' %}role-admin{% else %}role-patient{% endif %}">
+                                {{ user.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div>
+                                <div class="fw-semibold">ZAIN HMS</div>
+                                {% if user.hospital.address %}
+                                    <small class="text-muted">{{ user.hospital.address|truncatechars:30 }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                {% if user.email %}
+                                    <div class="small"><i class="fas fa-envelope me-1"></i>{{ user.email|truncatechars:25 }}</div>
+                                {% endif %}
+                                {% if user.phone %}
+                                    <div class="small"><i class="fas fa-phone me-1"></i>{{ user.phone }}</div>
+                                {% endif %}
+                                {% if not user.email and not user.phone %}
+                                    <span class="text-muted">No contact info</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="{% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'accounts:user_detail' user.pk %}" class="action-btn btn-view" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'accounts:user_edit' user.pk %}" class="action-btn btn-edit" title="Edit User">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="action-btn btn-delete" onclick="confirmDelete('{{ user.username }}', '{% url 'accounts:user_delete' user.pk %}')" title="Delete User">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
+                                <h5>No users found</h5>
+                                <p>Start by adding your first user to the system.</p>
+                                {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' or request.user.role == 'ADMIN' or request.user.is_superuser %}
+                                    <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i>Add First User
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong id="userToDelete"></strong>?</p>
+                <p class="text-muted">This action cannot be undone and will permanently remove all user data.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete User
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/accounts/user_list.js' %}"></script>

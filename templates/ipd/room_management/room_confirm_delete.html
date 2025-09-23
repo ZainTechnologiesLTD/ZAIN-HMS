@@ -1,0 +1,87 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Delete Room - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:ipd_list' %}">IPD</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:room_list' %}">Room Management</a></li>
+<li class="breadcrumb-item active" aria-current="page">Delete Room</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Room Deletion
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+
+                    <h5 class="text-center mb-4">
+                        Are you sure you want to delete Room <strong>{{ object.number }}</strong>?
+                    </h5>
+
+                    <div class="room-details bg-light p-3 rounded mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Room Number:</strong> {{ object.number }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Floor:</strong> {{ object.floor }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <strong>Room Type:</strong> {{ object.room_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Status:</strong>
+                                {% if object.is_occupied %}
+                                    <span class="badge badge-danger">Occupied</span>
+                                {% else %}
+                                    <span class="badge badge-success">Available</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <strong>Associated Beds:</strong> {{ object.beds.count }} bed{{ object.beds.count|pluralize }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if object.beds.exists %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Cannot Delete!</strong> This room has {{ object.beds.count }} bed{{ object.beds.count|pluralize }} associated with it.
+                        Please delete all beds first before deleting the room.
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2 justify-content-center">
+                            {% if not object.beds.exists %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i> Yes, Delete Room
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'ipd:room_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

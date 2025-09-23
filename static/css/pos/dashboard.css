@@ -1,0 +1,35 @@
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    color: white;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.stat-card.cash {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+.stat-card.card {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+.stat-card.warning {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+.pos-action-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    margin: 0.5rem;
+    transition: all 0.3s ease;
+}
+.pos-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.transaction-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.low-stock-item {
+    border-left: 4px solid #dc3545;
+    background-color: #f8f9fa;
+}

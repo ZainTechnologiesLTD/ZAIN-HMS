@@ -1,0 +1,249 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/appointments/appointment_create.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Enhanced Appointment Wizard -->
+    <div class="appointment-wizard">
+        <div class="text-center mb-4">
+            <h2 class="mb-2">📅 Schedule Appointment</h2>
+            <p class="mb-0 opacity-75">Book an appointment in a few easy steps</p>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">1</div>
+            <div class="step" data-step="2">2</div>
+            <div class="step" data-step="3">3</div>
+            <div class="step" data-step="4">4</div>
+            <div class="step" data-step="5">5</div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="{% url 'patients:create' %}" class="quick-action-btn">
+                <i class="bi bi-person-plus fs-4 d-block mb-2"></i>
+                <small>Add New Patient</small>
+            </a>
+            <a href="{% url 'appointments:appointment_list' %}" class="quick-action-btn">
+                <i class="bi bi-calendar-check fs-4 d-block mb-2"></i>
+                <small>View All Appointments</small>
+            </a>
+            <a href="{% url 'doctors:doctor_list' %}" class="quick-action-btn">
+                <i class="bi bi-person-badge fs-4 d-block mb-2"></i>
+                <small>Doctor Schedule</small>
+            </a>
+        </div>
+
+        <form id="appointmentWizardForm" method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Step 1: Patient Selection -->
+            <div class="wizard-step active" id="step1">
+                <h4 class="mb-4">👤 Select Patient</h4>
+
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="patientSearch" placeholder="Search by name, phone, or patient ID..." autocomplete="off">
+                </div>
+
+                <div id="patientResults" class="row g-3">
+                    <!-- Patient cards will be loaded here -->
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'patients:create' %}" class="btn btn-outline-light">
+                        <i class="bi bi-person-plus me-2"></i>Add New Patient
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 2: Specialization & Doctor Selection -->
+            <div class="wizard-step" id="step2">
+                <h4 class="mb-4">👨‍⚕️ Select Doctor</h4>
+
+                <div class="specialty-badges">
+                    <div class="specialty-badge" data-specialty="CARDIOLOGY">❤️ Cardiology</div>
+                    <div class="specialty-badge" data-specialty="NEUROLOGY">🧠 Neurology</div>
+                    <div class="specialty-badge" data-specialty="ORTHOPEDICS">🦴 Orthopedics</div>
+                    <div class="specialty-badge" data-specialty="PEDIATRICS">👶 Pediatrics</div>
+                    <div class="specialty-badge" data-specialty="DERMATOLOGY">🔬 Dermatology</div>
+                    <div class="specialty-badge" data-specialty="GENERAL">🏥 General</div>
+                </div>
+
+                <div id="doctorResults" class="doctor-grid">
+                    <!-- Doctor cards will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Step 3: Date & Time Selection -->
+            <div class="wizard-step" id="step3">
+                <h4 class="mb-4">📅 Select Date & Time</h4>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating-custom">
+                            <input type="text" id="appointmentDate" name="appointment_date" placeholder=" " required>
+                            <label>Appointment Date</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating-custom">
+                            <select id="appointmentType" name="appointment_type" required>
+                                <option value="">Select Type</option>
+                                <option value="CONSULTATION">💬 Consultation</option>
+                                <option value="FOLLOW_UP">🔄 Follow-up</option>
+                                <option value="EMERGENCY">🚨 Emergency</option>
+                                <option value="ROUTINE">📋 Routine Check</option>
+                            </select>
+                            <label>Appointment Type</label>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mt-4 mb-3">⏰ Available Time Slots</h5>
+                <div id="timeSlots" class="time-slot-grid">
+                    <!-- Time slots will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Step 4: Appointment Details -->
+            <div class="wizard-step" id="step4">
+                <h4 class="mb-4">📝 Appointment Details</h4>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating-custom">
+                            <textarea id="chiefComplaint" name="chief_complaint" rows="3" placeholder=" " required></textarea>
+                            <label>Chief Complaint</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating-custom">
+                            <textarea id="symptoms" name="symptoms" rows="3" placeholder=" "></textarea>
+                            <label>Symptoms (Optional)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-floating-custom">
+                            <select id="priority" name="priority" required>
+                                <option value="NORMAL">🟢 Normal</option>
+                                <option value="HIGH">🟡 High</option>
+                                <option value="URGENT">🔴 Urgent</option>
+                            </select>
+                            <label>Priority</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating-custom">
+                            <input type="number" id="duration" name="duration_minutes" value="30" min="15" max="240" step="15" placeholder=" ">
+                            <label>Duration (minutes)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating-custom">
+                            <input type="number" id="consultationFee" name="consultation_fee" step="0.01" min="0" placeholder=" ">
+                            <label>Consultation Fee ($)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-floating-custom">
+                    <textarea id="notes" name="notes" rows="3" placeholder=" "></textarea>
+                    <label>Additional Notes (Optional)</label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isFollowUp" name="is_follow_up">
+                    <label class="form-check-label text-white" for="isFollowUp">
+                        This is a follow-up appointment
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 5: Review & Confirm -->
+            <div class="wizard-step" id="step5">
+                <h4 class="mb-4">✅ Review & Confirm</h4>
+
+                <div class="appointment-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">👤 Patient:</span>
+                        <span class="summary-value" id="summaryPatient">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">👨‍⚕️ Doctor:</span>
+                        <span class="summary-value" id="summaryDoctor">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">📅 Date:</span>
+                        <span class="summary-value" id="summaryDate">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">⏰ Time:</span>
+                        <span class="summary-value" id="summaryTime">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">🏥 Type:</span>
+                        <span class="summary-value" id="summaryType">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">📝 Complaint:</span>
+                        <span class="summary-value" id="summaryComplaint">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">⚡ Priority:</span>
+                        <span class="summary-value" id="summaryPriority">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">💰 Fee:</span>
+                        <span class="summary-value" id="summaryFee">-</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Please review all details carefully before confirming the appointment.
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="wizard-nav">
+                <button type="button" id="prevBtn" class="btn btn-wizard btn-secondary" style="display: none;">
+                    <i class="bi bi-arrow-left me-2"></i>Previous
+                </button>
+                <button type="button" id="nextBtn" class="btn btn-wizard btn-primary">
+                    Next<i class="bi bi-arrow-right ms-2"></i>
+                </button>
+                <button type="submit" id="submitBtn" class="btn btn-wizard btn-primary" style="display: none;">
+                    <i class="bi bi-check-circle me-2"></i>Confirm Appointment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<!-- Hidden form fields -->
+<input type="hidden" id="selectedPatientId" name="patient">
+<input type="hidden" id="selectedDoctorId" name="doctor">
+<input type="hidden" id="selectedDateTime" name="date_time">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/flatpickr/flatpickr.min.js' %}"></script>
+
+    <script src="{% static 'js/appointments/appointment_create.js' %}"></script>
+{% endblock %}

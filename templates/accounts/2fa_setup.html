@@ -1,0 +1,406 @@
+{% extends "base/base_auth.html" %}
+{% load static %}
+
+{% block title %}Setup Two-Factor Authentication{% endblock %}
+
+{% block extra_css %}
+<style>
+    .setup-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .setup-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .step-container {
+        padding: 2rem;
+        min-height: 500px;
+    }
+
+    .step-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .step-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+
+    .qr-container {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .qr-code-container svg {
+        max-width: 200px;
+        height: auto;
+    }
+
+    .manual-key {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .manual-key code {
+        background: white;
+        padding: 0.5rem;
+        border-radius: 4px;
+        word-break: break-all;
+        font-size: 0.85rem;
+    }
+
+    .token-input {
+        font-size: 1.5rem;
+        text-align: center;
+        letter-spacing: 0.2rem;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .token-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .verify-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1rem;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .verify-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .backup-codes-container {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .backup-code {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.75rem;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .backup-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .backup-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .backup-btn:hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+    }
+
+    .info-alert {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="setup-card">
+                <div class="setup-header py-4 px-4 px-lg-5 position-relative">
+                    <div class="d-flex align-items-center position-relative z-3">
+                        <div class="me-3">
+                            <div class="bg-white bg-opacity-20 rounded-3 p-2">
+                                <i class="fas fa-qrcode fs-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 text-white fw-bold">Finalize Two-Factor Authentication</h4>
+                            <p class="mb-0 text-white-50 small">Complete the setup to secure your account</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-0">
+                    <div class="col-lg-6 border-end">
+                        <div class="step-container">
+                            <h5 class="step-title">
+                                <span class="step-number">1</span>
+                                Scan QR Code
+                            </h5>
+                            <p class="text-muted mb-4">Open your authenticator app and add a new account by scanning this QR code.</p>
+
+                            <div class="qr-container">
+                                <div class="qr-code-container mb-3">{{ qr_code_svg|safe }}</div>
+                                <p class="small text-muted mb-0">Scan with your authenticator app</p>
+                            </div>
+
+                            <div class="manual-key">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="text-primary flex-shrink-0 mt-1">
+                                        <i class="fas fa-key"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <strong class="d-block mb-2">Manual Entry</strong>
+                                        <code class="user-select-all">{{ device.bin_key|default:"Contact administrator" }}</code>
+                                        <p class="small text-muted mt-2 mb-0">Use this key if you can't scan the QR code</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Time-based (TOTP) codes refresh every 30 seconds
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="step-container">
+                            <h5 class="step-title">
+                                <span class="step-number">2</span>
+                                Verify Code
+                            </h5>
+                            <p class="text-muted mb-4">Enter the 6-digit code currently displayed in your authenticator app.</p>
+
+                            <form id="verify2faForm" class="mb-4">
+                                {% csrf_token %}
+                                <div class="mb-4">
+                                    <input type="text"
+                                           class="form-control token-input"
+                                           name="token"
+                                           id="token"
+                                           placeholder="000000"
+                                           maxlength="6"
+                                           pattern="[0-9]{6}"
+                                           autocomplete="one-time-code"
+                                           required>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">Enter exactly 6 digits</small>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn verify-btn w-100">
+                                    <i class="fas fa-check me-2"></i>Verify &amp; Enable 2FA
+                                </button>
+                            </form>
+
+                            <div id="verification-result" class="mb-4"></div>
+
+                            <div class="backup-codes-container">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-life-ring text-warning me-2"></i>
+                                    <h6 class="fw-bold mb-0">Backup Recovery Codes</h6>
+                                </div>
+                                <p class="small text-muted mb-3">Store these one-time codes offline. Each can be used once if you lose your device.</p>
+
+                                <div class="row g-2 mb-3">
+                                    {% for code in backup_codes %}
+                                    <div class="col-6 col-md-4">
+                                        <div class="backup-code">{{ code }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="backup-actions">
+                                    <button type="button" class="backup-btn" onclick="printBackupCodes()">
+                                        <i class="fas fa-print me-1"></i> Print Codes
+                                    </button>
+                                    <button type="button" class="backup-btn" onclick="downloadBackupCodes()">
+                                        <i class="fas fa-download me-1"></i> Download
+                                    </button>
+                                </div>
+
+                                <div class="info-alert mt-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Keep these codes secure and offline. You'll need them if you lose your device.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 px-lg-5 py-3 border-top bg-light d-flex justify-content-between flex-wrap gap-3">
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                    </a>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-home me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('verify2faForm');
+    const tokenInput = document.getElementById('token');
+    const resultDiv = document.getElementById('verification-result');
+
+    // Auto-format token input
+    tokenInput.addEventListener('input', function(e) {
+        const value = e.target.value.replace(/\D/g, '');
+        e.target.value = value.slice(0, 6);
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const token = tokenInput.value.trim();
+
+        if (token.length !== 6) {
+            showResult('Please enter exactly 6 digits.', 'danger');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+        submitBtn.disabled = true;
+
+        // Submit verification
+        fetch('{% url "dashboard:verify_2fa_setup" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: 'token=' + encodeURIComponent(token)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showResult('2FA has been successfully enabled! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect || '{% url "accounts:profile" %}';
+                }, 2000);
+            } else {
+                showResult(data.error || 'Verification failed. Please try again.', 'danger');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                tokenInput.focus();
+            }
+        })
+        .catch(error => {
+            showResult('Network error. Please try again.', 'danger');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    function showResult(message, type) {
+        resultDiv.innerHTML = '<div class="alert alert-' + type + ' p-3 rounded">' + message + '</div>';
+    }
+});
+
+// Backup codes functions
+function printBackupCodes() {
+    const codes = Array.from(document.querySelectorAll('.backup-code')).map(el => el.textContent);
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(
+        '<html>' +
+            '<head><title>2FA Backup Codes</title></head>' +
+            '<body style="font-family: Arial, sans-serif; padding: 20px;">' +
+                '<h2>Two-Factor Authentication Backup Codes</h2>' +
+                '<p><strong>Account:</strong> {{ user.email }}</p>' +
+                '<p><strong>Generated:</strong> ' + new Date().toLocaleString() + '</p>' +
+                '<ul style="list-style: none; padding: 0;">' +
+                    codes.map(code => '<li style="margin: 10px 0; font-family: monospace; font-size: 16px;">' + code + '</li>').join('') +
+                '</ul>' +
+                '<p style="color: red;"><strong>WARNING:</strong> Keep these codes secure and offline!</p>' +
+            '</body>' +
+        '</html>'
+    );
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function downloadBackupCodes() {
+    const codes = Array.from(document.querySelectorAll('.backup-code')).map(el => el.textContent);
+    const content = 'ZAIN HMS - Two-Factor Authentication Backup Codes\n' +
+                   'Account: {{ user.email }}\n' +
+                   'Generated: ' + new Date().toLocaleString() + '\n\n' +
+                   'Backup Codes:\n' + codes.join('\n') + '\n\n' +
+                   'WARNING: Keep these codes secure and offline!\n' +
+                   'Each code can only be used once.';
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'zain-hms-backup-codes-' + new Date().getTime() + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

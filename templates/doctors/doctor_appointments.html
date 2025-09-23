@@ -1,0 +1,242 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}My Appointments - Dr. {{ doctor.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/doctors/doctor_appointments.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-alt me-2"></i>My Appointments
+            </h2>
+            <p class="text-muted">Dr. {{ doctor.get_full_name }} - {{ doctor.specialization }}</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'doctors:doctor_dashboard' %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <a href="{% url 'doctors:create_prescription' %}" class="btn btn-success">
+                <i class="fas fa-prescription-bottle-alt me-2"></i>New Prescription
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="q" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="q" name="q"
+                                   value="{{ current_search }}" placeholder="Patient name, complaint...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">All Status</option>
+                                {% for status_code, status_name in status_choices %}
+                                <option value="{{ status_code }}" {% if status_code == current_status %}selected{% endif %}>
+                                    {{ status_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_from" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}" placeholder="DD/MM/YYYY">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_to" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}" placeholder="DD/MM/YYYY">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-light">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                                <a href="{% url 'doctors:doctor_appointments' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Appointments List
+                        {% if appointments %}
+                            <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }} total</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Patient</th>
+                                        <th>Contact</th>
+                                        <th>Type</th>
+                                        <th>Chief Complaint</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments %}
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>{{ appointment.appointment_date|date:"M j, Y" }}</strong>
+                                                <br>
+                                                <span class="text-muted">{{ appointment.appointment_time|time:"H:i" }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ appointment.patient.get_full_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    {% if appointment.patient.date_of_birth %}
+                                                        Age: {{ appointment.patient.get_age }} years
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <small>{{ appointment.patient.phone_number|default:"-" }}</small>
+                                                <br>
+                                                <small class="text-muted">{{ appointment.patient.email|default:"-" }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ appointment.appointment_type.name|default:"General" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style="max-width: 200px;">
+                                                {{ appointment.chief_complaint|truncatechars:100 }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if appointment.status == 'SCHEDULED' %}
+                                                <span class="badge bg-warning status-badge">{{ appointment.get_status_display }}</span>
+                                            {% elif appointment.status == 'CONFIRMED' %}
+                                                <span class="badge bg-primary status-badge">{{ appointment.get_status_display }}</span>
+                                            {% elif appointment.status == 'CHECKED_IN' %}
+                                                <span class="badge bg-info status-badge">{{ appointment.get_status_display }}</span>
+                                            {% elif appointment.status == 'IN_PROGRESS' %}
+                                                <span class="badge bg-primary status-badge">{{ appointment.get_status_display }}</span>
+                                            {% elif appointment.status == 'COMPLETED' %}
+                                                <span class="badge bg-success status-badge">{{ appointment.get_status_display }}</span>
+                                            {% elif appointment.status == 'CANCELLED' %}
+                                                <span class="badge bg-danger status-badge">{{ appointment.get_status_display }}</span>
+                                            {% elif appointment.status == 'NO_SHOW' %}
+                                                <span class="badge bg-dark status-badge">{{ appointment.get_status_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary status-badge">{{ appointment.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'appointments:appointment_detail_enhanced' appointment.id %}"
+                                                   class="btn btn-outline-primary btn-action" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if appointment.status != 'COMPLETED' and appointment.status != 'CANCELLED' %}
+                                                <a href="{% url 'appointments:appointment_print_enhanced' appointment.id %}"
+                                                   class="btn btn-outline-info btn-action" title="Print Appointment">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                        <div class="d-flex justify-content-center mt-4">
+                            <nav aria-label="Appointments pagination">
+                                <ul class="pagination">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">First</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No appointments found</h4>
+                            <p class="text-muted">
+                                {% if current_search or current_status or date_from or date_to %}
+                                    Try adjusting your search criteria or filters.
+                                {% else %}
+                                    You don't have any appointments yet.
+                                {% endif %}
+                            </p>
+                            {% if current_search or current_status or date_from or date_to %}
+                            <a href="{% url 'doctors:doctor_appointments' %}" class="btn btn-primary">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/doctors/doctor_appointments.js' %}"></script>
+{% endblock %}

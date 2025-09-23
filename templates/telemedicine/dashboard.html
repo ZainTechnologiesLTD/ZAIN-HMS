@@ -1,0 +1,77 @@
+{% extends 'base/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Telemedicine Dashboard" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Telemedicine" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-camera-video me-2"></i>
+                    {% trans "Telemedicine Dashboard" %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "Telemedicine module is under development. Coming soon!" %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>{% trans "Video Consultations" %}</h4>
+                                        <p class="mb-0">{% trans "Remote patient care" %}</p>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-camera-video-fill" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>{% trans "Virtual Appointments" %}</h4>
+                                        <p class="mb-0">{% trans "Schedule online meetings" %}</p>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-calendar-event" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>{% trans "Digital Prescriptions" %}</h4>
+                                        <p class="mb-0">{% trans "E-prescriptions" %}</p>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-file-medical" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

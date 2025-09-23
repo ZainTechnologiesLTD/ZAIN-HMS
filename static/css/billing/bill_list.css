@@ -1,0 +1,11 @@
+.bill-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    }
+.bill-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+.status-paid { color: #28a745; }
+.status-pending { color: #ffc107; }
+.status-overdue { color: #dc3545; }
+.status-cancelled { color: #6c757d; }

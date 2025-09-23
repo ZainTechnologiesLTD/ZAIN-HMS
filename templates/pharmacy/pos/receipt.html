@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Receipt - {{ transaction.receipt_number }}</title>
+
+    <link rel="stylesheet" href="{% static 'css/pos/receipt.css' %}">
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">
+        🖨️ Print Receipt
+    </button>
+
+    <div class="receipt">
+        <!-- Header -->
+        <div class="header">
+            <div class="hospital-name">{{ hospital.name|default:"Hospital Management System" }}</div>
+            <div class="pharmacy-name">PHARMACY DEPARTMENT</div>
+            <div class="contact-info">
+                {% if hospital.address %}{{ hospital.address }}<br>{% endif %}
+                {% if hospital.phone %}Tel: {{ hospital.phone }}{% endif %}
+                {% if hospital.email %} | Email: {{ hospital.email }}{% endif %}
+            </div>
+        </div>
+
+        <!-- Receipt Info -->
+        <div class="receipt-info">
+            <div class="flex-between">
+                <span>Receipt #:</span>
+                <span>{{ transaction.receipt_number }}</span>
+            </div>
+            <div class="flex-between">
+                <span>Date:</span>
+                <span>{{ transaction.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="flex-between">
+                <span>Time:</span>
+                <span>{{ transaction.created_at|time:"H:i:s" }}</span>
+            </div>
+            <div class="flex-between">
+                <span>Cashier:</span>
+                <span>{{ transaction.created_by.get_full_name }}</span>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="customer-info">
+            <div class="flex-between">
+                <span>Customer:</span>
+                <span>{{ transaction.customer_name|default:"Walk-in Customer" }}</span>
+            </div>
+            {% if transaction.customer_phone %}
+            <div class="flex-between">
+                <span>Phone:</span>
+                <span>{{ transaction.customer_phone }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.patient %}
+            <div class="flex-between">
+                <span>Patient ID:</span>
+                <span>{{ transaction.patient.patient_id }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.prescription %}
+            <div class="flex-between">
+                <span>Prescription #:</span>
+                <span>{{ transaction.prescription.id }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Items -->
+        <div class="items-section">
+            <div style="font-weight: bold; text-align: center; margin-bottom: 10px;">
+                ITEMS PURCHASED
+            </div>
+            {% for item in transaction.items.all %}
+            <div class="item-row">
+                <div class="item-name">{{ item.medicine.name }}</div>
+                <div class="item-details">
+                    <span>{{ item.quantity }}x ${{ item.unit_price|floatformat:2 }}</span>
+                    <span>${{ item.total_amount|floatformat:2 }}</span>
+                </div>
+                {% if item.medicine.generic_name %}
+                <div style="font-size: 9px; color: #666;">{{ item.medicine.generic_name }}</div>
+                {% endif %}
+                {% if item.medicine.batch_number %}
+                <div style="font-size: 9px; color: #666;">Batch: {{ item.medicine.batch_number }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Totals -->
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ transaction.subtotal|floatformat:2 }}</span>
+            </div>
+            {% if transaction.discount_amount > 0 %}
+            <div class="total-row">
+                <span>Discount:</span>
+                <span>-${{ transaction.discount_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.tax_amount > 0 %}
+            <div class="total-row">
+                <span>Tax:</span>
+                <span>${{ transaction.tax_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+
+            <div class="grand-total flex-between">
+                <span>TOTAL:</span>
+                <span>${{ transaction.total_amount|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="payment-info">
+            <div class="flex-between">
+                <span>Payment Method:</span>
+                <span>{{ transaction.get_payment_method_display }}</span>
+            </div>
+            {% for payment in transaction.payments.all %}
+            <div class="flex-between">
+                <span>Amount Paid:</span>
+                <span>${{ payment.amount|floatformat:2 }}</span>
+            </div>
+            {% if payment.reference_number %}
+            <div class="flex-between">
+                <span>Ref #:</span>
+                <span>{{ payment.reference_number }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% if transaction.change_amount > 0 %}
+            <div class="flex-between" style="font-weight: bold;">
+                <span>Change:</span>
+                <span>${{ transaction.change_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Barcode (Receipt Number as Code128-like) -->
+        <div class="barcode">
+            ||| {{ transaction.receipt_number }} |||
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="thank-you">THANK YOU FOR YOUR VISIT!</div>
+            <div>This receipt serves as proof of purchase</div>
+            <div>Please keep for your records</div>
+            <br>
+            <div style="font-size: 9px;">
+                Items sold are subject to our return policy<br>
+                For inquiries, please contact our pharmacy department
+            </div>
+            <br>
+            <div style="font-weight: bold;">
+                Stay Healthy, Stay Happy!
+            </div>
+
+            <!-- QR Code placeholder -->
+            <div style="margin-top: 15px; text-align: center;">
+                <div style="border: 1px solid #000; width: 60px; height: 60px; margin: 0 auto; position: relative;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px;">
+                        QR<br>CODE
+                    </div>
+                </div>
+                <div style="font-size: 8px; margin-top: 5px;">
+                    Scan for digital receipt
+                </div>
+            </div>
+        </div>
+
+        <!-- System Info -->
+        <div style="text-align: center; font-size: 8px; margin-top: 20px; color: #999; border-top: 1px dotted #ccc; padding-top: 10px;">
+            Generated by Zain HMS - Pharmacy PoS System<br>
+            Transaction ID: {{ transaction.id }}<br>
+            {% now "Y-m-d H:i:s" %}
+        </div>
+    </div>
+
+
+    <script src="{% static 'js/pos/receipt.js' %}"></script>
+</body>
+</html>

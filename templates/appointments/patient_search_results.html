@@ -1,0 +1,13 @@
+<!-- templates/appointments/patient_search_results.html -->
+
+{% if patients %}
+    <ul class="list-group">
+        {% for patient in patients %}
+            <li class="list-group-item list-group-item-action" onclick="selectPatient('{{ patient.id }}', '{{ patient.get_full_name }}')">
+                {{ patient.get_full_name }} (ID: {{ patient.patient_id }}) - {{ patient.phone_number }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="text-muted">No patients found.</p>
+{% endif %}

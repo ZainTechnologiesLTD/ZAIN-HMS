@@ -1,0 +1,67 @@
+.pos-container {
+    height: calc(100vh - 100px);
+    overflow: hidden;
+}
+.medicine-search {
+    max-height: 300px;
+    overflow-y: auto;
+}
+.cart-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+}
+.cart-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 450px);
+}
+.cart-summary {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+.medicine-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.medicine-card:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+}
+.cart-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+.btn-pos {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}
+.checkout-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+.payment-methods {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.payment-method {
+    flex: 1;
+    min-width: 120px;
+}

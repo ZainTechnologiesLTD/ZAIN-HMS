@@ -1,0 +1,237 @@
+/* Administrator Tools Section - Comprehensive Fix */
+
+/* Reset and clean up administrator tools section */
+.main-card .admin-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 0;
+    margin: 0;
+}
+
+/* Enhanced tool button styling - unified approach */
+.enhanced-tool-btn {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #e5e7eb;
+    height: 100%;
+    min-height: 160px;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover effects */
+.enhanced-tool-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+    border-color: #d1d5db;
+}
+
+    .enhanced-tool-btn:focus,
+.enhanced-tool-btn:active {
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Tool icon styling - enhanced gradients */
+.enhanced-tool-btn .tool-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    margin-bottom: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.enhanced-tool-btn:hover .tool-icon {
+    transform: scale(1.1);
+}
+
+/* Enhanced gradient backgrounds */
+.enhanced-tool-btn .tool-icon.bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.enhanced-tool-btn .tool-icon.bg-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);
+}
+
+.enhanced-tool-btn .tool-icon.bg-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.enhanced-tool-btn .tool-icon.bg-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+}
+
+/* Tool label styling */
+.enhanced-tool-btn .tool-label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+    display: block;
+    line-height: 1.4;
+}
+
+/* Tool description styling */
+.enhanced-tool-btn .tool-desc {
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.4;
+    margin: 0;
+    text-align: center;
+    max-width: 200px;
+}
+
+/* Bootstrap grid column fixes for admin tools */
+    .admin-tools-grid .col-6,
+.admin-tools-grid .col-md-3 {
+    display: flex;
+    margin-bottom: 0;
+}
+
+/* Card styling for admin tools section */
+.main-card.mb-5 {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f3f4;
+    overflow: hidden;
+}
+
+.main-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.5rem 2rem;
+}
+
+.main-card .card-header h5 {
+    margin: 0;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.main-card .card-header .card-title-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.main-card .card-body {
+    padding: 2rem;
+}
+
+/* Responsive Design - Mobile First */
+@media (max-width: 576px) {
+.admin-tools-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    }
+
+.enhanced-tool-btn {
+    min-height: 140px;
+    padding: 1.5rem 1rem;
+    }
+
+.enhanced-tool-btn .tool-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    }
+
+.enhanced-tool-btn .tool-label {
+    font-size: 0.95rem;
+    }
+
+.enhanced-tool-btn .tool-desc {
+    font-size: 0.8rem;
+    }
+
+.main-card .card-body {
+    padding: 1.5rem;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+.admin-tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+.admin-tools-grid {
+    grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1201px) {
+.admin-tools-grid {
+    grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Override conflicting styles */
+.admin-tools-grid * {
+    box-sizing: border-box;
+}
+
+/* Loading states and animations */
+.enhanced-tool-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.enhanced-tool-btn.loading .tool-icon {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+0%, 100% {
+    opacity: 1;
+    }
+50% {
+    opacity: .5;
+    }
+}
+
+/* Accessibility improvements */
+.enhanced-tool-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .enhanced-tool-btn,
+.enhanced-tool-btn .tool-icon {
+    transition: none;
+    }
+
+.enhanced-tool-btn:hover {
+    transform: none;
+    }
+}

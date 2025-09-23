@@ -1,0 +1,9 @@
+<!-- SVG Logo placeholder for Zain HMS -->
+<svg width="100" height="40" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="40" fill="#007cba" rx="5"/>
+  <text x="50" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+    ZAIN HMS
+  </text>
+  <circle cx="15" cy="20" r="3" fill="white"/>
+  <rect x="12" y="22" width="6" height="12" fill="white" rx="1"/>
+</svg>

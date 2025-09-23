@@ -1,0 +1,143 @@
+/*
+ * Footer Component Styles
+ * Contains all footer-specific styling
+ */
+
+/* Main Footer */
+.main-footer {
+    background: var(--primary-color, #053377);
+    color: white;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    margin-top: auto; /* Push footer to bottom using flexbox */
+    margin-left: 0; /* Remove sidebar margin - handled by main-content container */
+    width: 100%; /* Full width within main-content */
+    transition: margin-left 0.3s ease;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+/* Footer Content */
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-content p {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.footer-content strong {
+    color: white;
+    font-weight: 600;
+}
+
+/* Footer Links */
+.main-footer a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.main-footer a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Admin Footer Styles */
+.main-footer .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.8rem;
+}
+
+/* Footer System Status */
+.main-footer small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+    .main-footer {
+        margin-left: 0;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .main-footer .d-none.d-lg-block {
+        display: block !important;
+    }
+}
+
+/* Footer Spacing */
+.main-footer + * {
+    margin-top: 0;
+}
+
+/* Footer Text Alignment */
+.main-footer .text-center p {
+    margin-bottom: 0.25rem;
+}
+
+.main-footer .text-center p:last-child {
+    margin-bottom: 0;
+}
+
+/* Footer Version Info */
+.main-footer .text-muted a {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.main-footer .text-muted a:hover {
+    color: white;
+}
+
+/* Footer Copyright */
+.main-footer .copyright {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Footer Status Indicators */
+.main-footer .status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success-color, #198754);
+    margin-right: 0.25rem;
+}
+
+.main-footer .status-indicator.warning {
+    background: var(--warning-color, #ffc107);
+}
+
+.main-footer .status-indicator.danger {
+    background: var(--danger-color, #dc3545);
+}
+
+/* Dark Mode Footer (if applicable) */
+@media (prefers-color-scheme: dark) {
+    .main-footer {
+        /* Already dark - no changes needed */
+        background: var(--primary-color, #053377);
+        color: white;
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-footer strong {
+        color: white;
+    }
+    
+    .main-footer a {
+        color: rgba(255, 255, 255, 0.8);
+    }
+}

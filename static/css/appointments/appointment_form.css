@@ -1,0 +1,309 @@
+.appointment-form-card {
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: none;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    }
+
+.appointment-form-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+    }
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 1.5rem;
+    }
+
+.card-header.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    }
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%) !important;
+    }
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    }
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    }
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    }
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+.btn-outline-secondary {
+    border-radius: 25px;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    }
+
+.search-container {
+    position: relative;
+    }
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+.search-result-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f3f4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    }
+
+.search-result-item:hover {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.05), rgba(80, 200, 120, 0.05));
+    }
+
+.search-result-item:last-child {
+    border-bottom: none;
+    }
+
+.selected-item {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    }
+
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+    }
+
+.time-slot {
+    padding: 0.8rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    }
+
+.time-slot:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    }
+
+.time-slot.selected {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: #667eea;
+    }
+
+.time-slot.unavailable {
+    background: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+    }
+
+.availability-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    }
+
+.available {
+    background-color: #28a745;
+    }
+
+.unavailable {
+    background-color: #dc3545;
+    }
+
+.select2-container--bootstrap-5 .select2-selection {
+    border-radius: 10px !important;
+    border: 2px solid #e9ecef !important;
+    padding: 0.375rem 0.75rem !important;
+    min-height: calc(1.5em + 0.75rem + 2px) !important;
+    }
+
+.flatpickr-input {
+    border-radius: 10px !important;
+    border: 2px solid #e9ecef !important;
+    }
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+    }
+
+.quick-select-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    }
+
+.quick-select-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    }
+
+.quick-select-btn:hover {
+    background: #e9ecef;
+    border-color: #667eea;
+    }
+
+    /* Time Slot Styling */
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+    }
+
+.time-slot {
+    position: relative;
+    padding: 0.75rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    }
+
+.time-slot:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    transform: translateY(-1px);
+    }
+
+.time-slot.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    }
+
+.time-slot.unavailable {
+    background: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+    }
+
+.time-slot.unavailable:hover {
+    transform: none;
+    border-color: #dee2e6;
+    background: #f8f9fa;
+    }
+
+.availability-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    }
+
+.availability-indicator.available {
+    background: #28a745;
+    }
+
+.availability-indicator.unavailable {
+    background: #dc3545;
+    }
+
+    /* Sidebar Enhancements */
+.guideline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: #f8f9fa;
+    }
+
+.stats-item {
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: #f8f9fa;
+    }
+
+    /* Loading Spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 0.5rem;
+    }
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+    }
+
+    /* Appointment Summary */
+.appointment-summary-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    }

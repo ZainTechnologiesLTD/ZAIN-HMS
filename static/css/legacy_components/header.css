@@ -1,0 +1,420 @@
+/*
+ * Clean Header/Navbar System using Bootstrap 5 and vendor utilities
+ * Maintains original color scheme: primary color #053377
+ * Clean vendor-based approach with no conflicts
+ */
+
+:root {
+    /* Header/Navbar specific variables */
+    --header-bg: #053377;
+    --header-text: #ffffff;
+    --header-text-secondary: rgba(255, 255, 255, 0.8);
+    --header-height: 70px;
+    --header-border: rgba(255, 255, 255, 0.1);
+    --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --header-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Clean Main Header */
+.main-header {
+    background-color: var(--header-bg) !important;
+    height: var(--header-height);
+    min-height: var(--header-height);
+    color: var(--header-text);
+    position: sticky;
+    top: 0;
+    z-index: 1060;
+    border-bottom: 1px solid var(--header-border);
+    box-shadow: var(--header-shadow);
+    transition: var(--header-transition);
+    width: 100%;
+    padding: 0;
+}
+
+/* Header Layout */
+.main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+/* Header Sections */
+    .header-left,
+    .header-middle,
+.header-right {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.header-left {
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.header-middle {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+}
+
+.header-right {
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Sidebar Toggle */
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--header-text);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    transition: var(--header-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+    .sidebar-toggle:hover,
+.sidebar-toggle:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--header-text);
+}
+
+.sidebar-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Page Title Section */
+.navbar-page-header {
+    text-align: center;
+}
+
+.navbar-page-title {
+    color: var(--header-text);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+.navbar-page-subtitle {
+    color: var(--header-text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    line-height: 1;
+}
+
+/* Header Buttons - Base Styles */
+.main-header .btn {
+    color: var(--header-text);
+    border-color: var(--header-border);
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: var(--header-transition);
+    font-weight: 500;
+}
+
+    .main-header .btn:hover,
+.main-header .btn:focus {
+    color: var(--header-text);
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.main-header .btn:focus {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.main-header .btn:active {
+    transform: translateY(0);
+}
+
+/* Outline Button Variants */
+.main-header .btn-outline-primary {
+    color: var(--header-text);
+    border-color: var(--header-text);
+    background-color: transparent;
+}
+
+    .main-header .btn-outline-primary:hover,
+.main-header .btn-outline-primary:focus {
+    color: var(--header-bg);
+    background-color: var(--header-text);
+    border-color: var(--header-text);
+}
+
+.main-header .btn-outline-light {
+    color: var(--header-text);
+    border-color: var(--header-text-secondary);
+}
+
+    .main-header .btn-outline-light:hover,
+.main-header .btn-outline-light:focus {
+    color: var(--header-bg);
+    background-color: var(--header-text);
+    border-color: var(--header-text);
+}
+
+/* Search Box */
+.main-header .search-box .form-control {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--header-border);
+    color: var(--header-text);
+    transition: var(--header-transition);
+}
+
+.main-header .search-box .form-control::placeholder {
+    color: var(--header-text-secondary);
+}
+
+.main-header .search-box .form-control:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--header-text);
+    color: var(--header-text);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.main-header .search-box .btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--header-border);
+    color: var(--header-text);
+}
+
+    .main-header .search-box .btn:hover,
+.main-header .search-box .btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--header-text);
+}
+
+/* Notification Dropdown */
+.notification-dropdown .btn {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--header-border);
+    color: var(--header-text);
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+    .notification-dropdown .btn:hover,
+.notification-dropdown .btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--header-text);
+    transform: scale(1.05);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -0.25rem;
+    right: -0.25rem;
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: 10px;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* User Dropdown */
+.main-header .dropdown .btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--header-border);
+    color: var(--header-text);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    text-align: left;
+}
+
+    .main-header .dropdown .btn:hover,
+.main-header .dropdown .btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--header-text);
+}
+
+.main-header .dropdown .btn.show {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--header-text);
+}
+
+/* Dropdown Menus */
+.main-header .dropdown-menu {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+    z-index: 1070;
+}
+
+.main-header .dropdown-item {
+    color: #212529;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: var(--header-transition);
+}
+
+    .main-header .dropdown-item:hover,
+.main-header .dropdown-item:focus {
+    background-color: #f8f9fa;
+    color: #16181b;
+}
+
+.main-header .dropdown-item.active {
+    background-color: var(--header-bg);
+    color: white;
+}
+
+.main-header .dropdown-header {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem 0.25rem;
+}
+
+.main-header .dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+/* Language Switcher Integration */
+.main-header .language-switcher .btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--header-text-secondary);
+    color: var(--header-text);
+}
+
+    .main-header .language-switcher .btn:hover,
+.main-header .language-switcher .btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--header-text);
+    color: var(--header-text);
+}
+
+.main-header .language-name {
+    color: var(--header-text);
+    font-weight: 500;
+}
+
+/* RTL Support */
+[dir="rtl"] .main-header {
+    direction: rtl;
+}
+
+[dir="rtl"] .header-left {
+    order: 3;
+}
+
+[dir="rtl"] .header-middle {
+    order: 2;
+}
+
+[dir="rtl"] .header-right {
+    order: 1;
+}
+
+[dir="rtl"] .navbar-page-header {
+    text-align: center;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+.main-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    }
+
+.header-right {
+    gap: 0.5rem;
+    }
+
+.navbar-page-title {
+    font-size: 1.125rem;
+    }
+
+.navbar-page-subtitle {
+    font-size: 0.8rem;
+    }
+
+    /* Hide less important elements on mobile */
+.search-box {
+    display: none !important;
+    }
+
+.header-right .me-2:has(.btn-outline-primary) {
+    display: none;
+    }
+}
+
+@media (max-width: 576px) {
+.main-header {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    }
+
+.header-right {
+    gap: 0.25rem;
+    }
+
+.navbar-page-title {
+    font-size: 1rem;
+    }
+
+.navbar-page-subtitle {
+    font-size: 0.75rem;
+    }
+
+    /* Stack header elements if needed */
+.main-header {
+    min-height: var(--header-height);
+    flex-wrap: wrap;
+    }
+}
+
+/* Accessibility Improvements */
+.main-header button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+
+.main-header .dropdown-item:focus-visible {
+    outline: 2px solid var(--header-bg);
+    outline-offset: -2px;
+}
+
+/* Animation and Transitions */
+.main-header * {
+    transition: var(--header-transition);
+}
+
+/* Header height compensation for sticky positioning */
+.main-content {
+    padding-top: 0;
+}
+
+/* Ensure header stays above all other content */
+.main-header {
+    position: sticky;
+    top: 0;
+    z-index: 1060;
+}

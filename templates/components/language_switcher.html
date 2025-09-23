@@ -1,0 +1,46 @@
+{% load static %}
+<!-- Universal Language Switcher Component -->
+{% load i18n %}
+
+<div class="language-switcher">
+    <div class="dropdown">
+        <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center"
+                type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                style="background: rgba(255, 255, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.5) !important; color: white !important; min-width: 120px;">
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% get_available_languages as AVAILABLE_LANGUAGES %}
+            {% for code, name in AVAILABLE_LANGUAGES %}
+                {% if code == CURRENT_LANGUAGE %}
+                    <span class="flag-icon me-2">
+                        {% if code == 'en' %}🇺🇸{% elif code == 'es' %}🇪🇸{% elif code == 'fr' %}🇫🇷{% elif code == 'ar' %}🇸🇦{% elif code == 'hi' %}🇮🇳{% elif code == 'pt' %}🇵🇹{% elif code == 'de' %}🇩🇪{% elif code == 'it' %}🇮🇹{% else %}🌍{% endif %}
+                    </span>
+                    <span class="language-name" style="color: white !important;">{{ name }}</span>
+                {% endif %}
+            {% endfor %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="languageDropdown"
+            style="background: white !important; border: 1px solid #dee2e6 !important; min-width: 180px;">
+            {% get_available_languages as AVAILABLE_LANGUAGES %}
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% for code, name in AVAILABLE_LANGUAGES %}
+                <li>
+                    <a class="dropdown-item d-flex align-items-center {% if code == CURRENT_LANGUAGE %}active{% endif %}"
+                       href="javascript:void(0);"
+                       onclick="switchLanguage('{{ code }}');"
+                       style="{% if code == CURRENT_LANGUAGE %}background-color: #053377 !important; color: white !important;{% else %}color: #212529 !important; background-color: transparent !important;{% endif %} padding: 0.75rem 1rem; font-size: 0.9rem;">
+                        <span class="flag-icon me-2" style="font-size: 1.2em; width: 24px;">
+                            {% if code == 'en' %}🇺🇸{% elif code == 'es' %}🇪🇸{% elif code == 'fr' %}🇫🇷{% elif code == 'ar' %}🇸🇦{% elif code == 'hi' %}🇮🇳{% elif code == 'pt' %}🇵🇹{% elif code == 'de' %}🇩🇪{% elif code == 'it' %}🇮🇹{% else %}🌍{% endif %}
+                        </span>
+                        <span class="flex-grow-1 fw-medium" style="{% if code == CURRENT_LANGUAGE %}color: white !important;{% else %}color: #212529 !important;{% endif %}">{{ name }}</span>
+                        {% if code == CURRENT_LANGUAGE %}
+                            <i class="fas fa-check ms-2" style="color: white !important; font-size: 0.8em;"></i>
+                        {% endif %}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Universal Language Switching Script -->
+<script src="{% static 'js/components/language_switcher.js' %}"></script>

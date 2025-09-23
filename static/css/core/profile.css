@@ -1,0 +1,47 @@
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    }
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    object-fit: cover;
+    }
+
+.info-card {
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    }
+
+.info-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f3f4;
+    }
+
+.info-item:last-child {
+    border-bottom: none;
+    }
+
+.info-label {
+    font-weight: 600;
+    color: #4a5568;
+    min-width: 120px;
+    }
+
+.info-value {
+    color: #2d3748;
+    }
+
+.nav-pills .nav-link.active {
+    background-color: #667eea;
+    border-color: #667eea;
+    }

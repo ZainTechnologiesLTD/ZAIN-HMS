@@ -1,0 +1,390 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Pharmacy PoS - Day Close{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/pos/day_close.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="fas fa-moon text-primary"></i>
+            End of Day Closing
+        </h3>
+        <div>
+            <span class="badge bg-info fs-6 me-3">
+                {{ current_date|date:"F d, Y" }}
+            </span>
+            <a href="{% url 'pharmacy:pos_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to PoS
+            </a>
+        </div>
+    </div>
+
+    <!-- Sales Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="summary-card">
+                <h2 class="mb-2">${{ today_summary.total_sales|floatformat:2 }}</h2>
+                <p class="mb-1">Total Sales</p>
+                <small>{{ today_summary.total_transactions }} transactions</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-card cash">
+                <h2 class="mb-2">${{ today_summary.cash_sales|floatformat:2 }}</h2>
+                <p class="mb-1">Cash Sales</p>
+                <small>{{ today_summary.cash_transactions }} transactions</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-card card">
+                <h2 class="mb-2">${{ today_summary.card_sales|floatformat:2 }}</h2>
+                <p class="mb-1">Card Sales</p>
+                <small>{{ today_summary.card_transactions }} transactions</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-card mobile">
+                <h2 class="mb-2">${{ today_summary.mobile_sales|floatformat:2 }}</h2>
+                <p class="mb-1">Mobile Money</p>
+                <small>{{ today_summary.mobile_transactions }} transactions</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Breakdown -->
+    <div class="payment-breakdown">
+        <h5 class="fw-bold mb-3">
+            <i class="fas fa-chart-pie text-primary"></i>
+            Payment Method Breakdown
+        </h5>
+        <div class="row">
+            <div class="col-md-8">
+                <canvas id="paymentChart" width="400" height="200"></canvas>
+            </div>
+            <div class="col-md-4">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="badge bg-success me-2">●</span>
+                                    Cash
+                                </td>
+                                <td class="text-end">
+                                    ${{ today_summary.cash_sales|floatformat:2 }}
+                                    <br><small class="text-muted">{{ today_summary.cash_percentage|floatformat:1 }}%</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary me-2">●</span>
+                                    Card
+                                </td>
+                                <td class="text-end">
+                                    ${{ today_summary.card_sales|floatformat:2 }}
+                                    <br><small class="text-muted">{{ today_summary.card_percentage|floatformat:1 }}%</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="badge bg-warning me-2">●</span>
+                                    Mobile Money
+                                </td>
+                                <td class="text-end">
+                                    ${{ today_summary.mobile_sales|floatformat:2 }}
+                                    <br><small class="text-muted">{{ today_summary.mobile_percentage|floatformat:1 }}%</small>
+                                </td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>Total</strong></td>
+                                <td class="text-end">
+                                    <strong>${{ today_summary.total_sales|floatformat:2 }}</strong>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Cash Count -->
+        <div class="col-md-6">
+            <div class="close-day-section">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-money-bill-wave text-success"></i>
+                    Physical Cash Count
+                </h5>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Count the physical cash in your drawer and enter the quantities below.
+                </div>
+
+                <div class="cash-count-table">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Denomination</th>
+                                <th>Count</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cash-count-body">
+                            <!-- Notes -->
+                            <tr class="denomination-row">
+                                <td>$100 Notes</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="100" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$50 Notes</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="50" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$20 Notes</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="20" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$10 Notes</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="10" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$5 Notes</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="5" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$1 Notes</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="1" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+
+                            <!-- Coins -->
+                            <tr class="denomination-row">
+                                <td>$0.50 Coins</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="0.5" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$0.25 Coins</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="0.25" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$0.10 Coins</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="0.1" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$0.05 Coins</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="0.05" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                            <tr class="denomination-row">
+                                <td>$0.01 Coins</td>
+                                <td>
+                                    <input type="number" class="form-control denomination-input"
+                                           data-value="0.01" min="0" value="0">
+                                </td>
+                                <td class="amount">$0.00</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td><strong>Total Cash Counted:</strong></td>
+                                <td>-</td>
+                                <td><strong id="total-cash-counted">$0.00</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Cash Variance -->
+                <div class="mt-3 p-3 border rounded" id="cash-variance">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Expected Cash:</strong><br>
+                            <span class="fs-5">${{ today_summary.cash_sales|floatformat:2 }}</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Actual Count:</strong><br>
+                            <span class="fs-5" id="actual-cash">$0.00</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <strong>Variance:</strong>
+                        <span class="fs-4" id="cash-variance-amount">$0.00</span>
+                        <span id="variance-status"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Day Close Actions -->
+        <div class="col-md-6">
+            <div class="close-day-section">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-lock text-warning"></i>
+                    Close Day
+                </h5>
+
+                <!-- Summary Information -->
+                <div class="alert alert-light border">
+                    <h6 class="alert-heading">Today's Summary</h6>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <strong>{{ today_summary.total_transactions }}</strong><br>
+                            <small class="text-muted">Transactions</small>
+                        </div>
+                        <div class="col-4">
+                            <strong>{{ today_summary.items_sold }}</strong><br>
+                            <small class="text-muted">Items Sold</small>
+                        </div>
+                        <div class="col-4">
+                            <strong>{{ today_summary.unique_customers }}</strong><br>
+                            <small class="text-muted">Customers</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="mb-4">
+                    <h6 class="fw-bold">Last 5 Transactions</h6>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        {% for transaction in recent_transactions %}
+                        <div class="transaction-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ transaction.receipt_number }}</strong>
+                                    <br><small class="text-muted">
+                                        {{ transaction.customer_name|default:"Walk-in" }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <strong class="text-success">${{ transaction.total_amount|floatformat:2 }}</strong>
+                                    <br><small class="text-muted">
+                                        {{ transaction.created_at|time:"H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-3">
+                            No transactions today
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Close Day Form -->
+                <form id="closeDayForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Closing Notes</label>
+                        <textarea class="form-control" name="notes" rows="3"
+                                  placeholder="Enter any observations, issues, or notes about today's operations..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmCashCount" required>
+                            <label class="form-check-label" for="confirmCashCount">
+                                I confirm that the cash count above is accurate
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmInventory" required>
+                            <label class="form-check-label" for="confirmInventory">
+                                I confirm that all medication stock levels have been verified
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmBankDeposit">
+                            <label class="form-check-label" for="confirmBankDeposit">
+                                Cash and checks are ready for bank deposit (if applicable)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Supervisor Authorization (if required) -->
+                    {% if requires_supervisor %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Supervisor Authorization</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="text" class="form-control" name="supervisor_username"
+                                       placeholder="Supervisor Username" required>
+                            </div>
+                            <div class="col-6">
+                                <input type="password" class="form-control" name="supervisor_password"
+                                       placeholder="Password" required>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg" id="closeDayBtn">
+                            <i class="fas fa-lock"></i>
+                            Close Day & Generate Report
+                        </button>
+                        <small class="text-muted text-center">
+                            This will finalize all transactions and generate an end-of-day report
+                        </small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+
+    <script src="{% static 'js/pos/day_close.js' %}"></script>
+{% endblock %}

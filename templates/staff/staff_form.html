@@ -1,0 +1,489 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Add New Staff - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+    {% include 'shared/ultra_modern_date_picker_2025.html' %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid staff-form-container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2 text-primary"></i>Add New Staff Member
+                    </h4>
+                    <a href="{% url 'staff:staff_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Staff List
+                    </a>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Step 1: Role Selection Section -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-header bg-gradient">
+                                        <h6 class="card-title mb-0">
+                                            <span class="step-badge">1</span>
+                                            <i class="fas fa-user-tag me-2"></i>Select Staff Role & Generate ID
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row align-items-end">
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="{{ form.role.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-briefcase me-2"></i>Staff Role <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.role|add_class:"form-select form-select-lg" }}
+                                                {% if form.role.help_text %}<small class="form-text text-muted">{{ form.role.help_text }}</small>{% endif %}
+                                                {% if form.role.errors %}<div class="text-danger small">{{ form.role.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="{{ form.staff_id.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-id-badge me-2"></i>Staff ID
+                                                </label>
+                                                {{ form.staff_id|add_class:"form-control" }}
+                                                <div id="staff-id-preview" class="mt-2 p-2 bg-light rounded">
+                                                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Select a role to generate Staff ID</small>
+                                                </div>
+                                                {% if form.staff_id.errors %}<div class="text-danger small">{{ form.staff_id.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Personal & Professional Information -->
+                        <div class="row">
+                            <!-- Personal Information Card -->
+                            <div class="col-xl-6 mb-4">
+                                <div class="card border-0 shadow-lg h-100">
+                                    <div class="card-header bg-gradient">
+                                        <h6 class="card-title mb-0">
+                                            <span class="step-badge">2</span>
+                                            <i class="fas fa-user me-2"></i>Personal Information
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Name Fields -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user me-2"></i>First Name <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.first_name|add_class:"form-control" }}
+                                                <small class="form-text text-muted">Will be used for user account suggestions</small>
+                                                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user me-2"></i>Last Name <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.last_name|add_class:"form-control" }}
+                                                <small class="form-text text-muted">Will be used for user account suggestions</small>
+                                                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label for="{{ form.middle_name.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user-tag me-2"></i>Middle Name
+                                                </label>
+                                                {{ form.middle_name|add_class:"form-control" }}
+                                                {% if form.middle_name.errors %}<div class="text-danger small">{{ form.middle_name.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Contact Information -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-envelope me-2"></i>Email Address <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.email|add_class:"form-control" }}
+                                                <small class="form-text text-muted">Primary contact email</small>
+                                                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-phone me-2"></i>Phone Number
+                                                </label>
+                                                {{ form.phone_number|add_class:"form-control" }}
+                                                {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Personal Details -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-birthday-cake me-2"></i>Date of Birth
+                                                </label>
+                                                {{ form.date_of_birth }}
+                                                {% if form.date_of_birth.errors %}<div class="text-danger small">{{ form.date_of_birth.errors|join:", " }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.gender.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-venus-mars me-2"></i>Gender
+                                                </label>
+                                                {{ form.gender|add_class:"form-select" }}
+                                                {% if form.gender.errors %}<div class="text-danger small">{{ form.gender.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.address.id_for_label }}" class="form-label">
+                                                <i class="fas fa-map-marker-alt me-2"></i>Address
+                                            </label>
+                                            {{ form.address|add_class:"form-control"|attr:"rows:3" }}
+                                            {% if form.address.errors %}<div class="text-danger small">{{ form.address.errors }}</div>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Professional Information Card -->
+                            <div class="col-xl-6 mb-4">
+                                <div class="card border-0 shadow-lg h-100">
+                                    <div class="card-header bg-gradient">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-briefcase me-2"></i>Professional Information
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Department & Employment -->
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label for="{{ form.department.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-building me-2"></i>Department <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.department|add_class:"form-select form-select-lg" }}
+                                                {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.employment_type.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user-clock me-2"></i>Employment Type
+                                                </label>
+                                                {{ form.employment_type|add_class:"form-select" }}
+                                                {% if form.employment_type.errors %}<div class="text-danger small">{{ form.employment_type.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.shift.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-clock me-2"></i>Shift
+                                                </label>
+                                                {{ form.shift|add_class:"form-select" }}
+                                                {% if form.shift.errors %}<div class="text-danger small">{{ form.shift.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Dates -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.joining_date.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-calendar-plus me-2"></i>Date Joined <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.joining_date }}
+                                                {% if form.joining_date.errors %}<div class="text-danger small">{{ form.joining_date.errors|join:", " }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.probation_end_date.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-calendar-check me-2"></i>Probation End Date
+                                                </label>
+                                                {{ form.probation_end_date }}
+                                                {% if form.probation_end_date.errors %}<div class="text-danger small">{{ form.probation_end_date.errors|join:", " }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Experience & Specialization -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.years_of_experience.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-medal me-2"></i>Years of Experience
+                                                </label>
+                                                {{ form.years_of_experience|add_class:"form-control" }}
+                                                {% if form.years_of_experience.errors %}<div class="text-danger small">{{ form.years_of_experience.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.specialization.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-star me-2"></i>Specialization
+                                                </label>
+                                                {{ form.specialization|add_class:"form-control" }}
+                                                {% if form.specialization.errors %}<div class="text-danger small">{{ form.specialization.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- License & Salary -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.license_number.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-certificate me-2"></i>License Number
+                                                </label>
+                                                {{ form.license_number|add_class:"form-control" }}
+                                                {% if form.license_number.errors %}<div class="text-danger small">{{ form.license_number.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.basic_salary.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-dollar-sign me-2"></i>Basic Salary
+                                                </label>
+                                                {{ form.basic_salary|add_class:"form-control" }}
+                                                {% if form.basic_salary.errors %}<div class="text-danger small">{{ form.basic_salary.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Hourly Rate & Status -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.hourly_rate.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-hourglass-half me-2"></i>Hourly Rate
+                                                </label>
+                                                {{ form.hourly_rate|add_class:"form-control" }}
+                                                {% if form.hourly_rate.errors %}<div class="text-danger small">{{ form.hourly_rate.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                                <div class="form-check form-switch">
+                                                    {{ form.is_active|add_class:"form-check-input" }}
+                                                    <label for="{{ form.is_active.id_for_label }}" class="form-check-label fw-bold">
+                                                        <i class="fas fa-toggle-on me-2 text-success"></i>Active Staff Member
+                                                    </label>
+                                                </div>
+                                                {% if form.is_active.errors %}<div class="text-danger small">{{ form.is_active.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Qualifications & Additional Info -->
+                        <div class="row">
+                            <!-- Qualifications & Certifications -->
+                            <div class="col-xl-6 mb-4">
+                                <div class="card border-0 shadow-lg h-100">
+                                    <div class="card-header bg-gradient">
+                                        <h6 class="card-title mb-0">
+                                            <span class="step-badge">3</span>
+                                            <i class="fas fa-graduation-cap me-2"></i>Qualifications & Experience
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ form.qualifications.id_for_label }}" class="form-label">
+                                                <i class="fas fa-certificate me-2"></i>Qualifications
+                                            </label>
+                                            {{ form.qualifications|add_class:"form-control"|attr:"rows:4" }}
+                                            <small class="form-text text-muted">Educational background and degrees</small>
+                                            {% if form.qualifications.errors %}<div class="text-danger small">{{ form.qualifications.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="{{ form.certifications.id_for_label }}" class="form-label">
+                                                <i class="fas fa-award me-2"></i>Certifications
+                                            </label>
+                                            {{ form.certifications|add_class:"form-control"|attr:"rows:4" }}
+                                            <small class="form-text text-muted">Professional certifications and licenses</small>
+                                            {% if form.certifications.errors %}<div class="text-danger small">{{ form.certifications.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="{{ form.bio.id_for_label }}" class="form-label">
+                                                <i class="fas fa-user-edit me-2"></i>Bio
+                                            </label>
+                                            {{ form.bio|add_class:"form-control"|attr:"rows:3" }}
+                                            <small class="form-text text-muted">Brief professional summary</small>
+                                            {% if form.bio.errors %}<div class="text-danger small">{{ form.bio.errors }}</div>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Emergency Contact & Profile -->
+                            <div class="col-xl-6 mb-4">
+                                <div class="card border-0 shadow-lg h-100">
+                                    <div class="card-header bg-gradient">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-phone me-2"></i>Emergency Contact & Profile
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Profile Picture -->
+                                        <div class="mb-4">
+                                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                                                <i class="fas fa-camera me-2"></i>Profile Picture
+                                            </label>
+                                            {{ form.profile_picture|add_class:"form-control" }}
+                                            <small class="form-text text-muted">Upload a professional photo (optional)</small>
+                                            {% if form.profile_picture.errors %}<div class="text-danger small">{{ form.profile_picture.errors }}</div>{% endif %}
+                                        </div>
+
+                                        <!-- Emergency Contact -->
+                                        <div class="mb-3">
+                                            <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                                                <i class="fas fa-user-friends me-2"></i>Emergency Contact Name <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.emergency_contact_name|add_class:"form-control" }}
+                                            {% if form.emergency_contact_name.errors %}<div class="text-danger small">{{ form.emergency_contact_name.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-phone-alt me-2"></i>Emergency Phone <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.emergency_contact_phone|add_class:"form-control" }}
+                                                {% if form.emergency_contact_phone.errors %}<div class="text-danger small">{{ form.emergency_contact_phone.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-heart me-2"></i>Relationship <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.emergency_contact_relation|add_class:"form-control" }}
+                                                {% if form.emergency_contact_relation.errors %}<div class="text-danger small">{{ form.emergency_contact_relation.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: System Login Account -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;">
+                                        <h6 class="card-title mb-0">
+                                            <span class="step-badge">4</span>
+                                            <i class="fas fa-user-lock me-2"></i>System Login Account (Required)
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-warning border-0 mb-4">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0">
+                                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <h6 class="alert-heading mb-2">
+                                                        <i class="fas fa-key me-2"></i>Username Requirements
+                                                    </h6>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <ul class="mb-0 small list-unstyled">
+                                                                <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i><strong>Username Required:</strong> Enter a unique username for system login</li>
+                                                                <li class="mb-1"><i class="fas fa-globe text-info me-2"></i><strong>Global Uniqueness:</strong> Username must be unique across ALL hospitals</li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <ul class="mb-0 small list-unstyled">
+                                                                <li class="mb-1"><i class="fas fa-lightbulb text-warning me-2"></i><strong>Suggestions:</strong> System will suggest alternatives if username is taken</li>
+                                                                <li class="mb-1"><i class="fas fa-times-circle text-danger me-2"></i><strong>No Auto-Generation:</strong> Leave blank to use email as username</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Account Creation Toggle -->
+                                        <div class="mb-4 p-3 bg-light rounded-3">
+                                            <div class="form-check form-switch d-flex align-items-center">
+                                                {{ form.create_user_account|add_class:"form-check-input me-3" }}
+                                                <div>
+                                                    <label class="form-check-label fw-bold mb-1" for="{{ form.create_user_account.id_for_label }}">
+                                                        <i class="fas fa-user-plus me-2 text-success"></i>Create login account for this staff member
+                                                    </label>
+                                                    <div class="small text-muted">Here username should be unique and need input - no Auto-Generation</div>
+                                                </div>
+                                            </div>
+                                            {% if form.create_user_account.errors %}<div class="text-danger small mt-2">{{ form.create_user_account.errors }}</div>{% endif %}
+                                        </div>
+
+                                        <!-- Account Fields -->
+                                        <div class="row" id="account-fields">
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user me-2"></i>Username <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.username|add_class:"form-control form-control-lg" }}
+                                                <div class="username-feedback mt-2"></div>
+                                                <div id="username-suggestions" class="mt-2" style="display: none;">
+                                                    <small class="text-muted d-block mb-2">
+                                                        <i class="fas fa-lightbulb me-1"></i><strong>Click a suggestion:</strong>
+                                                    </small>
+                                                    <div id="suggestion-list"></div>
+                                                </div>
+                                                <small class="form-text text-muted">Login username (must be unique across all hospitals)</small>
+                                                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="{{ form.password.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-lock me-2"></i>Password <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.password|add_class:"form-control form-control-lg" }}
+                                                <div class="password-strength mt-2"></div>
+                                                <small class="form-text text-muted">Password for system login (minimum 8 characters)</small>
+                                                {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="{{ form.password_confirm.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-lock me-2"></i>Confirm Password <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.password_confirm|add_class:"form-control form-control-lg" }}
+                                                <small class="form-text text-muted">Re-enter password to confirm</small>
+                                                {% if form.password_confirm.errors %}<div class="text-danger small">{{ form.password_confirm.errors }}</div>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Section -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-body text-center py-4">
+                                        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
+                                            <div class="text-center mb-3 mb-md-0">
+                                                <i class="fas fa-info-circle text-info me-2"></i>
+                                                <span class="text-muted">Please review all information before submitting</span>
+                                            </div>
+                                            <div class="d-flex gap-3">
+                                                <a href="{% url 'staff:staff_list' %}" class="btn btn-outline-secondary btn-lg">
+                                                    <i class="fas fa-times me-2"></i>Cancel
+                                                </a>
+                                                <button type="submit" class="btn btn-primary btn-lg">
+                                                    <i class="fas fa-user-plus me-2"></i>Create Staff Member
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/staff/staff_form.js' %}"></script>

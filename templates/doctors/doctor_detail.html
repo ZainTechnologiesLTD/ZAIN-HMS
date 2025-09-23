@@ -1,0 +1,398 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Dr. {{ doctor.get_full_name }} - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/doctors/doctor_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Doctor Header -->
+<div class="doctor-header">
+    <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+            {% if doctor.profile_picture %}
+                <img src="{{ doctor.profile_picture.url }}" alt="Dr. {{ doctor.get_full_name }}" class="doctor-avatar">
+            {% else %}
+                <div class="doctor-avatar bg-white bg-opacity-25 d-flex align-items-center justify-content-center mx-auto">
+                    <i class="fas fa-user-md fa-3x text-white"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h2 class="mb-1">Dr. {{ doctor.get_full_name }}</h2>
+            <p class="mb-1">{{ doctor.specialization|default:"General Practitioner" }}</p>
+            <p class="mb-1">{{ doctor.department|default:"General Medicine" }}</p>
+            <p class="mb-0">{{ doctor.hospital.name }}</p>
+        </div>
+        <div class="col-md-3 text-end">
+            <div class="d-flex flex-column gap-2">
+                {% if doctor.is_available %}
+                    <span class="badge bg-success fs-6">Available</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">Unavailable</span>
+                {% endif %}
+
+                <a href="{% url 'appointments:appointment_create' %}?doctor={{ doctor.pk }}" class="btn btn-light">
+                    <i class="fas fa-calendar-plus me-1"></i>
+                    Book Appointment
+                </a>
+
+                {% if request.user.role == 'ADMIN' or request.user == doctor %}
+                <a href="{% url 'doctors:doctor_update' doctor.pk %}" class="btn btn-outline-light">
+                    <i class="fas fa-edit me-1"></i>
+                    Edit Profile
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ doctor.total_patients|default:0 }}</h3>
+                <p class="mb-0">Total Patients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ doctor.appointments_today|default:0 }}</h3>
+                <p class="mb-0">Today's Appointments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ doctor.experience_years|default:0 }}+</h3>
+                <p class="mb-0">Years Experience</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ doctor.rating|floatformat:1|default:"N/A" }}</h3>
+                <p class="mb-0">Average Rating</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- About Doctor -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>
+                    About Dr. {{ doctor.get_full_name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Specialization:</strong></div>
+                    <div class="col-sm-8">{{ doctor.specialization|default:"General Practitioner" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Department:</strong></div>
+                    <div class="col-sm-8">{{ doctor.department|default:"General Medicine" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>License Number:</strong></div>
+                    <div class="col-sm-8">{{ doctor.license_number|default:"N/A" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Experience:</strong></div>
+                    <div class="col-sm-8">{{ doctor.experience_years|default:"0" }} years</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Education:</strong></div>
+                    <div class="col-sm-8">{{ doctor.education|default:"Not specified" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Contact:</strong></div>
+                    <div class="col-sm-8">
+                        <div>{{ doctor.phone|default:"N/A" }}</div>
+                        <div>{{ doctor.email }}</div>
+                    </div>
+                </div>
+                {% if doctor.bio %}
+                <div class="row">
+                    <div class="col-sm-4"><strong>Biography:</strong></div>
+                    <div class="col-sm-8">{{ doctor.bio|linebreaks }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- User Account Management -->
+        {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-cog me-2"></i>
+                    User Account Management
+                </h5>
+                {% if doctor.user %}
+                    <span class="badge bg-success">Account Linked</span>
+                {% else %}
+                    <span class="badge bg-warning">No Account</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if doctor.user %}
+                    <!-- User account exists -->
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">{{ doctor.user.get_full_name }}</h6>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-envelope"></i> {{ doctor.user.email }}
+                            </p>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-user"></i> Username: {{ doctor.user.username }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-calendar"></i> Created: {{ doctor.user.date_joined|date:"M d, Y" }}
+                                {% if doctor.user.is_active %}
+                                    <span class="badge bg-success ms-2">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger ms-2">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group-vertical" role="group">
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        onclick="unlinkUser({{ doctor.pk }})">
+                                    <i class="fas fa-unlink"></i> Unlink User
+                                </button>
+                                <a href="{% url 'accounts:user_detail' doctor.user.pk %}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-user-edit"></i> Manage User
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- No user account -->
+                    <div class="text-center py-3">
+                        <i class="fas fa-user-times fa-2x text-muted mb-3"></i>
+                        <h6 class="text-muted">This doctor doesn't have a user account</h6>
+                        <p class="text-muted mb-4">
+                            Create a user account to allow this doctor to log into the system
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <form method="post" action="{% url 'doctors:create_user_for_doctor' doctor.pk %}"
+                                  style="display: inline-block;" class="create-user-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Create User Account
+                                </button>
+                            </form>
+                            <a href="{% url 'doctors:link_user' doctor.pk %}" class="btn btn-outline-primary">
+                                <i class="fas fa-link"></i> Link Existing User
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Today's Schedule -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    Today's Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if todays_appointments %}
+                    {% for appointment in todays_appointments %}
+                    <div class="appointment-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ appointment.patient.get_full_name }}</h6>
+                                <small class="text-muted">{{ appointment.appointment_type }} - {{ appointment.appointment_time|time:"g:i A" }}</small>
+                            </div>
+                            <div>
+                                {% if appointment.status == 'SCHEDULED' %}
+                                    <span class="badge bg-info">Scheduled</span>
+                                {% elif appointment.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif appointment.status == 'CANCELLED' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ appointment.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No appointments scheduled for today</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        {% if recent_reviews %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-star me-2"></i>
+                    Recent Reviews
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for review in recent_reviews %}
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6>{{ review.patient.get_full_name }}</h6>
+                            <div class="text-warning mb-2">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="mb-0">{{ review.comment }}</p>
+                        </div>
+                        <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Quick Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Quick Stats
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h4 class="text-primary">{{ doctor.appointments_this_week|default:0 }}</h4>
+                        <small class="text-muted">This Week</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ doctor.appointments_this_month|default:0 }}</h4>
+                        <small class="text-muted">This Month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Schedule -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-clock me-1"></i>
+                    Weekly Schedule
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if doctor.schedule %}
+                    {% for day, hours in doctor.schedule.items %}
+                    <div class="schedule-day">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ day|title }}</strong>
+                            {% if hours %}
+                                <span class="text-primary">{{ hours }}</span>
+                            {% else %}
+                                <span class="text-muted">Closed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Schedule not available</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-1"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'appointments:appointment_create' %}?doctor={{ doctor.pk }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-calendar-plus me-1"></i>
+                        Book Appointment
+                    </a>
+                    <a href="{% url 'appointments:appointment_list' %}?doctor={{ doctor.pk }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        View Appointments
+                    </a>
+                    {% comment %}
+                    {% if request.user.role == 'ADMIN' %}
+                    <a href="#" class="btn btn-outline-secondary btn-sm" title="Schedule management coming soon">
+                        <i class="fas fa-clock me-1"></i>
+                        Edit Schedule
+                    </a>
+                    <a href="#" class="btn btn-outline-info btn-sm" title="Reports coming soon">
+                        <i class="fas fa-chart-line me-1"></i>
+                        Generate Report
+                    </a>
+                    {% endif %}
+                    {% endcomment %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-phone me-1"></i>
+                    Contact Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Phone:</strong><br>
+                    <span class="text-muted">{{ doctor.phone|default:"Not provided" }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Email:</strong><br>
+                    <span class="text-muted">{{ doctor.email }}</span>
+                </div>
+                <div>
+                    <strong>Office:</strong><br>
+                    <span class="text-muted">{{ doctor.office_location|default:"Not specified" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/doctors/doctor_detail.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% load i18n %}
+{% load static %}
+
+<!-- Centralized Footer Component -->
+<!-- This footer maintains consistent styling and can be used across all dashboard templates -->
+
+<footer class="main-footer">
+    <div class="text-center">
+        <div class="footer-content">
+            <!-- Copyright Information -->
+            <p class="mb-1">
+                <strong>ZAIN HMS</strong> - {% trans "Hospital Management System" %}
+            </p>
+            <p class="mb-0">
+                {% trans "© 2025 ZAIN Healthcare. All rights reserved." %} | 
+                {% trans "Version" %} {{ version|default:"1.0.0" }} | 
+                <a href="#" class="text-light">{% trans "Privacy Policy" %}</a> | 
+                <a href="#" class="text-light">{% trans "Terms of Service" %}</a>
+            </p>
+            
+            <!-- System Status & Info (for admins) -->
+            {% if user.role in 'SUPERADMIN,ADMIN' %}
+            <small class="text-muted d-none d-lg-block mt-1">
+                {% trans "System Status: Active" %} | 
+                {% trans "Last Backup:" %} <span id="lastBackupTime">{% trans "Unknown" %}</span> | 
+                {% trans "Users Online:" %} <span id="onlineUsers">{{ online_users_count|default:"0" }}</span>
+            </small>
+            {% endif %}
+        </div>
+    </div>
+</footer>
+
+<!-- Footer JavaScript for dynamic content -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update last backup time if element exists
+    const lastBackupElement = document.getElementById('lastBackupTime');
+    if (lastBackupElement) {
+        // This would typically be populated by an API call
+        // lastBackupElement.textContent = '{% trans "2 hours ago" %}';
+    }
+    
+    // Update online users count if element exists
+    const onlineUsersElement = document.getElementById('onlineUsers');
+    if (onlineUsersElement) {
+        // This would typically be populated by an API call
+        // onlineUsersElement.textContent = '12';
+    }
+});
+</script>

@@ -1,0 +1,246 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}User Profile - ZAIN HMS{% endblock %}
+{% block page_title %}User Profile{% endblock %}
+{% block page_subtitle %}Manage your personal information and preferences{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/core/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content-inner">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center text-md-start">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-avatar">
+                {% else %}
+                <div class="profile-avatar bg-light d-flex align-items-center justify-content-center text-primary" style="font-size: 3rem; font-weight: bold;">
+                    {{ user.first_name.0|default:'U' }}{{ user.last_name.0|default:'S' }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-9">
+                <h2 class="mb-2">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="mb-3 opacity-90">{{ user.get_role_display }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if user.is_active %}
+                    <span class="badge bg-success bg-opacity-20 text-success px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>Active
+                    </span>
+                    {% endif %}
+                    {% if user.email %}
+                    <span class="badge bg-info bg-opacity-20 text-info px-3 py-2">
+                        <i class="bi bi-envelope me-1"></i>{{ user.email }}
+                    </span>
+                    {% endif %}
+                    <span class="badge bg-primary bg-opacity-20 text-primary px-3 py-2">
+                        <i class="bi bi-calendar me-1"></i>Joined {{ user.date_joined|date:"M Y" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person me-2"></i>Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <span class="info-label">Full Name:</span>
+                        <span class="info-value">{{ user.get_full_name|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Username:</span>
+                        <span class="info-value">{{ user.username }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{ user.email|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Phone:</span>
+                        <span class="info-value">{{ user.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Role:</span>
+                        <span class="info-value">
+                            <span class="badge bg-primary">{{ user.get_role_display }}</span>
+                        </span>
+                    </div>
+                    {% if user.hospital %}
+                    <div class="info-item">
+                        <span class="info-label">Hospital:</span>
+                        <span class="info-value">ZAIN HMS</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card info-card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-key me-2"></i>Change Password
+                        </a>
+                        <a href="#" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
+                            <i class="bi bi-camera me-2"></i>Update Photo
+                        </a>
+                        {% if user.role == 'ADMIN' %}
+                        <a href="{% url 'dashboard:dashboard_home' %}" class="btn btn-outline-success">
+                            <i class="bi bi-building me-2"></i>Hospital Overview
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Management -->
+        <div class="col-lg-8">
+            <div class="card info-card">
+                <div class="card-header">
+                    <ul class="nav nav-pills" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="edit-profile-tab" data-bs-toggle="pill" data-bs-target="#edit-profile" type="button" role="tab">
+                                <i class="bi bi-pencil me-2"></i>Edit Profile
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab">
+                                <i class="bi bi-shield me-2"></i>Security
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="preferences-tab" data-bs-toggle="pill" data-bs-target="#preferences" type="button" role="tab">
+                                <i class="bi bi-gear me-2"></i>Preferences
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="profileTabContent">
+                        <!-- Edit Profile Tab -->
+                        <div class="tab-pane fade show active" id="edit-profile" role="tabpanel">
+                            <form method="post" enctype="multipart/form-data" action="">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="first_name" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="last_name" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="profile_picture" class="form-label">Profile Picture</label>
+                                    <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                </div>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="reset" class="btn btn-secondary">Reset</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i>Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div class="tab-pane fade" id="security" role="tabpanel">
+                            <h6 class="mb-3">Password & Security</h6>
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Password</h6>
+                                        <small class="text-muted">Last changed: Never</small>
+                                    </div>
+                                    <a href="{% url 'accounts:change_password' %}" class="btn btn-sm btn-outline-primary">Change</a>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Two-Factor Authentication</h6>
+                                        <small class="text-muted">Add extra security to your account</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-success">Enable</button>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Login Sessions</h6>
+                                        <small class="text-muted">Manage your active sessions</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-info">View</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences Tab -->
+                        <div class="tab-pane fade" id="preferences" role="tabpanel">
+                            <h6 class="mb-3">Display & Preferences</h6>
+                            <div class="mb-3">
+                                <label for="language" class="form-label">Language</label>
+                                <select class="form-select" id="language">
+                                    <option value="en" selected>English</option>
+                                    <option value="ar">العربية (Arabic)</option>
+                                    <option value="es">Español</option>
+                                    <option value="fr">Français</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="timezone" class="form-label">Timezone</label>
+                                <select class="form-select" id="timezone">
+                                    <option value="UTC">UTC</option>
+                                    <option value="America/New_York">Eastern Time</option>
+                                    <option value="Europe/London">GMT</option>
+                                    <option value="Asia/Dubai">UAE Time</option>
+                                </select>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" id="notifications">
+                                <label class="form-check-label" for="notifications">
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" id="darkMode">
+                                <label class="form-check-label" for="darkMode">
+                                    Dark Mode
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!-- templates/base_print.html -->
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZAIN HMS - Print Document{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/templates/base_print.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="print-container">
+        {% block content %}{% endblock %}
+
+        <!-- Print Actions (hidden in print) -->
+        <div class="no-print fixed-bottom bg-white p-3 border-top">
+            <div class="d-flex justify-content-center gap-2">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print me-2"></i>
+                    {% trans "Print" %}
+                </button>
+                <button onclick="window.close()" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>
+                    {% trans "Close" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

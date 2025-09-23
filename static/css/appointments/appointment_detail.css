@@ -1,0 +1,583 @@
+.appointment-detail-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    }
+
+.appointment-detail-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(50px, -50px);
+    }
+
+.appointment-number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+    }
+
+.appointment-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    }
+
+.status-badge-large {
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-right: 1rem;
+    }
+
+.priority-badge-large {
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+    }
+
+.info-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    }
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+.info-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f8f9fa;
+    }
+
+.info-card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-right: 1rem;
+    }
+
+.patient-icon {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+.doctor-icon {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+    }
+
+.appointment-icon {
+    background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+    }
+
+.medical-icon {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    }
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f8f9fa;
+    }
+
+.info-item:last-child {
+    border-bottom: none;
+    }
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+.info-value {
+    color: #6c757d;
+    font-weight: 500;
+    text-align: right;
+    }
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    }
+
+.patient-avatar {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+.doctor-avatar {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+    }
+
+.contact-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-top: 1rem;
+    }
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    }
+
+.contact-item:last-child {
+    margin-bottom: 0;
+    }
+
+.timeline {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    }
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f8f9fa;
+    }
+
+.timeline-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    }
+
+.timeline-item {
+    position: relative;
+    padding-left: 3rem;
+    padding-bottom: 2rem;
+    border-left: 2px solid #e9ecef;
+    }
+
+.timeline-item:last-child {
+    border-left: none;
+    padding-bottom: 0;
+    }
+
+.timeline-bullet {
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #667eea;
+    }
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    }
+
+.timeline-time {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    }
+
+.timeline-title {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    }
+
+.timeline-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    }
+
+.action-panel {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    position: relative;
+    min-height: auto;
+    }
+
+.primary-action-btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    }
+
+.primary-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+.actions-dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    min-width: 100%;
+    margin-top: 8px !important;
+    z-index: 1050 !important;
+    }
+
+.actions-dropdown-menu .dropdown-item {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 2px 8px;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    width: calc(100% - 16px);
+    text-align: left;
+    color: #495057;
+    font-weight: 500;
+    }
+
+.actions-dropdown-menu .dropdown-item:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+    color: #212529;
+    }
+
+.actions-dropdown-menu .dropdown-item.text-danger:hover {
+    background: #fff5f5;
+    color: #dc3545;
+    }
+
+.actions-dropdown-menu .dropdown-divider {
+    margin: 8px 16px;
+    opacity: 0.3;
+    }
+
+.dropdown-toggle::after {
+    margin-left: 0.5rem;
+    }
+
+    /* Action Button Colors */
+.btn-edit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    }
+.btn-reschedule {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-color: #f093fb;
+    }
+.btn-cancel {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    color: #333;
+    border-color: #ff9a9e;
+    }
+.btn-complete {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #333;
+    border-color: #a8edea;
+    }
+.btn-checkin {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #333;
+    border-color: #ffecd2;
+    }
+.btn-checkout {
+    background: linear-gradient(135deg, #ff8a80 0%, #ea4335 100%);
+    color: white;
+    border-color: #ff8a80;
+    }
+.btn-prescription {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: #333;
+    border-color: #84fab0;
+    }
+.btn-history {
+    background: linear-gradient(135deg, #a6c1ee 0%, #fbc2eb 100%);
+    color: #333;
+    border-color: #a6c1ee;
+    }
+.btn-print {
+    background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+    color: white;
+    border-color: #fdbb2d;
+    }
+.btn-whatsapp {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: white;
+    border-color: #25D366;
+    }
+.btn-telegram {
+    background: linear-gradient(135deg, #0088cc 0%, #005580 100%);
+    color: white;
+    border-color: #0088cc;
+    }
+.btn-viber {
+    background: linear-gradient(135deg, #665CAC 0%, #7d4f99 100%);
+    color: white;
+    border-color: #665CAC;
+    }
+.btn-email {
+    background: linear-gradient(135deg, #EA4335 0%, #DB4437 100%);
+    color: white;
+    border-color: #EA4335;
+    }
+.btn-reports {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    }
+.btn-delete {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    color: white;
+    border-color: #ff416c;
+    }
+
+    /* Dropdown Item Specific Styling */
+.actions-dropdown-menu .dropdown-item.btn-edit { background: none; color: #667eea; }
+.actions-dropdown-menu .dropdown-item.btn-reschedule { background: none; color: #f093fb; }
+.actions-dropdown-menu .dropdown-item.btn-cancel { background: none; color: #ff6b6b; }
+.actions-dropdown-menu .dropdown-item.btn-complete { background: none; color: #51cf66; }
+.actions-dropdown-menu .dropdown-item.btn-checkin { background: none; color: #ff922b; }
+.actions-dropdown-menu .dropdown-item.btn-checkout { background: none; color: #ff6b6b; }
+.actions-dropdown-menu .dropdown-item.btn-prescription { background: none; color: #51cf66; }
+.actions-dropdown-menu .dropdown-item.btn-history { background: none; color: #74c0fc; }
+.actions-dropdown-menu .dropdown-item.btn-print { background: none; color: #ffd43b; }
+.actions-dropdown-menu .dropdown-item.btn-whatsapp { background: none; color: #25D366; }
+.actions-dropdown-menu .dropdown-item.btn-telegram { background: none; color: #0088cc; }
+.actions-dropdown-menu .dropdown-item.btn-viber { background: none; color: #665CAC; }
+.actions-dropdown-menu .dropdown-item.btn-email { background: none; color: #EA4335; }
+.actions-dropdown-menu .dropdown-item.btn-reports { background: none; color: #667eea; }
+.actions-dropdown-menu .dropdown-item.btn-delete { background: none; color: #ff416c; }
+
+.btn-primary-action {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    }
+
+.btn-success-action {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    }
+
+.btn-warning-action {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+    }
+
+.btn-danger-action {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    color: white;
+    }
+
+.btn-info-action {
+    background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%);
+    color: white;
+    }
+
+.medical-details {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    }
+
+.complaint-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    }
+
+.symptoms-section {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    }
+
+.notes-section {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 10px;
+    padding: 1.5rem;
+    }
+
+.section-title {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    }
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    }
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    }
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    }
+
+.stat-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    }
+
+.related-appointments {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+.related-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    }
+
+.related-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    }
+
+.related-item:last-child {
+    margin-bottom: 0;
+    }
+
+@media (max-width: 768px) {
+.appointment-detail-header {
+    padding: 1.5rem;
+        }
+
+.appointment-title {
+    font-size: 1.5rem;
+        }
+
+.info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+        }
+
+.action-panel {
+    position: static;
+    margin-top: 2rem;
+        }
+
+.quick-stats {
+    grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+.prescription-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    }
+
+.prescription-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+    }
+
+.prescription-item:last-child {
+    margin-bottom: 0;
+    }
+
+.medication-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    }
+
+.medication-details {
+    color: #6c757d;
+    font-size: 0.9rem;
+    }

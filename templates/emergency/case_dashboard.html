@@ -1,0 +1,359 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Emergency Department - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/emergency/case_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Emergency Department Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-danger">
+            <i class="fas fa-ambulance me-2"></i>
+            Emergency Department
+        </h1>
+        <p class="text-muted mb-0">Real-time emergency case management</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-danger" onclick="newEmergencyCase()">
+            <i class="fas fa-plus me-1"></i>
+            New Emergency Case
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-filter me-1"></i>
+                Filter
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="?priority=CRITICAL">Critical Only</a></li>
+                <li><a class="dropdown-item" href="?status=WAITING">Waiting</a></li>
+                <li><a class="dropdown-item" href="?status=IN_TREATMENT">In Treatment</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'emergency:emergency_list' %}">All Cases</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Real-time Updates Banner -->
+<div class="real-time-updates">
+    <div class="d-flex align-items-center">
+        <div class="spinner-grow spinner-grow-sm text-primary me-2" role="status"></div>
+        <strong>Live Updates:</strong>
+        <span class="ms-2" id="lastUpdate">Updated {{ last_update|timesince }} ago</span>
+        <button class="btn btn-sm btn-outline-primary ms-auto" onclick="refreshData()">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Emergency Stats -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ critical_count }}</h3>
+                <small>Critical</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-warning">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ high_count }}</h3>
+                <small>High Priority</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ medium_count }}</h3>
+                <small>Medium</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ low_count }}</h3>
+                <small>Low Priority</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ waiting_count }}</h3>
+                <small>Waiting</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ treated_today }}</h3>
+                <small>Treated Today</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Cases -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-heartbeat me-2"></i>
+                    Active Emergency Cases
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if active_cases %}
+                    <div class="row">
+                        {% for case in active_cases %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card emergency-card priority-{{ case.priority|lower }} position-relative">
+                                <div class="triage-badge triage-{{ case.triage_level }}">
+                                    {{ case.triage_level }}
+                                </div>
+
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        {{ case.patient.get_full_name }}
+                                        <small class="text-muted">({{ case.patient.age }} yrs)</small>
+                                    </h6>
+
+                                    <div class="mb-2">
+                                        <strong>Chief Complaint:</strong><br>
+                                        <small>{{ case.chief_complaint|truncatechars:50 }}</small>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <strong>Arrived:</strong>
+                                        <small>{{ case.arrival_time|timesince }} ago</small>
+                                    </div>
+
+                                    {% if case.attending_doctor %}
+                                    <div class="mb-2">
+                                        <strong>Doctor:</strong>
+                                        <small>Dr. {{ case.attending_doctor.get_full_name }}</small>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        <span class="badge
+                                            {% if case.status == 'WAITING' %}bg-warning
+                                            {% elif case.status == 'IN_TREATMENT' %}bg-info
+                                            {% elif case.status == 'CRITICAL' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ case.get_status_display }}
+                                        </span>
+
+                                        <span class="badge
+                                            {% if case.priority == 'CRITICAL' %}bg-danger
+                                            {% elif case.priority == 'HIGH' %}bg-warning
+                                            {% elif case.priority == 'MEDIUM' %}bg-info
+                                            {% else %}bg-success{% endif %}">
+                                            {{ case.get_priority_display }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Vital Signs Quick View -->
+                                    {% if case.vitals %}
+                                    <div class="vitals-display">
+                                        <div class="row text-center">
+                                            <div class="col-3">
+                                                <small>BP</small><br>
+                                                <strong>{{ case.vitals.blood_pressure|default:"-" }}</strong>
+                                            </div>
+                                            <div class="col-3">
+                                                <small>HR</small><br>
+                                                <strong>{{ case.vitals.heart_rate|default:"-" }}</strong>
+                                            </div>
+                                            <div class="col-3">
+                                                <small>Temp</small><br>
+                                                <strong>{{ case.vitals.temperature|default:"-" }}</strong>
+                                            </div>
+                                            <div class="col-3">
+                                                <small>O2</small><br>
+                                                <strong>{{ case.vitals.oxygen_saturation|default:"-" }}%</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'emergency:case_detail' case.pk %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+
+                                        {% if case.status == 'WAITING' %}
+                                        <button class="btn btn-sm btn-success" onclick="startTreatment('{{ case.pk }}')">
+                                            <i class="fas fa-play"></i> Start Treatment
+                                        </button>
+                                        {% endif %}
+
+                                        <button class="btn btn-sm btn-info" onclick="updateVitals('{{ case.pk }}')">
+                                            <i class="fas fa-heartbeat"></i> Vitals
+                                        </button>
+
+                                        {% if case.priority == 'CRITICAL' %}
+                                        <button class="btn btn-sm btn-danger" onclick="emergencyAlert('{{ case.pk }}')">
+                                            <i class="fas fa-exclamation-triangle"></i> Alert
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Active Emergency Cases</h5>
+                        <p class="text-muted">All clear in the emergency department</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Triage -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-user-nurse me-1"></i>
+                    Quick Triage
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'emergency:case_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Patient Search</label>
+                        <input type="text" name="patient_search" class="form-control"
+                               placeholder="Search by name or ID" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Chief Complaint</label>
+                        <textarea name="chief_complaint" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Priority Level</label>
+                        <select name="priority" class="form-select" required>
+                            <option value="CRITICAL">Critical - Immediate</option>
+                            <option value="HIGH">High - Urgent</option>
+                            <option value="MEDIUM" selected>Medium - Semi-urgent</option>
+                            <option value="LOW">Low - Non-urgent</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-1"></i>
+                        Quick Triage
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bed Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bed me-1"></i>
+                    Emergency Bed Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 text-center">
+                        <h4 class="text-success">{{ available_beds }}</h4>
+                        <small>Available</small>
+                    </div>
+                    <div class="col-6 text-center">
+                        <h4 class="text-danger">{{ occupied_beds }}</h4>
+                        <small>Occupied</small>
+                    </div>
+                </div>
+                <div class="progress mt-2">
+                    <div class="progress-bar bg-success" style="width: {{ bed_availability_percentage }}%"></div>
+                </div>
+                <small class="text-muted">{{ bed_availability_percentage }}% available</small>
+            </div>
+        </div>
+
+        <!-- Staff on Duty -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-user-md me-1"></i>
+                    Staff on Duty
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for staff in emergency_staff %}
+                <div class="d-flex align-items-center mb-2">
+                    <div class="flex-grow-1">
+                        <strong>Dr. {{ staff.get_full_name }}</strong><br>
+                        <small class="text-muted">{{ staff.specialization|default:"Emergency Medicine" }}</small>
+                    </div>
+                    <span class="badge {% if staff.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if staff.is_available %}Available{% else %}Busy{% endif %}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-muted">No staff information available</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bell me-1"></i>
+                    Recent Alerts
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="case-timeline">
+                    {% for alert in recent_alerts %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h6>{{ alert.title }}</h6>
+                            <p class="text-muted mb-1">{{ alert.message }}</p>
+                            <small class="text-muted">{{ alert.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No recent alerts</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Action Modals -->
+<div class="modal fade" id="emergencyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/emergency/case_dashboard.js' %}"></script>
+{% endblock %}

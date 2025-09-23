@@ -1,0 +1,253 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Create Prescription - Dr. {{ doctor.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/doctors/create_prescription.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card prescription-header">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="fas fa-prescription-bottle-alt me-2"></i>Create New Prescription
+                            </h2>
+                            <p class="mb-0">Dr. {{ doctor.get_full_name }} - {{ doctor.specialization }}</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{% url 'doctors:doctor_prescriptions' %}" class="btn btn-light">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Prescriptions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="prescriptionForm">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Patient Selection -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-user me-2"></i>Patient Information
+                    </h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="patient_id" class="form-label">Select Patient *</label>
+                                    <select class="form-select" id="patient_id" name="patient_id" required>
+                                        <option value="">Choose a patient...</option>
+                                        {% for patient in patients %}
+                                        <option value="{{ patient.id }}"
+                                                {% if appointment and appointment.patient.id == patient.id %}selected{% endif %}
+                                                data-phone="{{ patient.phone_number }}"
+                                                data-email="{{ patient.email }}"
+                                                data-age="{% if patient.date_of_birth %}{{ patient.get_age }}{% endif %}">
+                                            {{ patient.get_full_name }}
+                                            {% if patient.date_of_birth %} ({{ patient.get_age }} years){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6" id="patientDetails" style="display: none;">
+                                    <div class="patient-info-card card h-100">
+                                        <div class="card-body">
+                                            <h6 class="mb-2">Patient Details</h6>
+                                            <p class="mb-1"><strong>Phone:</strong> <span id="patientPhone">-</span></p>
+                                            <p class="mb-1"><strong>Email:</strong> <span id="patientEmail">-</span></p>
+                                            <p class="mb-0"><strong>Age:</strong> <span id="patientAge">-</span> years</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Information -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-stethoscope me-2"></i>Medical Information
+                    </h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="diagnosis" class="form-label">Diagnosis *</label>
+                                    <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3"
+                                              placeholder="Enter primary diagnosis..." required></textarea>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="symptoms" class="form-label">Symptoms</label>
+                                    <textarea class="form-control" id="symptoms" name="symptoms" rows="3"
+                                              placeholder="Patient reported symptoms..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label for="notes" class="form-label">Additional Notes</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="2"
+                                              placeholder="Additional medical notes or instructions..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medications -->
+                <div class="form-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-pills me-2"></i>Medications
+                        </h5>
+                        <button type="button" class="btn btn-success" id="addMedicationBtn">
+                            <i class="fas fa-plus me-2"></i>Add Medication
+                        </button>
+                    </div>
+
+                    <div id="medicationsContainer">
+                        <div class="text-center py-4" id="noMedicationsMsg">
+                            <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Click "Add Medication" to start prescribing medications</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'doctors:doctor_prescriptions' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="fas fa-save me-2"></i>Create Prescription
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Appointment Info (if applicable) -->
+                {% if appointment %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-calendar me-2"></i>Related Appointment
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Date:</strong> {{ appointment.appointment_date|date:"M j, Y" }}</p>
+                        <p><strong>Time:</strong> {{ appointment.appointment_time|time:"H:i" }}</p>
+                        <p><strong>Type:</strong> {{ appointment.appointment_type.name|default:"General" }}</p>
+                        <p class="mb-0"><strong>Chief Complaint:</strong> {{ appointment.chief_complaint }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quick Medication Guide -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Prescription Guide
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <h6>Common Dosage Examples:</h6>
+                        <ul class="small">
+                            <li><strong>Tablets:</strong> 1 tablet, 2 tablets</li>
+                            <li><strong>Capsules:</strong> 1 capsule, 500mg</li>
+                            <li><strong>Syrups:</strong> 5ml, 10ml, 1 tsp</li>
+                            <li><strong>Injections:</strong> 1 ampoule, 2ml</li>
+                        </ul>
+
+                        <h6 class="mt-3">Frequency Examples:</h6>
+                        <ul class="small">
+                            <li>Once daily (OD)</li>
+                            <li>Twice daily (BD)</li>
+                            <li>Three times daily (TDS)</li>
+                            <li>Four times daily (QDS)</li>
+                            <li>As needed (PRN)</li>
+                        </ul>
+
+                        <h6 class="mt-3">Duration Examples:</h6>
+                        <ul class="small">
+                            <li>3 days, 5 days, 7 days</li>
+                            <li>1 week, 2 weeks</li>
+                            <li>1 month, 3 months</li>
+                            <li>As needed, Until symptoms resolve</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Medication Item Template -->
+<template id="medicationTemplate">
+    <div class="medication-item position-relative" data-medication-index="">
+        <button type="button" class="btn btn-danger btn-sm btn-remove-medication">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="d-flex align-items-center mb-3">
+            <div class="medication-counter me-3">1</div>
+            <h6 class="mb-0">Medication #<span class="medication-number">1</span></h6>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Medication *</label>
+                <select class="form-select medication-select" name="medication_id[]" required>
+                    <option value="">Select medication...</option>
+                    {% for medication in medications %}
+                    <option value="{{ medication.id }}">{{ medication.name }} ({{ medication.strength }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Dosage *</label>
+                <input type="text" class="form-control" name="dosage[]"
+                       placeholder="e.g., 1 tablet, 500mg" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Frequency *</label>
+                <input type="text" class="form-control" name="frequency[]"
+                       placeholder="e.g., Twice daily" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Duration *</label>
+                <input type="text" class="form-control" name="duration[]"
+                       placeholder="e.g., 7 days" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-control" name="quantity[]"
+                       placeholder="e.g., 14" min="1" value="1">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Instructions</label>
+                <textarea class="form-control" name="instructions[]" rows="2"
+                          placeholder="e.g., Take after meals, Avoid alcohol"></textarea>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/doctors/create_prescription.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,341 @@
+<!-- templates/emr/dashboard.html -->
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+{% load i18n %}
+
+{% block title %}{% trans "EMR Dashboard" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Electronic Medical Records" %}{% endblock %}
+
+{% block page_subtitle %}
+    {% trans "AI-Enhanced Clinical Management System" %}
+{% endblock %}
+
+{% block extra_css %}
+<!-- Beautiful EMR Dashboard CSS -->
+<link rel="stylesheet" href="{% static 'css/dashboard/user_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/emr/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard/admin.css' %}">
+
+
+{% endblock %}
+
+{% block content %}
+<!-- EMR Dashboard Hero Section -->
+<div class="emr-hero fade-in">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>
+                <i class="fas fa-heartbeat" style="margin-right: 15px; color: #f39c12;"></i>
+                {% trans "Electronic Medical Records" %}
+            </h1>
+            <p class="mb-0">
+                <i class="fas fa-brain" style="margin-right: 10px;"></i>
+                {% trans "AI-Enhanced Clinical Decision Support System" %}
+            </p>
+            <p class="mb-3 mt-2" style="font-size: 1rem; opacity: 0.9;">
+                {% trans "Experience the power of AI-driven clinical insights, predictive analytics, and automated decision support" %}
+            </p>
+            <a href="{% url 'emr:ai_dashboard' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-rocket me-2"></i>{% trans "Explore AI Dashboard" %}
+            </a>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end align-items-center flex-column">
+                <div class="mb-2" style="font-size: 1.1rem; font-weight: 600;">
+                    <i class="fas fa-calendar-alt" style="margin-right: 10px;"></i>
+                    {{ today|date:"l, F j, Y" }}
+                </div>
+                <div style="font-size: 1rem; opacity: 0.9;">
+                    <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                    <span id="current-time">{{ now|date:"g:i A" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EMR Statistics Grid -->
+<div class="row slide-up">
+    <!-- Statistics Cards -->
+    <div class="col-md-3 col-sm-6">
+        <div class="emr-stat-card">
+            <div class="emr-stat-icon">
+                <i class="fas fa-file-medical"></i>
+            </div>
+            <div class="emr-stat-value">{{ recent_records|length|default:"0" }}</div>
+            <div class="emr-stat-label">{% trans "Recent Records" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="emr-stat-card">
+            <div class="emr-stat-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <div class="emr-stat-value">{{ recent_vitals|length|default:"0" }}</div>
+            <div class="emr-stat-label">{% trans "Recent Vitals" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="emr-stat-card">
+            <div class="emr-stat-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <div class="emr-stat-value">{{ active_medications|default:"0" }}</div>
+            <div class="emr-stat-label">{% trans "Active Medications" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="emr-stat-card">
+            <div class="emr-stat-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <div class="emr-stat-value">{{ pending_labs|default:"0" }}</div>
+            <div class="emr-stat-label">{% trans "Pending Labs" %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Records Section -->
+    <div class="col-md-8">
+        <div class="emr-recent-section fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-history me-2"></i>{% trans "Recent Medical Records" %}
+            </h3>
+            {% if recent_records %}
+                {% for record in recent_records %}
+                <div class="emr-record-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">
+                                <i class="fas fa-user-injured me-2 text-primary"></i>
+                                {% trans "Patient" %}: {{ record.patient.get_full_name|default:"Unknown Patient" }}
+                            </h6>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-calendar me-2"></i>{{ record.record_date|date:"M j, Y g:i A" }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>{% trans "Chief Complaint" %}:</strong> {{ record.chief_complaint|truncatechars:80 }}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary">{{ record.record_type }}</span>
+                            {% if record.ai_diagnostic_suggestions %}
+                                <i class="fas fa-brain text-warning ms-2" title="{% trans 'AI Analysis Available' %}"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-file-medical-alt fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">{% trans "No recent medical records found" %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions Sidebar -->
+    <div class="col-md-4">
+        <div class="emr-quick-actions fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-bolt me-2"></i>{% trans "Quick Actions" %}
+            </h3>
+            <div class="d-grid gap-2">
+                <a href="#" class="emr-action-btn">
+                    <i class="fas fa-plus-circle me-2"></i>{% trans "New Medical Record" %}
+                </a>
+                <a href="#" class="emr-action-btn">
+                    <i class="fas fa-heartbeat me-2"></i>{% trans "Record Vital Signs" %}
+                </a>
+                <a href="#" class="emr-action-btn">
+                    <i class="fas fa-prescription-bottle me-2"></i>{% trans "New Prescription" %}
+                </a>
+                <a href="#" class="emr-action-btn">
+                    <i class="fas fa-flask me-2"></i>{% trans "Order Lab Tests" %}
+                </a>
+                <a href="{% url 'emr:ai_dashboard' %}" class="emr-action-btn">
+                    <i class="fas fa-brain me-2"></i>{% trans "AI Clinical Dashboard" %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Vital Signs -->
+        <div class="emr-recent-section fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-heartbeat me-2"></i>{% trans "Recent Vitals" %}
+            </h3>
+            {% if recent_vitals %}
+                {% for vital in recent_vitals %}
+                <div class="emr-record-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ vital.patient.get_full_name|default:"Unknown Patient" }}</h6>
+                            <small class="text-muted">{{ vital.recorded_at|date:"M j, g:i A" }}</small>
+                        </div>
+                        <div class="text-end">
+                            {% if vital.blood_pressure_systolic %}
+                                <small class="badge bg-info">{{ vital.blood_pressure_systolic }}/{{ vital.blood_pressure_diastolic }}</small>
+                            {% endif %}
+                            {% if vital.temperature %}
+                                <small class="badge bg-warning">{{ vital.temperature }}°F</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-heartbeat fa-2x text-muted mb-2"></i>
+                    <p class="text-muted small">{% trans "No recent vital signs" %}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Critical Alerts -->
+        <div class="emr-recent-section fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-exclamation-triangle me-2 text-warning"></i>{% trans "Critical Alerts" %}
+            </h3>
+            <div class="alert alert-warning border-0 mb-2" style="font-size: 0.85rem;">
+                <i class="fas fa-thermometer-three-quarters me-2"></i>
+                <strong>High Fever Alert:</strong> 3 patients with temp >101°F
+            </div>
+            <div class="alert alert-danger border-0 mb-2" style="font-size: 0.85rem;">
+                <i class="fas fa-heart me-2"></i>
+                <strong>Hypertension Alert:</strong> 2 patients with BP >140/90
+            </div>
+            <div class="alert alert-info border-0 mb-2" style="font-size: 0.85rem;">
+                <i class="fas fa-pills me-2"></i>
+                <strong>Medication Due:</strong> 5 patients need medication
+            </div>
+        </div>
+
+        <!-- Today's Schedule -->
+        <div class="emr-recent-section fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-calendar-check me-2"></i>{% trans "Today's Schedule" %}
+            </h3>
+            <div class="emr-record-item">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <div class="bg-primary text-white rounded text-center" style="width: 40px; height: 40px; line-height: 40px; font-size: 0.8rem;">
+                            9:00
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Dr. Ahmed - Cardiology</h6>
+                        <small class="text-muted">Room 205</small>
+                    </div>
+                </div>
+            </div>
+            <div class="emr-record-item">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <div class="bg-success text-white rounded text-center" style="width: 40px; height: 40px; line-height: 40px; font-size: 0.8rem;">
+                            11:30
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Dr. Sarah - Pediatrics</h6>
+                        <small class="text-muted">Room 101</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lab Results Pending -->
+        <div class="emr-recent-section fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-vial me-2"></i>{% trans "Pending Lab Results" %}
+            </h3>
+            <div class="emr-record-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Blood Work - Ahmed Ali</h6>
+                        <small class="text-warning">⏱ Expected in 2 hours</small>
+                    </div>
+                    <span class="badge bg-warning">Pending</span>
+                </div>
+            </div>
+            <div class="emr-record-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">X-Ray - Fatima Hassan</h6>
+                        <small class="text-success">✅ Ready for review</small>
+                    </div>
+                    <span class="badge bg-success">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Medical Calculator -->
+        <div class="emr-recent-section fade-in">
+            <h3 class="emr-section-title">
+                <i class="fas fa-calculator me-2"></i>{% trans "Medical Calculator" %}
+            </h3>
+            <div class="row g-2">
+                <div class="col-6">
+                    <button class="btn btn-outline-primary btn-sm w-100" onclick="showBMICalculator()">
+                        <i class="fas fa-weight me-1"></i>BMI
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-outline-success btn-sm w-100" onclick="showDoseCalculator()">
+                        <i class="fas fa-pills me-1"></i>Dose
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-outline-warning btn-sm w-100" onclick="showAgeCalculator()">
+                        <i class="fas fa-birthday-cake me-1"></i>Age
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-outline-info btn-sm w-100" onclick="showGFRCalculator()">
+                        <i class="fas fa-kidney me-1"></i>GFR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Quick Actions Row -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="emr-recent-section">
+            <h3 class="emr-section-title">
+                <i class="fas fa-rocket me-2"></i>{% trans "Quick Actions" %}
+            </h3>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a href="{% url 'emr:medical_record_create' %}" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" style="height: 60px;">
+                        <i class="fas fa-plus me-2"></i>{% trans "New Medical Record" %}
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'emr:vital_signs_create' %}" class="btn btn-success w-100 d-flex align-items-center justify-content-center" style="height: 60px;">
+                        <i class="fas fa-heartbeat me-2"></i>{% trans "Record Vital Signs" %}
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'emr:medication_create' %}" class="btn btn-warning w-100 d-flex align-items-center justify-content-center" style="height: 60px;">
+                        <i class="fas fa-pills me-2"></i>{% trans "Add Medication" %}
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'emr:lab_result_create' %}" class="btn btn-info w-100 d-flex align-items-center justify-content-center" style="height: 60px;">
+                        <i class="fas fa-vial me-2"></i>{% trans "Add Lab Result" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}
+<script src="{% static 'js/emr/dashboard.js' %}"></script>

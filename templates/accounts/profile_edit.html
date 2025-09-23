@@ -1,0 +1,274 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/accounts/profile_edit.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Edit Profile</h1>
+        <p class="text-muted">Update your profile information</p>
+    </div>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>
+        Back to Profile
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <form method="post" enctype="multipart/form-data" class="profile-form needs-validation" novalidate>
+            {% csrf_token %}
+
+            <!-- Profile Picture -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-camera me-2"></i>
+                    Profile Picture
+                </h5>
+
+                <div class="text-center">
+                    <div class="avatar-upload">
+                        {% if form.instance.profile_picture %}
+                            <img src="{{ form.instance.profile_picture.url }}" alt="Profile" class="avatar-preview" id="avatarPreview">
+                        {% else %}
+                            <div class="avatar-preview bg-light d-flex align-items-center justify-content-center" id="avatarPreview">
+                                <i class="fas fa-user fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+
+                        <label for="id_profile_picture" class="btn btn-primary avatar-upload-btn">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                    </div>
+
+                    <div class="mt-3">
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.profile_picture.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Upload a profile picture (JPG, PNG, max 5MB)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-user me-2"></i>
+                    Personal Information
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                            First Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.first_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                            Last Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.last_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            Email <span class="text-danger">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.phone.id_for_label }}" class="form-label">
+                            Phone Number
+                        </label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.phone.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.address.id_for_label }}" class="form-label">
+                        Address
+                    </label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.address.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Professional Information -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-briefcase me-2"></i>
+                    Professional Information
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-control" value="{{ form.instance.get_role_display }}" readonly>
+                        <div class="form-text">Role cannot be changed. Contact administrator.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.department.id_for_label }}" class="form-label">
+                            Department
+                        </label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.department.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.instance.role == 'DOCTOR' %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.specialization.id_for_label }}" class="form-label">
+                            Specialization
+                        </label>
+                        {{ form.specialization }}
+                        {% if form.specialization.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.specialization.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.license_number.id_for_label }}" class="form-label">
+                            License Number
+                        </label>
+                        {{ form.license_number }}
+                        {% if form.license_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.license_number.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="{{ form.bio.id_for_label }}" class="form-label">
+                        Bio
+                    </label>
+                    {{ form.bio }}
+                    {% if form.bio.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.bio.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        Tell us about yourself (optional)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Preferences -->
+            <div class="form-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-bell me-2"></i>
+                    Notification Preferences
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            {{ form.email_notifications }}
+                            <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">
+                                Email Notifications
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.sms_notifications }}
+                            <label class="form-check-label" for="{{ form.sms_notifications.id_for_label }}">
+                                SMS Notifications
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            {{ form.appointment_reminders }}
+                            <label class="form-check-label" for="{{ form.appointment_reminders.id_for_label }}">
+                                Appointment Reminders
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form.system_alerts }}
+                            <label class="form-check-label" for="{{ form.system_alerts.id_for_label }}">
+                                System Alerts
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>
+                    Save Changes
+                </button>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/accounts/profile_edit.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{# templates/ipd/ipd_detail.html #}
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}IPD Record Details - ZAIN HMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:ipd_list' %}">IPD Records</a></li>
+<li class="breadcrumb-item active" aria-current="page">Record Details</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-eye me-2"></i>
+                IPD Record Details
+            </div>
+            <div>
+                <a href="{% url 'ipd:ipd_update' ipd_record.pk %}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </a>
+                <a href="{% url 'ipd:ipd_list' %}" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3"><i class="fas fa-user me-2"></i> Patient Information</h5>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Patient:</th>
+                            <td>{{ ipd_record.patient.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Patient ID:</th>
+                            <td>{{ ipd_record.patient.patient_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Phone:</th>
+                            <td>{{ ipd_record.patient.phone|default:"N/A" }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="mb-3"><i class="fas fa-user-md me-2"></i> Medical Information</h5>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Doctor:</th>
+                            <td>{{ ipd_record.doctor.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Diagnosis:</th>
+                            <td>{{ ipd_record.diagnosis|default:"N/A" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Treatment:</th>
+                            <td>{{ ipd_record.treatment|default:"N/A" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3"><i class="fas fa-bed me-2"></i> Room & Bed Information</h5>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Room:</th>
+                            <td>{{ ipd_record.room.room_number }} ({{ ipd_record.room.room_type }})</td>
+                        </tr>
+                        <tr>
+                            <th>Bed:</th>
+                            <td>{{ ipd_record.bed.bed_number }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="mb-3"><i class="fas fa-calendar me-2"></i> Dates & Status</h5>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Admission Date:</th>
+                            <td>{{ ipd_record.admission_date|date:"M d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Discharge Date:</th>
+                            <td>{{ ipd_record.discharge_date|date:"M d, Y"|default:"Not discharged" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge {% if ipd_record.status == 'admitted' %}bg-success{% elif ipd_record.status == 'discharged' %}bg-info{% else %}bg-warning{% endif %}">
+                                    {{ ipd_record.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {% if ipd_record.notes %}
+            <hr>
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="mb-3"><i class="fas fa-sticky-note me-2"></i> Notes</h5>
+                    <div class="alert alert-light">
+                        {{ ipd_record.notes|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

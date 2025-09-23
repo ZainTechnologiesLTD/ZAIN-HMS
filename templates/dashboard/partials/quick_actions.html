@@ -1,0 +1,364 @@
+{% load i18n %}
+
+<!-- Quick Actions Partial Template -->
+<div class="quick-actions-container"
+     x-data="{
+         searchQuery: '',
+         searchType: 'patients',
+         quickSearch: false,
+         showShortcuts: false,
+
+         init() {
+             // Initialize keyboard shortcuts
+             document.addEventListener('keydown', (e) => {
+                 if (e.ctrlKey || e.metaKey) {
+                     switch(e.key) {
+                         case 'k':
+                             e.preventDefault();
+                             this.quickSearch = true;
+                             this.$nextTick(() => {
+                                 document.getElementById('quickSearchInput')?.focus();
+                             });
+                             break;
+                         case 'n':
+                             if (e.shiftKey) {
+                                 e.preventDefault();
+                                 window.location.href = '{% url "patients:create" %}';
+                             }
+                             break;
+                         case 'a':
+                             if (e.shiftKey) {
+                                 e.preventDefault();
+                                 window.location.href = '{% url "appointments:create" %}';
+                             }
+                             break;
+                     }
+                 }
+             });
+         },
+
+         performQuickSearch() {
+             if (this.searchQuery.trim()) {
+                 const searchUrl = this.getSearchUrl();
+                 window.location.href = searchUrl + '?q=' + encodeURIComponent(this.searchQuery);
+                 this.quickSearch = false;
+                 this.searchQuery = '';
+             }
+         },
+
+         getSearchUrl() {
+             const urls = {
+                 'patients': '{% url "patients:list" %}',
+                 'appointments': '{% url "appointments:list" %}',
+                 'doctors': '{% url "doctors:list" %}',
+                 'staff': '{% url "staff:list" %}'
+             };
+             return urls[this.searchType] || urls.patients;
+         }
+     }"
+     x-init="init()">
+
+    <!-- Quick Search Modal -->
+    <div x-show="quickSearch"
+         class="modal fade show d-block"
+         style="background: rgba(0,0,0,0.5);"
+         @keydown.escape="quickSearch = false"
+         x-transition>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">
+                        <i class="bi bi-search me-2"></i>
+                        {% trans "Quick Search" %}
+                    </h5>
+                    <button type="button"
+                            class="btn-close"
+                            @click="quickSearch = false"
+                            aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="performQuickSearch()">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <select class="form-select" x-model="searchType">
+                                    <option value="patients">{% trans "Patients" %}</option>
+                                    <option value="appointments">{% trans "Appointments" %}</option>
+                                    <option value="doctors">{% trans "Doctors" %}</option>
+                                    <option value="staff">{% trans "Staff" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text"
+                                       id="quickSearchInput"
+                                       class="form-control"
+                                       x-model="searchQuery"
+                                       :placeholder="'{% trans "Search " %}' + searchType + '...'"
+                                       autofocus>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <kbd>Ctrl</kbd> + <kbd>K</kbd> {% trans "to open quick search" %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Quick Actions Card -->
+    <div class="card">
+        <div class="card-header bg-transparent border-0">
+            <div class="d-flex align-items-center justify-content-between">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning-charge me-2 text-warning"></i>
+                    {% trans "Quick Actions" %}
+                </h6>
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="showShortcuts = !showShortcuts"
+                        :title="showShortcuts ? '{% trans "Hide shortcuts" %}' : '{% trans "Show shortcuts" %}'">
+                    <i class="bi bi-keyboard" :class="{ 'text-primary': showShortcuts }"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Primary Actions -->
+            <div class="row g-3 mb-4">
+                <!-- New Patient -->
+                <div class="col-lg-6">
+                    <div class="quick-action-item h-100">
+                        <a href="{% url 'patients:create' %}"
+                           class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-plus fs-4 me-3"></i>
+                                <div class="text-start">
+                                    <div class="fw-bold">{% trans "New Patient" %}</div>
+                                    <small class="opacity-75">{% trans "Register new patient" %}</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="d-block opacity-75" x-show="showShortcuts">
+                                    <kbd>Ctrl+Shift+N</kbd>
+                                </small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- New Appointment -->
+                <div class="col-lg-6">
+                    <div class="quick-action-item h-100">
+                        <a href="{% url 'appointments:create' %}"
+                           class="btn btn-success btn-lg w-100 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-calendar-plus fs-4 me-3"></i>
+                                <div class="text-start">
+                                    <div class="fw-bold">{% trans "Book Appointment" %}</div>
+                                    <small class="opacity-75">{% trans "Schedule new appointment" %}</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="d-block opacity-75" x-show="showShortcuts">
+                                    <kbd>Ctrl+Shift+A</kbd>
+                                </small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Actions Grid -->
+            <div class="row g-3">
+                <!-- Quick Search -->
+                <div class="col-md-6 col-xl-3">
+                    <button type="button"
+                            class="btn btn-outline-primary btn-lg w-100 h-100"
+                            @click="quickSearch = true">
+                        <div class="d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-search fs-3 mb-2"></i>
+                            <div class="fw-bold">{% trans "Search" %}</div>
+                            <small class="text-muted" x-show="showShortcuts">
+                                <kbd>Ctrl+K</kbd>
+                            </small>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Emergency -->
+                <div class="col-md-6 col-xl-3">
+                    <a href="{% url 'emergency:dashboard' %}"
+                       class="btn btn-outline-danger btn-lg w-100 h-100">
+                        <div class="d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-exclamation-triangle fs-3 mb-2"></i>
+                            <div class="fw-bold">{% trans "Emergency" %}</div>
+                            <small class="text-muted">{% trans "Emergency cases" %}</small>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Lab Results -->
+                <div class="col-md-6 col-xl-3">
+                    <a href="{% url 'laboratory:results' %}"
+                       class="btn btn-outline-info btn-lg w-100 h-100">
+                        <div class="d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-clipboard-data fs-3 mb-2"></i>
+                            <div class="fw-bold">{% trans "Lab Results" %}</div>
+                            <small class="text-muted">{% trans "View test results" %}</small>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Pharmacy -->
+                <div class="col-md-6 col-xl-3">
+                    <a href="{% url 'pharmacy:dashboard' %}"
+                       class="btn btn-outline-success btn-lg w-100 h-100">
+                        <div class="d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-capsule fs-3 mb-2"></i>
+                            <div class="fw-bold">{% trans "Pharmacy" %}</div>
+                            <small class="text-muted">{% trans "Medicine management" %}</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tertiary Actions -->
+            <div class="row g-2 mt-3">
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'billing:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-receipt me-2"></i>
+                        {% trans "Billing" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'inventory:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-box-seam me-2"></i>
+                        {% trans "Inventory" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'reports:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-graph-up me-2"></i>
+                        {% trans "Reports" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'hr:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-people me-2"></i>
+                        {% trans "HR" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'room_management:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-door-open me-2"></i>
+                        {% trans "Rooms" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'surgery:schedule' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-heart-pulse me-2"></i>
+                        {% trans "Surgery" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'telemedicine:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-camera-video me-2"></i>
+                        {% trans "Telemedicine" %}
+                    </a>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <a href="{% url 'analytics:dashboard' %}"
+                       class="btn btn-outline-secondary w-100 d-flex align-items-center">
+                        <i class="bi bi-bar-chart-line me-2"></i>
+                        {% trans "Analytics" %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Keyboard Shortcuts Info -->
+            <div x-show="showShortcuts"
+                 class="mt-4 p-3 bg-light rounded"
+                 x-transition>
+                <h6 class="mb-3">
+                    <i class="bi bi-keyboard me-2"></i>
+                    {% trans "Keyboard Shortcuts" %}
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Quick Search" %}</span>
+                            <kbd>Ctrl + K</kbd>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "New Patient" %}</span>
+                            <kbd>Ctrl + Shift + N</kbd>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "New Appointment" %}</span>
+                            <kbd>Ctrl + Shift + A</kbd>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Dashboard" %}</span>
+                            <kbd>Ctrl + H</kbd>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Settings" %}</span>
+                            <kbd>Ctrl + ,</kbd>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Help" %}</span>
+                            <kbd>F1</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Actions -->
+    <div class="card mt-4">
+        <div class="card-header bg-transparent border-0">
+            <h6 class="card-title mb-0">
+                <i class="bi bi-clock-history me-2"></i>
+                {% trans "Recent Actions" %}
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if recent_actions %}
+                <div class="list-group list-group-flush">
+                    {% for action in recent_actions %}
+                    <div class="list-group-item border-0 px-0 d-flex align-items-center">
+                        <div class="action-icon me-3">
+                            <i class="bi {{ action.icon }} text-{{ action.color }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">{{ action.title }}</div>
+                            <small class="text-muted">{{ action.timestamp|naturaltime }}</small>
+                        </div>
+                        <a href="{{ action.url }}"
+                           class="btn btn-sm btn-outline-primary">
+                            {% trans "View" %}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-3 text-muted">
+                    <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">{% trans "No recent actions" %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

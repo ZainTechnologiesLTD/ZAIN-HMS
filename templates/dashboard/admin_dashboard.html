@@ -1,0 +1,365 @@
+{% extends 'base/base_dashboard.html' %}
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Admin Dashboard" %} - {{ hospital.name|default:"ZAIN HMS" }}{% endblock %}
+{% block page_title %}{% trans "Admin Dashboard" %}{% endblock %}
+{% block page_subtitle %}{% endblock %}
+
+{% block extra_css %}
+    
+<!-- Admin Dashboard Styles - Load after component CSS for proper cascade -->
+<link rel="stylesheet" href="/static/css/admin/admin.css">
+<link rel="stylesheet" href="/static/css/admin/dashboard_main.css">
+<!-- Temporarily disable dashboard_fixes.css to test clean layout -->
+<!-- <link rel="stylesheet" href="/static/css/admin/dashboard_fixes.css"> -->
+<link rel="stylesheet" href="/static/css/admin/admin_tools_fix.css">
+
+<!-- Clean Admin Dashboard CSS - Removed conflicts -->
+<style>
+/* KPI Cards - Clean styling without conflicts */
+.kpi-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    flex: 1 1 calc(25% - 1rem);
+    min-width: 250px;
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .kpi-cluster {
+        flex-direction: column;
+    }
+    
+    .kpi-card {
+        flex: 1 1 100%;
+        min-width: auto;
+    }
+}
+</style>
+
+<!-- Single Chart.js and admin.js loading - FIXED DUPLICATE LOADING -->
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/admin/admin.js' %}"></script>
+{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="{% trans 'ZAIN HMS Admin Dashboard - Complete healthcare management system' %}">
+<meta name="keywords" content="hospital management, healthcare, dashboard, administration, ZAIN HMS">
+<meta name="theme-color" content="#667eea">
+<link rel="prefetch" href="{% url 'patients:patient_list' %}">
+<link rel="prefetch" href="{% url 'appointments:appointment_list' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container"
+     x-data="adminDashboard"
+     x-init="init()"
+     data-user-role="{{ user.role }}"
+     data-refresh-enabled="{{ user_layout.auto_refresh_enabled|yesno:'true,false' }}">
+
+    <!-- Dashboard Hero Section -->
+    <header class="dashboard-hero" role="banner" aria-labelledby="dashboard-title">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 id="dashboard-title" class="h2 mb-2">
+                    {% blocktrans with name=user.get_full_name %}Welcome back, {{ name }}{% endblocktrans %}
+                </h1>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge bg-success bg-opacity-20 text-success border border-success">
+                        <i class="bi bi-check-circle me-1" aria-hidden="true"></i>
+                        {% trans "System Active" %}
+                    </span>
+                    <span class="badge bg-primary bg-opacity-20 text-primary border border-primary">
+                        <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+                <p class="mb-0 opacity-75">
+                    <i class="bi bi-clock me-1" aria-hidden="true"></i>
+                    {% trans "Last updated" %}: <span x-text="lastUpdated">{% now "H:i" %}</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="btn-group" role="group" aria-label="{% trans 'Dashboard actions' %}">
+                    <button type="button"
+                            class="btn btn-outline-light btn-sm"
+                            @click="refreshDashboard()"
+                            :disabled="isLoading">
+                        <i class="bi bi-arrow-clockwise me-1" :class="{'spin': isLoading}"></i>
+                        {% trans "Refresh" %}
+                    </button>
+                    <a href="{% url 'dashboard:settings' %}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-gear me-1"></i>
+                        {% trans "Settings" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- System Alerts -->
+    {% if alerts %}
+    <div class="alerts-container mb-4">
+        {% for alert in alerts %}
+        <div class="alert alert-{{ alert.alert_type }} alert-dismissible d-flex align-items-center"
+             role="alert"
+             x-data="{ show: true }"
+             x-show="show"
+             x-transition>
+            <i class="bi bi-{% if alert.alert_type == 'success' %}check-circle{% elif alert.alert_type == 'warning' %}exclamation-triangle{% elif alert.alert_type == 'error' %}x-circle{% else %}info-circle{% endif %} me-2 flex-shrink-0"></i>
+            <div class="flex-grow-1">
+                <strong>{{ alert.title }}</strong>
+                <p class="mb-0">{{ alert.message }}</p>
+            </div>
+            {% if alert.is_dismissible %}
+            <button type="button"
+                    class="btn-close"
+                    @click="show = false"
+                    aria-label="{% trans 'Close' %}"></button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+    <!-- KPIs with HTMX auto-refresh -->
+    <div class="row g-4 mb-4 kpi-cluster" id="stats-section">
+        <div hx-get="{% url 'dashboard:htmx_stats' %}"
+             hx-trigger="load, every 120s, refresh"
+             hx-swap="innerHTML"
+             hx-indicator="#kpi-loading">
+            {% include 'dashboard/partials/kpi_cards.html' %}
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="kpi-loading" class="htmx-indicator text-center my-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
+        <span class="ms-2">Updating statistics...</span>
+    </div>
+
+    <!-- Charts Row with HTMX -->
+    <div class="row g-4 mt-4 mb-4 charts-section" id="charts-section">
+        <div class="col-md-6">
+            <div class="main-card" id="revenue-card" style="position: relative; z-index: 1;"
+                 hx-get="{% url 'dashboard:htmx_charts' %}?type=revenue"
+                 hx-trigger="load, every 180s, refresh"
+                 hx-swap="innerHTML"
+                 hx-target="#revenue-chart-container"
+                 hx-indicator="#chart-loading">
+                <div class="card-header">
+                    <h5><i class="bi bi-currency-dollar card-title-icon"></i>Revenue (Last 7 Days)</h5>
+                </div>
+                <div class="card-body" style="height:220px;" id="revenue-chart-container">
+                    <canvas id="revenueChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="main-card" id="appointments-card" style="position: relative; z-index: 1;"
+                 hx-get="{% url 'dashboard:htmx_charts' %}?type=appointments"
+              hx-trigger="load, every 180s, refresh"
+                 hx-swap="innerHTML"
+                 hx-target="#appointments-chart-container"
+                 hx-indicator="#chart-loading">
+                <div class="card-header">
+                    <h5><i class="bi bi-calendar-event card-title-icon"></i>Appointments (Last 7 Days)</h5>
+                </div>
+                <div class="card-body" style="height:220px;" id="appointments-chart-container">
+                    <canvas id="appointmentsChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart loading indicator -->
+    <div id="chart-loading" class="htmx-indicator text-center my-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="ms-2">Updating charts...</span>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Quick Actions -->
+            <div class="main-card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightning-charge-fill card-title-icon"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="quick-actions-grid">
+                        <a href="{% url 'patients:create' %}" class="quick-action-item"><i class="bi bi-person-plus-fill icon primary"></i><span>Add Patient</span></a>
+                        <a href="{% url 'appointments:appointment_create' %}" class="quick-action-item"><i class="bi bi-calendar-plus-fill icon success"></i><span>New Appointment</span></a>
+                        {% if 'billing' in enabled_modules and perms.billing.add_bill %}
+                        <a href="{% url 'billing:create' %}" class="quick-action-item"><i class="bi bi-receipt-cutoff icon warning"></i><span>Create Invoice</span></a>
+                        {% endif %}
+                        <a href="{% url 'doctors:doctor_create' %}" class="quick-action-item"><i class="bi bi-file-person-fill icon info"></i><span>Onboard Doctor</span></a>
+                        <a href="{% url 'reports:report_list' %}" class="quick-action-item"><i class="bi bi-clipboard-data-fill icon danger"></i><span>Reports</span></a>
+                        <a href="{% url 'dashboard:profile' %}" class="quick-action-item"><i class="bi bi-building icon secondary"></i><span>Overview</span></a>
+                        <a href="{% url 'dashboard:activity_log' %}" class="quick-action-item"><i class="bi bi-activity icon info"></i><span>Activity Logs</span></a>
+                        <a href="{% url 'dashboard:system_config' %}" class="quick-action-item"><i class="bi bi-gear-wide-connected icon primary"></i><span>Settings</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column (Activity + Pending Tasks) -->
+        <div class="col-lg-4">
+            <!-- Recent Activity with HTMX -->
+            <div class="main-card mb-4" id="activities-section">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="bi bi-activity card-title-icon"></i>Recent Activity</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                onclick="htmx.trigger('#activities-container', 'refresh')"
+                                title="{% trans 'Refresh activities' %}">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span class="visually-hidden">{% trans 'Refresh activities' %}</span>
+                        </button>
+                        <a href="{% url 'dashboard:activity_log' %}" class="view-all-link">View All</a>
+                    </div>
+                </div>
+                <div id="activities-container" hx-get="{% url 'dashboard:htmx_activities' %}"
+                     hx-trigger="load, every 180s, refresh"
+                     hx-swap="innerHTML"
+                     hx-indicator="#activity-loading">
+                    {% include 'dashboard/partials/activity_feed.html' %}
+                </div>
+            </div>
+
+            <!-- Pending Tasks with HTMX -->
+            <div class="main-card pending-card" id="tasks-section">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="bi bi-list-task card-title-icon"></i>Pending Tasks</h5>
+                    <span class="badge bg-warning" x-text="$store.taskCount || '0'"></span>
+                </div>
+                <div hx-get="{% url 'dashboard:htmx_tasks' %}"
+                     hx-trigger="load, every 150s, refresh"
+                     hx-swap="innerHTML"
+                     hx-indicator="#tasks-loading">
+                    {% include 'dashboard/partials/pending_tasks.html' %}
+                </div>
+            </div>
+
+            <!-- Loading indicators -->
+            <div id="activity-loading" class="htmx-indicator text-center my-2">
+                <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                <span class="ms-2">Refreshing activity...</span>
+            </div>
+            <div id="tasks-loading" class="htmx-indicator text-center my-2">
+                <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                <span class="ms-2">Updating tasks...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrator Tools -->
+    <div class="main-card mb-5">
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-tools card-title-icon text-primary"></i>
+                Administrator Tools
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="admin-tools-grid">
+                <a href="{% url 'accounts:user_list' %}" class="enhanced-tool-btn" role="button" aria-label="Manage Users - Add, edit, and manage system users">
+                    <div class="tool-icon bg-primary">
+                        <i class="bi bi-people" aria-hidden="true"></i>
+                    </div>
+                    <span class="tool-label">Manage Users</span>
+                    <small class="tool-desc">Add, edit, and manage system users</small>
+                </a>
+                <a href="{% url 'dashboard:system_config' %}" class="enhanced-tool-btn" role="button" aria-label="Hospital Settings - Configure system preferences">
+                    <div class="tool-icon bg-success">
+                        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+                    </div>
+                    <span class="tool-label">Hospital Settings</span>
+                    <small class="tool-desc">Configure system preferences</small>
+                </a>
+                <a href="{% url 'dashboard:activity_log' %}" class="enhanced-tool-btn" role="button" aria-label="Activity Logs - View system activity history">
+                    <div class="tool-icon bg-info">
+                        <i class="bi bi-journal-text" aria-hidden="true"></i>
+                    </div>
+                    <span class="tool-label">Activity Logs</span>
+                    <small class="tool-desc">View system activity history</small>
+                </a>
+                <a href="{% url 'dashboard:profile' %}" class="enhanced-tool-btn" role="button" aria-label="Hospital Overview - Hospital information and stats">
+                    <div class="tool-icon bg-warning">
+                        <i class="bi bi-building" aria-hidden="true"></i>
+                    </div>
+                    <span class="tool-label">Hospital Overview</span>
+                    <small class="tool-desc">Hospital information and stats</small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CLEAN HTMX Configuration - NO CONFLICTING CHART INIT -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Basic HTMX configuration
+    htmx.config.globalViewTransitions = true;
+    htmx.config.timeout = 10000;
+    
+    // CSRF token handling
+    document.body.addEventListener('htmx:configRequest', function(evt) {
+        if (evt.detail?.headers) {
+            evt.detail.headers['X-CSRFToken'] = document.querySelector('meta[name=csrf-token]')?.content || '';
+        }
+    });
+
+    // Basic error handling
+    document.body.addEventListener('htmx:responseError', function(evt) {
+        const targetElement = evt.detail?.target;
+        if (targetElement && targetElement.innerHTML !== undefined) {
+            targetElement.innerHTML = `
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <div>Content temporarily unavailable. <button class="btn btn-sm btn-outline-warning ms-2" onclick="htmx.trigger(this.closest('[hx-get]'), 'refresh')">Retry</button></div>
+                </div>
+            `;
+        }
+    });
+
+    // Re-initialize Alpine.js components after HTMX swaps
+    document.body.addEventListener('htmx:afterSettle', function(evt) {
+        if (window.Alpine && evt.detail?.target) {
+            try {
+                Alpine.initTree(evt.detail.target);
+            } catch (error) {
+                console.warn('Alpine.js initialization error:', error);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
+
+{% block post_base_js %}
+<!-- Clean sidebar system is already loaded from base template -->
+{% endblock %}

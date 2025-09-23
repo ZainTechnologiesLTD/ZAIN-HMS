@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Nightly at 02:00 UTC run a migrations sync check (dry-run) to detect issues early
+    - cron: '0 2 * * *'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Django unit tests
+        env:
+          DJANGO_SETTINGS_MODULE: zain_hms.settings
+        run: |
+          source venv/bin/activate
+          python manage.py test apps.accounts.tests_schema_utils --noinput
+          python manage.py test --noinput
+
+      - name: Hospital user schema sync (dry-run minimal)
+        env:
+          DJANGO_SETTINGS_MODULE: zain_hms.settings
+        run: |
+          source venv/bin/activate
+          python manage.py sync_hospital_user_schema --dry-run --mode minimal --verbose
+
+      - name: Global hospital migrations sync (dry-run)
+        if: github.event_name == 'pull_request'
+        env:
+          DJANGO_SETTINGS_MODULE: zain_hms.settings
+        run: |
+          source venv/bin/activate
+          # Dry run on PRs to verify command health without altering DBs
+          python manage.py sync_hospital_migrations --all --check-only --verbosity=1
+
+      - name: Global hospital migrations sync (apply)
+        if: github.event_name != 'pull_request'
+        env:
+          DJANGO_SETTINGS_MODULE: zain_hms.settings
+        run: |
+          source venv/bin/activate
+          # Apply on pushes/scheduled builds so central + tenant DBs stay in sync
+          python manage.py migrate --noinput
+          python manage.py sync_hospital_migrations --all --log-to-database --verbosity=1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run JS tests
+        run: |
+          npm test --if-present

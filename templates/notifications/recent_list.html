@@ -1,0 +1,9 @@
+<ul class="list-group">
+    {% for notification in notifications %}
+        <li class="list-group-item">
+            {{ notification.message }} - <small class="text-muted">{{ notification.time }}</small>
+        </li>
+    {% empty %}
+        <li class="list-group-item">No recent notifications.</li>
+    {% endfor %}
+</ul>

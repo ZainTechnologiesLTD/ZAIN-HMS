@@ -1,0 +1,14 @@
+<!-- appointments/time_slots.html -->
+<option value="">Select Time</option>
+{% for slot in slots %}
+    <option value="{{ slot.datetime|date:'Y-m-d H:i' }}"
+            {% if slot.is_booked %}
+                disabled
+                class="booked-slot"
+            {% else %}
+                class="available-slot"
+            {% endif %}>
+        {{ slot.display }}
+        {% if slot.is_booked %}(Booked){% endif %}
+    </option>
+{% endfor %}

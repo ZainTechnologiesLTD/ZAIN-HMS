@@ -1,0 +1,268 @@
+/*
+ * ZAIN HMS - Landing Page Styles
+ * Hero section, features, CTA, and other landing page components
+ * Version: 1.0 - Modern, engaging design
+ */
+
+/* ===== Hero Section ===== */
+.hero-section {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 120px 0 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="800" cy="800" r="4" fill="rgba(255,255,255,0.1)"/><circle cx="400" cy="600" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="900" cy="300" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="100" cy="700" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.3;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-hero {
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-hero-primary {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid white;
+}
+
+.btn-hero-primary:hover {
+    background: transparent;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn-hero-outline {
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+.btn-hero-outline:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: white;
+    transform: translateY(-2px);
+}
+
+/* ===== Feature Cards ===== */
+.feature-card {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.feature-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* ===== CTA Section ===== */
+.cta-section {
+    background: var(--primary-gradient-alt);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+/* ===== Footer Styles ===== */
+.footer {
+    background: var(--text-primary);
+    color: white;
+    padding: 3rem 0 1rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: var(--warning-color);
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.footer-section ul li a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== Animations for Landing Page ===== */
+@keyframes fadeInUp {
+from {
+    opacity: 0;
+    transform: translateY(30px);
+    }
+to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+from {
+    opacity: 0;
+    transform: translateX(-50px);
+    }
+to {
+    opacity: 1;
+    transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+from {
+    opacity: 0;
+    transform: translateX(50px);
+    }
+to {
+    opacity: 1;
+    transform: translateX(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.slide-in-left {
+    animation: slideInFromLeft 0.6s ease-out;
+}
+
+.slide-in-right {
+    animation: slideInFromRight 0.6s ease-out;
+}
+
+/* ===== Responsive Design for Landing Page ===== */
+@media (max-width: 768px) {
+.hero-title {
+    font-size: 2.5rem;
+    }
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    }
+
+.hero-buttons {
+    justify-content: center;
+    }
+
+.cta-title {
+    font-size: 2rem;
+    }
+
+.footer-grid {
+    grid-template-columns: 1fr;
+    }
+}

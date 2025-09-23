@@ -1,0 +1,10 @@
+.patient-status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    }
+.ipd-card {
+    transition: all 0.2s;
+    }
+.ipd-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }

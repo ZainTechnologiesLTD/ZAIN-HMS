@@ -1,0 +1,239 @@
+        /* Print-specific styles */
+@media print {
+body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+            }
+.no-print { display: none !important; }
+.page-break { page-break-before: always; }
+        }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #333;
+        }
+
+.print-header {
+    background: linear-gradient(135deg, #4f46e5, #ec4899);
+    color: white;
+    padding: 20px;
+    margin: -20px -20px 30px -20px;
+    text-align: center;
+    position: relative;
+        }
+
+.hospital-logo {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+        }
+
+.hospital-info {
+    flex-grow: 1;
+        }
+
+.hospital-name {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+.hospital-contact {
+    font-size: 14px;
+    margin-top: 5px;
+    opacity: 0.95;
+        }
+
+.print-title {
+    font-size: 18px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.3);
+        }
+
+.print-date {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 11px;
+    opacity: 0.9;
+        }
+
+.patient-photo {
+    float: right;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    border: 3px solid #4f46e5;
+    border-radius: 8px;
+        }
+
+.info-section {
+    margin-bottom: 25px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+        }
+
+.section-header {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    padding: 12px 15px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+        }
+
+.section-content {
+    padding: 15px;
+        }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+        }
+
+.info-item {
+    margin-bottom: 8px;
+        }
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 3px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+        }
+
+.info-value {
+    color: #212529;
+    font-size: 13px;
+    min-height: 16px;
+        }
+
+.medical-info {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+        }
+
+.emergency-info {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+        }
+
+.vitals-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+        }
+
+    .vitals-table th,
+.vitals-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+        }
+
+.vitals-table th {
+    background: #e9ecef;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+        }
+
+.notes-list {
+    max-height: 200px;
+    overflow-y: auto;
+        }
+
+.note-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: white;
+    border-radius: 5px;
+    border-left: 3px solid #4f46e5;
+        }
+
+.note-date {
+    font-size: 10px;
+    color: #6c757d;
+    font-weight: 600;
+        }
+
+.note-content {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+        }
+
+.print-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #4f46e5;
+    text-align: center;
+    font-size: 11px;
+    color: #6c757d;
+        }
+
+.print-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    z-index: 1000;
+        }
+
+.print-button:hover {
+    background: #3730a3;
+        }
+
+.patient-id-badge {
+    display: inline-block;
+    background: #4f46e5;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 10px;
+        }
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+        }
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+        }
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+        }
+
+.status-vip {
+    background: #fff3cd;
+    color: #856404;
+        }

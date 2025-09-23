@@ -1,0 +1,206 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Nurses{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/nurses/nurse_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-nurse me-2"></i>Nursing Staff
+        </h1>
+        <a href="{% url 'nurses:nurse_create' %}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Add New Nurse
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="department" class="form-label">Department</label>
+                    <select name="department" id="department" class="form-select">
+                        <option value="">All Departments</option>
+                        {% for department in departments %}
+                            <option value="{{ department.id }}" {% if request.GET.department == department.id|stringformat:"s" %}selected{% endif %}>
+                                {{ department.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="shift" class="form-label">Shift</label>
+                    <select name="shift" id="shift" class="form-select">
+                        <option value="">All Shifts</option>
+                        <option value="morning" {% if request.GET.shift == 'morning' %}selected{% endif %}>Morning</option>
+                        <option value="afternoon" {% if request.GET.shift == 'afternoon' %}selected{% endif %}>Afternoon</option>
+                        <option value="night" {% if request.GET.shift == 'night' %}selected{% endif %}>Night</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" name="search" id="search" class="form-control"
+                           placeholder="Search by name or employee ID..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Nurses List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Nursing Staff ({{ nurses|length }} total)
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if nurses %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Employee ID</th>
+                                <th>Department</th>
+                                <th>Shift</th>
+                                <th>Experience</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for nurse in nurses %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                {% if nurse.user.profile_picture %}
+                                                    <img src="{{ nurse.user.profile_picture.url }}" alt="{{ nurse.user.get_full_name }}"
+                                                         class="rounded-circle" width="40" height="40">
+                                                {% else %}
+                                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                                         style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user-nurse text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ nurse.user.get_full_name|default:nurse.user.username }}</div>
+                                                <small class="text-muted">{{ nurse.user.email|default:"No email" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if nurse.employee_id %}
+                                            <span class="fw-bold text-primary" style="font-family: 'Courier New', monospace; font-size: 0.9em;">
+                                                {{ nurse.employee_id }}
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1 ms-1"
+                                                    onclick="copyToClipboard('{{ nurse.employee_id }}')"
+                                                    title="Copy Employee ID"
+                                                    style="font-size: 0.7em;">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Not Set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ nurse.department.name|default:"Not Assigned" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ nurse.get_shift_display|default:"Not Set" }}</span>
+                                    </td>
+                                    <td>{{ nurse.years_of_experience|default:0 }} years</td>
+                                    <td>
+                                        {% if nurse.is_active %}
+                                            <span class="status-active">
+                                                <i class="fas fa-check-circle"></i> Active
+                                            </span>
+                                        {% else %}
+                                            <span class="status-inactive">
+                                                <i class="fas fa-times-circle"></i> Inactive
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'nurses:nurse_detail' nurse.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'nurses:nurse_update' nurse.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav aria-label="Nurses pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.shift %}&shift={{ request.GET.shift }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.shift %}&shift={{ request.GET.shift }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.shift %}&shift={{ request.GET.shift }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.shift %}&shift={{ request.GET.shift }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-user-nurse fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No nurses found</h5>
+                    <p class="text-muted">Try adjusting your filters or add a new nurse.</p>
+                    <a href="{% url 'nurses:nurse_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add First Nurse
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/nurses/nurse_list.js' %}"></script>
+{% endblock %}

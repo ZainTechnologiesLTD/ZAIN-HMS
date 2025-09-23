@@ -1,0 +1,417 @@
+/*!
+ * ZAIN HMS - Unified Hospital Management System
+ * Consolidated CSS File
+ * Version: 2.0.0
+ * © 2025 ZAIN Technologies
+ */
+
+/* ===========================
+    ZAIN HMS CORE VARIABLES
+    =========================== */
+:root {
+    /* ZAIN HMS Brand Colors */
+    --zain-primary: #2c5aa0;
+    --zain-secondary: #f8fafc;
+    --zain-accent: #10b981;
+    --zain-danger: #ef4444;
+    --zain-warning: #f59e0b;
+    --zain-info: #06b6d4;
+    --zain-success: #22c55e;
+    --zain-dark: #1f2937;
+    --zain-light: #f9fafb;
+
+    /* Gradients */
+    --zain-gradient-primary: linear-gradient(135deg, #2c5aa0 0%, #3b82f6 100%);
+    --zain-gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+    /* Layout */
+    --zain-sidebar-width: 280px;
+    --zain-sidebar-collapsed-width: 70px;
+    --zain-header-height: 70px;
+    --zain-border-radius: 12px;
+    --zain-border-radius-sm: 8px;
+
+    /* Typography */
+    --zain-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --zain-font-size-base: 0.875rem;
+    --zain-font-weight-normal: 400;
+    --zain-font-weight-medium: 500;
+    --zain-font-weight-semibold: 600;
+    --zain-font-weight-bold: 700;
+
+    /* Shadows */
+    --zain-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --zain-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --zain-shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --zain-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+    /* Animation */
+    --zain-transition: all 0.3s ease;
+    --zain-transition-fast: all 0.15s ease;
+}
+
+/* ===========================
+    ZAIN HMS BASE STYLES
+    =========================== */
+body {
+    font-family: var(--zain-font-family);
+    font-size: var(--zain-font-size-base);
+    line-height: 1.6;
+    color: var(--zain-dark);
+    background-color: var(--zain-light);
+    overflow-x: hidden;
+}
+
+/* ===========================
+    ZAIN HMS ADMIN INTERFACE
+    =========================== */
+.zain-admin-header {
+    background: var(--zain-gradient-primary);
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: var(--zain-shadow);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    height: var(--zain-header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.zain-admin-sidebar {
+    position: fixed;
+    top: var(--zain-header-height);
+    left: 0;
+    width: var(--zain-sidebar-width);
+    height: calc(100vh - var(--zain-header-height));
+    background: var(--zain-primary);
+    color: white;
+    overflow-y: auto;
+    transition: var(--zain-transition);
+    z-index: 1020;
+}
+
+.zain-admin-sidebar.collapsed {
+    width: var(--zain-sidebar-collapsed-width);
+}
+
+.zain-admin-content {
+    margin-left: var(--zain-sidebar-width);
+    margin-top: var(--zain-header-height);
+    padding: 2rem;
+    min-height: calc(100vh - var(--zain-header-height));
+    transition: var(--zain-transition);
+}
+
+.zain-admin-sidebar.collapsed + .zain-admin-content {
+    margin-left: var(--zain-sidebar-collapsed-width);
+}
+
+/* ===========================
+    ZAIN HMS NAVIGATION
+    =========================== */
+.zain-nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.zain-nav-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zain-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: var(--zain-transition-fast);
+}
+
+    .zain-nav-link:hover,
+.zain-nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.zain-nav-icon {
+    margin-right: 1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.zain-nav-text {
+    transition: var(--zain-transition);
+}
+
+.zain-admin-sidebar.collapsed .zain-nav-text {
+    display: none;
+}
+
+/* ===========================
+    ZAIN HMS CARDS & COMPONENTS
+    =========================== */
+.zain-card {
+    background: white;
+    border-radius: var(--zain-border-radius);
+    box-shadow: var(--zain-shadow-sm);
+    border: 1px solid #e5e7eb;
+    transition: var(--zain-transition);
+}
+
+.zain-card:hover {
+    box-shadow: var(--zain-shadow);
+}
+
+.zain-card-header {
+    padding: 1.5rem 2rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.zain-card-body {
+    padding: 2rem;
+}
+
+.zain-card-title {
+    font-size: 1.25rem;
+    font-weight: var(--zain-font-weight-semibold);
+    color: var(--zain-dark);
+    margin: 0 0 1rem;
+}
+
+/* ===========================
+    ZAIN HMS BUTTONS
+    =========================== */
+.zain-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: var(--zain-font-size-base);
+    font-weight: var(--zain-font-weight-medium);
+    border: none;
+    border-radius: var(--zain-border-radius-sm);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--zain-transition-fast);
+    gap: 0.5rem;
+}
+
+.zain-btn-primary {
+    background: var(--zain-gradient-primary);
+    color: white;
+}
+
+.zain-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--zain-shadow);
+}
+
+.zain-btn-success {
+    background: var(--zain-gradient-accent);
+    color: white;
+}
+
+.zain-btn-danger {
+    background: var(--zain-danger);
+    color: white;
+}
+
+.zain-btn-warning {
+    background: var(--zain-warning);
+    color: white;
+}
+
+.zain-btn-info {
+    background: var(--zain-info);
+    color: white;
+}
+
+/* ===========================
+    ZAIN HMS FORMS
+    =========================== */
+.zain-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.zain-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: var(--zain-font-weight-medium);
+    color: var(--zain-dark);
+}
+
+.zain-form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: var(--zain-font-size-base);
+    border: 2px solid #d1d5db;
+    border-radius: var(--zain-border-radius-sm);
+    transition: var(--zain-transition-fast);
+    background: white;
+}
+
+.zain-form-control:focus {
+    outline: none;
+    border-color: var(--zain-primary);
+    box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+}
+
+/* ===========================
+    ZAIN HMS TABLES
+    =========================== */
+.zain-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: var(--zain-border-radius);
+    overflow: hidden;
+    box-shadow: var(--zain-shadow-sm);
+}
+
+    .zain-table th,
+.zain-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.zain-table th {
+    background: var(--zain-secondary);
+    font-weight: var(--zain-font-weight-semibold);
+    color: var(--zain-dark);
+}
+
+.zain-table tr:hover {
+    background: #f9fafb;
+}
+
+/* ===========================
+    ZAIN HMS DASHBOARD WIDGETS
+    =========================== */
+.zain-widget {
+    background: white;
+    border-radius: var(--zain-border-radius);
+    padding: 2rem;
+    box-shadow: var(--zain-shadow-sm);
+    border-left: 4px solid var(--zain-primary);
+    transition: var(--zain-transition);
+}
+
+.zain-widget:hover {
+    box-shadow: var(--zain-shadow);
+    transform: translateY(-2px);
+}
+
+.zain-widget-title {
+    font-size: 0.875rem;
+    font-weight: var(--zain-font-weight-medium);
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.zain-widget-value {
+    font-size: 2rem;
+    font-weight: var(--zain-font-weight-bold);
+    color: var(--zain-primary);
+}
+
+.zain-widget-trend {
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.zain-widget-trend.up {
+    color: var(--zain-success);
+}
+
+.zain-widget-trend.down {
+    color: var(--zain-danger);
+}
+
+/* ===========================
+    ZAIN HMS RESPONSIVE DESIGN
+    =========================== */
+@media (max-width: 768px) {
+.zain-admin-sidebar {
+    transform: translateX(-100%);
+    }
+
+.zain-admin-sidebar.open {
+    transform: translateX(0);
+    }
+
+.zain-admin-content {
+    margin-left: 0;
+    }
+
+.zain-admin-header {
+    padding: 1rem;
+    }
+}
+
+/* ===========================
+    ZAIN HMS UTILITIES
+    =========================== */
+.zain-text-primary { color: var(--zain-primary) !important; }
+.zain-text-success { color: var(--zain-success) !important; }
+.zain-text-danger { color: var(--zain-danger) !important; }
+.zain-text-warning { color: var(--zain-warning) !important; }
+.zain-text-info { color: var(--zain-info) !important; }
+
+.zain-bg-primary { background-color: var(--zain-primary) !important; }
+.zain-bg-success { background-color: var(--zain-success) !important; }
+.zain-bg-danger { background-color: var(--zain-danger) !important; }
+.zain-bg-warning { background-color: var(--zain-warning) !important; }
+.zain-bg-info { background-color: var(--zain-info) !important; }
+
+.zain-rounded { border-radius: var(--zain-border-radius) !important; }
+.zain-rounded-sm { border-radius: var(--zain-border-radius-sm) !important; }
+
+.zain-shadow { box-shadow: var(--zain-shadow) !important; }
+.zain-shadow-sm { box-shadow: var(--zain-shadow-sm) !important; }
+.zain-shadow-lg { box-shadow: var(--zain-shadow-lg) !important; }
+
+/* ===========================
+    ZAIN HMS ANIMATIONS
+    =========================== */
+@keyframes zain-fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes zain-slideIn {
+from { transform: translateX(-100%); }
+to { transform: translateX(0); }
+}
+
+.zain-fade-in {
+    animation: zain-fadeIn 0.3s ease;
+}
+
+.zain-slide-in {
+    animation: zain-slideIn 0.3s ease;
+}
+
+/* ===========================
+    ZAIN HMS PRINT STYLES
+    =========================== */
+@media print {
+    .zain-admin-header,
+.zain-admin-sidebar {
+    display: none !important;
+    }
+
+.zain-admin-content {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    }
+}

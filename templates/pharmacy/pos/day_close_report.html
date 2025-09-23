@@ -1,0 +1,322 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End of Day Report - {{ report.date|date:"F d, Y" }}</title>
+
+    <link rel="stylesheet" href="{% static 'css/pos/day_close_report.css' %}">
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        🖨️ Print Report
+    </button>
+
+    <div class="report-container">
+        <!-- Report Header -->
+        <div class="report-header">
+            <div class="hospital-name">{{ hospital.name|default:"Hospital Management System" }}</div>
+            <div class="report-title">PHARMACY - END OF DAY REPORT</div>
+            <div class="report-date">{{ report.date|date:"F d, Y" }}</div>
+            <div style="margin-top: 10px; color: #6c757d;">
+                Report ID: {{ report.id }} | Generated: {{ report.created_at|date:"M d, Y H:i:s" }}
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="section">
+            <div class="section-title">📊 Executive Summary</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value">${{ report.total_sales|floatformat:2 }}</div>
+                    <div class="summary-label">Total Sales</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.total_transactions }}</div>
+                    <div class="summary-label">Transactions</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.items_sold }}</div>
+                    <div class="summary-label">Items Sold</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.unique_customers }}</div>
+                    <div class="summary-label">Unique Customers</div>
+                </div>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value">${{ report.average_transaction|floatformat:2 }}</div>
+                    <div class="summary-label">Avg Transaction</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.first_transaction_time|time:"H:i" }}</div>
+                    <div class="summary-label">First Sale</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.last_transaction_time|time:"H:i" }}</div>
+                    <div class="summary-label">Last Sale</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.operating_hours|floatformat:1 }}h</div>
+                    <div class="summary-label">Operating Hours</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Method Breakdown -->
+        <div class="section">
+            <div class="section-title">💳 Payment Method Breakdown</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Payment Method</th>
+                        <th class="text-right">Transactions</th>
+                        <th class="text-right">Amount</th>
+                        <th class="text-right">Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>💵 Cash</td>
+                        <td class="text-right">{{ report.cash_transactions }}</td>
+                        <td class="text-right text-success">${{ report.cash_sales|floatformat:2 }}</td>
+                        <td class="text-right">{{ report.cash_percentage|floatformat:1 }}%</td>
+                    </tr>
+                    <tr>
+                        <td>💳 Card</td>
+                        <td class="text-right">{{ report.card_transactions }}</td>
+                        <td class="text-right text-success">${{ report.card_sales|floatformat:2 }}</td>
+                        <td class="text-right">{{ report.card_percentage|floatformat:1 }}%</td>
+                    </tr>
+                    <tr>
+                        <td>📱 Mobile Money</td>
+                        <td class="text-right">{{ report.mobile_transactions }}</td>
+                        <td class="text-right text-success">${{ report.mobile_sales|floatformat:2 }}</td>
+                        <td class="text-right">{{ report.mobile_percentage|floatformat:1 }}%</td>
+                    </tr>
+                    {% if report.mixed_transactions > 0 %}
+                    <tr>
+                        <td>🔄 Mixed Payments</td>
+                        <td class="text-right">{{ report.mixed_transactions }}</td>
+                        <td class="text-right text-success">${{ report.mixed_sales|floatformat:2 }}</td>
+                        <td class="text-right">{{ report.mixed_percentage|floatformat:1 }}%</td>
+                    </tr>
+                    {% endif %}
+                    <tr style="border-top: 2px solid #007bff; background: #f8f9fa;">
+                        <td><strong>Total</strong></td>
+                        <td class="text-right"><strong>{{ report.total_transactions }}</strong></td>
+                        <td class="text-right"><strong>${{ report.total_sales|floatformat:2 }}</strong></td>
+                        <td class="text-right"><strong>100.0%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cash Reconciliation -->
+        <div class="section">
+            <div class="section-title">💰 Cash Reconciliation</div>
+
+            {% if report.cash_variance != 0 %}
+            <div class="variance-alert {% if report.cash_variance > 0 %}success{% else %}danger{% endif %}">
+                <strong>Cash Variance Detected:</strong>
+                Expected: ${{ report.expected_cash|floatformat:2 }} |
+                Counted: ${{ report.actual_cash|floatformat:2 }} |
+                Variance: ${{ report.cash_variance|floatformat:2 }}
+                {% if report.cash_variance > 0 %}(Over){% else %}(Short){% endif %}
+            </div>
+            {% endif %}
+
+            <div class="summary-grid" style="margin-bottom: 1rem;">
+                <div class="summary-item">
+                    <div class="summary-value">${{ report.expected_cash|floatformat:2 }}</div>
+                    <div class="summary-label">Expected Cash</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${{ report.actual_cash|floatformat:2 }}</div>
+                    <div class="summary-label">Actual Count</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value {% if report.cash_variance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ report.cash_variance|floatformat:2 }}
+                    </div>
+                    <div class="summary-label">Variance</div>
+                </div>
+            </div>
+
+            {% if report.cash_breakdown %}
+            <div style="margin-top: 1.5rem;">
+                <strong>Cash Denomination Breakdown:</strong>
+                <div class="cash-breakdown" style="margin-top: 1rem;">
+                    {% for denomination, count in report.cash_breakdown.items %}
+                    {% if count > 0 %}
+                    <div class="cash-item">
+                        ${{ denomination }} × {{ count }} = ${{ denomination|floatformat:2|mul:count }}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Top Selling Items -->
+        <div class="section">
+            <div class="section-title">🏆 Top Selling Items</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Medicine</th>
+                        <th class="text-right">Qty Sold</th>
+                        <th class="text-right">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report.top_selling_items|slice:":10" %}
+                    <tr>
+                        <td>
+                            {% if forloop.counter <= 3 %}
+                                <span class="badge badge-warning">{{ forloop.counter }}</span>
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ item.medicine__name }}</strong>
+                            {% if item.medicine__generic_name %}
+                            <br><small class="text-muted">{{ item.medicine__generic_name }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">{{ item.total_quantity }}</td>
+                        <td class="text-right text-success">${{ item.total_revenue|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Hourly Sales Distribution -->
+        <div class="section">
+            <div class="section-title">⏰ Hourly Sales Distribution</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Hour</th>
+                        <th class="text-right">Transactions</th>
+                        <th class="text-right">Sales Amount</th>
+                        <th class="text-center">Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hour_data in report.hourly_sales %}
+                    <tr>
+                        <td>{{ hour_data.hour }}:00</td>
+                        <td class="text-right">{{ hour_data.transactions }}</td>
+                        <td class="text-right text-success">${{ hour_data.sales|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <div style="background: #007bff; height: 20px; width: {{ hour_data.percentage|floatformat:0 }}%; min-width: 5px; border-radius: 3px;"></div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Staff Performance -->
+        {% if report.staff_performance %}
+        <div class="section">
+            <div class="section-title">👥 Staff Performance</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Staff Member</th>
+                        <th class="text-right">Transactions</th>
+                        <th class="text-right">Sales Amount</th>
+                        <th class="text-right">Avg Transaction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in report.staff_performance %}
+                    <tr>
+                        <td>{{ staff.staff_name }}</td>
+                        <td class="text-right">{{ staff.transactions }}</td>
+                        <td class="text-right text-success">${{ staff.sales|floatformat:2 }}</td>
+                        <td class="text-right">${{ staff.avg_transaction|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Notes and Observations -->
+        {% if report.notes %}
+        <div class="section">
+            <div class="section-title">📝 Notes and Observations</div>
+            <div style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #e9ecef;">
+                {{ report.notes|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- System Information -->
+        <div class="section">
+            <div class="section-title">⚙️ System Information</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.created_by.get_full_name }}</div>
+                    <div class="summary-label">Closed By</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.created_at|time:"H:i:s" }}</div>
+                    <div class="summary-label">Close Time</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">{{ report.status|upper }}</div>
+                    <div class="summary-label">Status</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">v{{ report.system_version|default:"1.0.0" }}</div>
+                    <div class="summary-label">System Version</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signatures -->
+        <div class="signatures">
+            <div class="signature-box">
+                <div class="signature-line">
+                    Pharmacy Staff Signature
+                </div>
+                <div style="margin-top: 10px; color: #6c757d; font-size: 12px;">
+                    {{ report.created_by.get_full_name }}<br>
+                    Date: {{ report.created_at|date:"M d, Y" }}
+                </div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line">
+                    Supervisor/Manager Signature
+                </div>
+                <div style="margin-top: 10px; color: #6c757d; font-size: 12px;">
+                    ________________________<br>
+                    Date: {{ report.created_at|date:"M d, Y" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-info">
+            <div>Generated by Zain HMS - Pharmacy PoS System</div>
+            <div>Report ID: {{ report.id }} | {{ report.created_at|date:"Y-m-d H:i:s" }}</div>
+            <div>This is a system-generated report. Please retain for record keeping.</div>
+        </div>
+    </div>
+
+
+    <script src="{% static 'js/pos/day_close_report.js' %}"></script>
+</body>
+</html>

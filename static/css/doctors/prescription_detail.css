@@ -1,0 +1,53 @@
+.prescription-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.prescription-info {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.medication-item {
+    border-left: 4px solid #007bff;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 20px;
+}
+
+.barcode-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.status-badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+}
+
+@media print {
+.no-print {
+    display: none !important;
+    }
+
+.prescription-header {
+    background: #667eea !important;
+    -webkit-print-color-adjust: exact;
+    }
+
+.prescription-info {
+    background: #43e97b !important;
+    -webkit-print-color-adjust: exact;
+    }
+}
+
+.prescription-content {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}

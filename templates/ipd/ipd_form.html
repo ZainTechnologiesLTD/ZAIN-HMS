@@ -1,0 +1,191 @@
+{# templates/ipd/ipd_form.html #}
+{% extends 'base/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} IPD Record - ZAIN HMS{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/ipd/ipd_form.css' %}">
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'ipd:ipd_list' %}">IPD Records</a></li>
+<li class="breadcrumb-item active" aria-current="page">{% if form.instance.pk %}Edit Record{% else %}New Record{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-bed me-2"></i>
+                {% if form.instance.pk %}Edit IPD Record{% else %}New IPD Record{% endif %}
+            </div>
+            <a href="{% url 'ipd:ipd_list' %}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">Patient <span class="text-danger">*</span></label>
+
+                            <!-- Patient Search Box -->
+                            <div class="search-box">
+                                <div class="search-input-container">
+                                    <input type="text" class="search-input" id="patient-search"
+                                           placeholder="Search patients by name, ID, or phone...">
+                                    <div class="search-results" id="patient-results">
+                                        <div class="loading-spinner" id="patient-loading">
+                                            <i class="fas fa-spinner fa-spin"></i> Searching...
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Patient Display -->
+                                <div class="selected-item" id="selected-patient">
+                                    <span class="remove-selection" title="Remove selection">&times;</span>
+                                    <div class="selected-item-name" id="selected-patient-name"></div>
+                                    <div class="selected-item-details" id="selected-patient-details"></div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden field for form submission -->
+                            {{ form.patient.as_hidden }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">Attending Doctor <span class="text-danger">*</span></label>
+
+                            <!-- Doctor Search Box -->
+                            <div class="search-box">
+                                <div class="search-input-container">
+                                    <input type="text" class="search-input" id="doctor-search"
+                                           placeholder="Search doctors by name, specialization...">
+                                    <div class="search-results" id="doctor-results">
+                                        <div class="loading-spinner" id="doctor-loading">
+                                            <i class="fas fa-spinner fa-spin"></i> Searching...
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Doctor Display -->
+                                <div class="selected-item" id="selected-doctor">
+                                    <span class="remove-selection" title="Remove selection">&times;</span>
+                                    <div class="selected-item-name" id="selected-doctor-name"></div>
+                                    <div class="selected-item-details" id="selected-doctor-details"></div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden field for form submission -->
+                            {{ form.attending_doctor.as_hidden }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Referring Doctor (Optional)</label>
+
+                            <!-- Referring Doctor Search Box -->
+                            <div class="search-box">
+                                <div class="search-input-container">
+                                    <input type="text" class="search-input" id="referring-doctor-search"
+                                           placeholder="Search referring doctors (optional)...">
+                                    <div class="search-results" id="referring-doctor-results">
+                                        <div class="loading-spinner" id="referring-doctor-loading">
+                                            <i class="fas fa-spinner fa-spin"></i> Searching...
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Referring Doctor Display -->
+                                <div class="selected-item" id="selected-referring-doctor">
+                                    <span class="remove-selection" title="Remove selection">&times;</span>
+                                    <div class="selected-item-name" id="selected-referring-doctor-name"></div>
+                                    <div class="selected-item-details" id="selected-referring-doctor-details"></div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden field for form submission -->
+                            {{ form.referring_doctor.as_hidden }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Room <span class="text-danger">*</span></label>
+                            <select class="form-select" name="room" id="id_room" required>
+                                <option value="">Select a room...</option>
+                                {% for room in form.room.field.queryset %}
+                                    <option value="{{ room.id }}" {% if form.room.value == room.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ room.name }} ({{ room.room_type }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Bed <span class="text-danger">*</span></label>
+                            <select class="form-select" name="bed" id="id_bed" required disabled>
+                                <option value="">First select a room...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                            <select class="form-select" name="status" id="id_status" required>
+                                <option value="">Select status...</option>
+                                <option value="admitted" {% if form.status.value == "admitted" %}selected{% endif %}>Admitted</option>
+                                <option value="discharged" {% if form.status.value == "discharged" %}selected{% endif %}>Discharged</option>
+                                <option value="transferred" {% if form.status.value == "transferred" %}selected{% endif %}>Transferred</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label">Diagnosis / Reason for Admission</label>
+                            <textarea class="form-control" name="diagnosis" id="id_diagnosis" rows="3"
+                                      placeholder="Enter diagnosis or reason for admission...">{{ form.diagnosis.value|default:"" }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Save Record
+                    </button>
+                    <a href="{% url 'ipd:ipd_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/ipd/ipd_form.js' %}"></script>
+{% endblock %}

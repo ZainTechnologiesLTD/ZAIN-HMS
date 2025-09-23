@@ -1,0 +1,151 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Doctors Without User Accounts{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/doctors/doctors_without_users.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-user-times"></i> Doctors Without User Accounts
+            </h1>
+            <p class="text-muted">Manage doctors who don't have login accounts</p>
+        </div>
+        <div>
+            <a href="{% url 'doctors:doctor_list' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> All Doctors
+            </a>
+            <a href="{% url 'doctors:doctor_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Doctor
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ total_doctors_without_users }}</h4>
+                        <p class="mb-0">Doctors Without Accounts</p>
+                    </div>
+                    <i class="fas fa-user-times fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if doctors %}
+        <!-- Doctors List -->
+        <div class="row">
+            {% for doctor in doctors %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="doctor-card">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="me-3">
+                                {% if doctor.image %}
+                                    <img src="{{ doctor.image.url }}" alt="{{ doctor.get_full_name }}"
+                                         class="rounded-circle doctor-avatar">
+                                {% else %}
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center doctor-avatar">
+                                        <i class="fas fa-user-md text-secondary"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Dr. {{ doctor.get_full_name }}</h6>
+                                <p class="text-muted small mb-1">
+                                    <i class="fas fa-stethoscope"></i> {{ doctor.get_specialization_display }}
+                                </p>
+                                <p class="text-muted small mb-1">
+                                    <i class="fas fa-envelope"></i> {{ doctor.email }}
+                                </p>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-id-card"></i> {{ doctor.license_number }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <form method="post" action="{% url 'doctors:create_user_for_doctor' doctor.pk %}"
+                                  style="display: inline-block;" class="create-user-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> Create User Account
+                                </button>
+                            </form>
+
+                            <a href="{% url 'doctors:link_user' doctor.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-link"></i> Link Existing User
+                            </a>
+
+                            <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+            <h4 class="text-muted">Great! All Doctors Have User Accounts</h4>
+            <p class="text-muted">
+                All active doctors in the system have associated user accounts for logging into the system.
+            </p>
+            <div class="mt-4">
+                <a href="{% url 'doctors:doctor_list' %}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> View All Doctors
+                </a>
+                <a href="{% url 'doctors:doctor_create' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> Add New Doctor
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/doctors/doctors_without_users.js' %}"></script>
+{% endblock %}

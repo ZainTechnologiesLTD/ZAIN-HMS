@@ -1,0 +1,531 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Analytics Dashboard" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Analytics Dashboard" %}{% endblock %}
+
+{% block page_subtitle %}{% trans "Hospital performance metrics and insights" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.analytics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    margin-bottom: 0;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.trend-up {
+    color: #28a745;
+}
+
+.trend-down {
+    color: #dc3545;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    padding: 1rem;
+}
+
+.filter-tabs {
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: none;
+    color: #6c757d;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.department-stats {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.progress-bar-custom {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    margin-top: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item active">{% trans "Analytics" %}</li>
+        </ol>
+    </nav>
+
+    <!-- Time Period Filter -->
+    <div class="analytics-card">
+        <div class="analytics-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-graph-up me-2"></i>{% trans "Performance Overview" %}</h4>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-light btn-sm active" data-period="7d">{% trans "7 Days" %}</button>
+                    <button type="button" class="btn btn-outline-light btn-sm" data-period="30d">{% trans "30 Days" %}</button>
+                    <button type="button" class="btn btn-outline-light btn-sm" data-period="90d">{% trans "90 Days" %}</button>
+                    <button type="button" class="btn btn-outline-light btn-sm" data-period="1y">{% trans "1 Year" %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Performance Indicators -->
+    <div class="kpi-grid">
+        <div class="metric-card">
+            <div class="metric-value text-primary">1,247</div>
+            <div class="metric-label">{% trans "Total Patients" %}</div>
+            <small class="trend-up"><i class="bi bi-arrow-up"></i> +12.5%</small>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-value text-success">89.3%</div>
+            <div class="metric-label">{% trans "Appointment Rate" %}</div>
+            <small class="trend-up"><i class="bi bi-arrow-up"></i> +3.2%</small>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-value text-info">156</div>
+            <div class="metric-label">{% trans "Active Doctors" %}</div>
+            <small class="trend-up"><i class="bi bi-arrow-up"></i> +2</small>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-value text-warning">$124,750</div>
+            <div class="metric-label">{% trans "Monthly Revenue" %}</div>
+            <small class="trend-up"><i class="bi bi-arrow-up"></i> +8.7%</small>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-value text-secondary">4.8/5</div>
+            <div class="metric-label">{% trans "Patient Satisfaction" %}</div>
+            <small class="trend-up"><i class="bi bi-arrow-up"></i> +0.2</small>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-value text-danger">2.1</div>
+            <div class="metric-label">{% trans "Avg Wait Time (hrs)" %}</div>
+            <small class="trend-down"><i class="bi bi-arrow-down"></i> -0.3</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Patient Flow Chart -->
+        <div class="col-lg-8">
+            <div class="analytics-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>{% trans "Patient Flow Trends" %}</h5>
+                </div>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-chart="patients">{% trans "Patients" %}</button>
+                    <button class="filter-tab" data-chart="appointments">{% trans "Appointments" %}</button>
+                    <button class="filter-tab" data-chart="revenue">{% trans "Revenue" %}</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="flowChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Performance -->
+        <div class="col-lg-4">
+            <div class="analytics-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>{% trans "Department Performance" %}</h5>
+                </div>
+                <div class="p-3">
+                    <div class="department-stats">
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "Emergency" %}</strong>
+                            <span class="text-success">94%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill bg-danger" style="width: 94%"></div>
+                        </div>
+                    </div>
+
+                    <div class="department-stats">
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "Cardiology" %}</strong>
+                            <span class="text-success">87%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill bg-primary" style="width: 87%"></div>
+                        </div>
+                    </div>
+
+                    <div class="department-stats">
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "Orthopedics" %}</strong>
+                            <span class="text-warning">76%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill bg-info" style="width: 76%"></div>
+                        </div>
+                    </div>
+
+                    <div class="department-stats">
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "Pediatrics" %}</strong>
+                            <span class="text-success">91%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill bg-success" style="width: 91%"></div>
+                        </div>
+                    </div>
+
+                    <div class="department-stats">
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "General Medicine" %}</strong>
+                            <span class="text-success">83%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill bg-warning" style="width: 83%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Revenue Analytics -->
+        <div class="col-lg-6">
+            <div class="analytics-card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="bi bi-currency-dollar me-2"></i>{% trans "Revenue Analytics" %}</h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointment Distribution -->
+        <div class="col-lg-6">
+            <div class="analytics-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>{% trans "Appointment Distribution" %}</h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="appointmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analytics Table -->
+    <div class="analytics-card">
+        <div class="analytics-header">
+            <h4 class="mb-0"><i class="bi bi-table me-2"></i>{% trans "Detailed Metrics" %}</h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "Metric" %}</th>
+                        <th>{% trans "Today" %}</th>
+                        <th>{% trans "Yesterday" %}</th>
+                        <th>{% trans "This Week" %}</th>
+                        <th>{% trans "Last Week" %}</th>
+                        <th>{% trans "Change" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>{% trans "New Patients" %}</strong></td>
+                        <td>23</td>
+                        <td>18</td>
+                        <td>156</td>
+                        <td>142</td>
+                        <td class="text-success">+9.9%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Appointments Booked" %}</strong></td>
+                        <td>45</td>
+                        <td>52</td>
+                        <td>312</td>
+                        <td>298</td>
+                        <td class="text-success">+4.7%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Appointments Completed" %}</strong></td>
+                        <td>38</td>
+                        <td>41</td>
+                        <td>278</td>
+                        <td>267</td>
+                        <td class="text-success">+4.1%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Revenue Generated" %}</strong></td>
+                        <td>$4,250</td>
+                        <td>$3,890</td>
+                        <td>$28,650</td>
+                        <td>$26,240</td>
+                        <td class="text-success">+9.2%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{% trans "Emergency Cases" %}</strong></td>
+                        <td>8</td>
+                        <td>6</td>
+                        <td>47</td>
+                        <td>52</td>
+                        <td class="text-danger">-9.6%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block post_base_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sample data for charts
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const patientData = [120, 135, 152, 148, 167, 189];
+    const appointmentData = [85, 92, 108, 95, 124, 142];
+    const revenueData = [18500, 22000, 19800, 24500, 26700, 28900];
+
+    // Patient Flow Chart
+    const flowCtx = document.getElementById('flowChart').getContext('2d');
+    let flowChart = new Chart(flowCtx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: '{% trans "Patients" %}',
+                data: patientData,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Revenue Chart (Doughnut)
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['{% trans "Consultations" %}', '{% trans "Procedures" %}', '{% trans "Lab Tests" %}', '{% trans "Pharmacy" %}'],
+            datasets: [{
+                data: [45, 25, 20, 10],
+                backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+
+    // Appointment Distribution (Bar Chart)
+    const appointmentCtx = document.getElementById('appointmentChart').getContext('2d');
+    new Chart(appointmentCtx, {
+        type: 'bar',
+        data: {
+            labels: ['{% trans "Mon" %}', '{% trans "Tue" %}', '{% trans "Wed" %}', '{% trans "Thu" %}', '{% trans "Fri" %}', '{% trans "Sat" %}', '{% trans "Sun" %}'],
+            datasets: [{
+                label: '{% trans "Appointments" %}',
+                data: [45, 52, 38, 47, 43, 28, 15],
+                backgroundColor: '#4ecdc4',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Filter tabs functionality
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const chartType = this.dataset.chart;
+            updateFlowChart(chartType);
+        });
+    });
+
+    // Time period buttons
+    document.querySelectorAll('[data-period]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update all charts based on selected period
+            updateChartsForPeriod(this.dataset.period);
+        });
+    });
+
+    function updateFlowChart(type) {
+        let newData, label, color;
+
+        switch(type) {
+            case 'appointments':
+                newData = appointmentData;
+                label = '{% trans "Appointments" %}';
+                color = '#28a745';
+                break;
+            case 'revenue':
+                newData = revenueData;
+                label = '{% trans "Revenue ($)" %}';
+                color = '#ffc107';
+                break;
+            default:
+                newData = patientData;
+                label = '{% trans "Patients" %}';
+                color = '#667eea';
+        }
+
+        flowChart.data.datasets[0].data = newData;
+        flowChart.data.datasets[0].label = label;
+        flowChart.data.datasets[0].borderColor = color;
+        flowChart.data.datasets[0].backgroundColor = color + '20';
+        flowChart.update();
+    }
+
+    function updateChartsForPeriod(period) {
+        // This would typically fetch new data from the server
+        // For demo purposes, we'll just update the labels
+        console.log('Updating charts for period:', period);
+    }
+});
+</script>
+{% endblock %}

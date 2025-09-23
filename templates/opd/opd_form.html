@@ -1,0 +1,299 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}
+{% if form.instance.pk %}{% trans "Edit OPD Record" %}{% else %}{% trans "New OPD Record" %}{% endif %} - ZAIN HMS
+{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}{% trans "Edit OPD Record" %}{% else %}{% trans "Create New OPD Record" %}{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card { border-radius: 12px; }
+    .required-field::after { content: " *"; color: #dc3545; }
+    .form-section { border-left: 4px solid #007bff; padding-left: 15px; margin-bottom: 20px; }
+    .btn-group-custom .btn { margin-right: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %} me-2"></i>
+            {% if form.instance.pk %}{% trans "Edit OPD Record" %}{% else %}{% trans "New OPD Record" %}{% endif %}
+        </h1>
+        <a href="{% url 'opd:opd_full_list' %}" class="btn btn-secondary btn-sm shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> {% trans "Back to List" %}
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Main Form Card -->
+            <div class="card shadow mb-4 form-card">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-injured me-2"></i>{% trans "Patient Information" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="opdForm">
+                        {% csrf_token %}
+
+                        <!-- Patient Details Section -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-user text-primary me-2"></i>{% trans "Patient Details" %}
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.patient_name.id_for_label }}" class="form-label required-field">
+                                            {% trans "Patient Name" %}
+                                        </label>
+                                        {{ form.patient_name|add_class:"form-control" }}
+                                        {% if form.patient_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.patient_name.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.patient_phone.id_for_label }}" class="form-label required-field">
+                                            {% trans "Phone Number" %}
+                                        </label>
+                                        {{ form.patient_phone|add_class:"form-control" }}
+                                        {% if form.patient_phone.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.patient_phone.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.patient_email.id_for_label }}" class="form-label">
+                                            {% trans "Email Address" %}
+                                        </label>
+                                        {{ form.patient_email|add_class:"form-control" }}
+                                        {% if form.patient_email.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.patient_email.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.patient_age.id_for_label }}" class="form-label">
+                                            {% trans "Age" %}
+                                        </label>
+                                        {{ form.patient_age|add_class:"form-control" }}
+                                        {% if form.patient_age.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.patient_age.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medical Information Section -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-stethoscope text-primary me-2"></i>{% trans "Medical Information" %}
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.priority.id_for_label }}" class="form-label required-field">
+                                            {% trans "Priority" %}
+                                        </label>
+                                        {{ form.priority|add_class:"form-select" }}
+                                        {% if form.priority.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.priority.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                                            {% trans "Status" %}
+                                        </label>
+                                        {{ form.status|add_class:"form-select" }}
+                                        {% if form.status.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.status.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.doctor.id_for_label }}" class="form-label">
+                                            {% trans "Assigned Doctor" %}
+                                        </label>
+                                        {{ form.doctor|add_class:"form-select" }}
+                                        {% if form.doctor.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.doctor.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="{{ form.symptoms.id_for_label }}" class="form-label required-field">
+                                    {% trans "Symptoms" %}
+                                </label>
+                                {{ form.symptoms|add_class:"form-control" }}
+                                <small class="form-text text-muted">{% trans "Patient's main symptoms or concerns" %}</small>
+                                {% if form.symptoms.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.symptoms.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="{{ form.diagnosis.id_for_label }}" class="form-label">
+                                    {% trans "Diagnosis" %}
+                                </label>
+                                {{ form.diagnosis|add_class:"form-control" }}
+                                <small class="form-text text-muted">{% trans "Medical diagnosis and observations" %}</small>
+                                {% if form.diagnosis.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.diagnosis.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Payment Section -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-credit-card text-primary me-2"></i>{% trans "Payment Information" %}
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {{ form.is_paid|add_class:"form-check-input" }}
+                                        <label class="form-check-label" for="{{ form.is_paid.id_for_label }}">
+                                            {% trans "Payment Completed" %}
+                                        </label>
+                                        {% if form.is_paid.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.is_paid.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-group btn-group-custom">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                {% if form.instance.pk %}{% trans "Update Record" %}{% else %}{% trans "Create Record" %}{% endif %}
+                            </button>
+                            <a href="{% url 'opd:opd_full_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> {% trans "Cancel" %}
+                            </a>
+                            {% if form.instance.pk %}
+                            <a href="{% url 'opd:opd_detail' form.instance.pk %}" class="btn btn-info">
+                                <i class="fas fa-eye"></i> {% trans "View Details" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Help Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-question-circle me-2"></i>{% trans "Help & Tips" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6>{% trans "Priority Levels:" %}</h6>
+                    <ul class="list-unstyled">
+                        <li><span class="badge badge-danger">{% trans "High" %}</span> - {% trans "Urgent medical attention needed" %}</li>
+                        <li><span class="badge badge-warning">{% trans "Medium" %}</span> - {% trans "Regular consultation" %}</li>
+                        <li><span class="badge badge-success">{% trans "Low" %}</span> - {% trans "Routine check-up" %}</li>
+                    </ul>
+
+                    <h6 class="mt-3">{% trans "Status Information:" %}</h6>
+                    <ul class="list-unstyled">
+                        <li><span class="badge badge-warning">{% trans "Waiting" %}</span> - {% trans "Patient waiting for consultation" %}</li>
+                        <li><span class="badge badge-info">{% trans "In Progress" %}</span> - {% trans "Currently with doctor" %}</li>
+                        <li><span class="badge badge-success">{% trans "Completed" %}</span> - {% trans "Consultation finished" %}</li>
+                        <li><span class="badge badge-danger">{% trans "Cancelled" %}</span> - {% trans "Appointment cancelled" %}</li>
+                    </ul>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>{% trans "Tip:" %}</strong> {% trans "Fill out all required fields marked with" %} <span class="text-danger">*</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('opdForm');
+
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let hasError = false;
+
+        requiredFields.forEach(function(field) {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                hasError = true;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            alert('{% trans "Please fill out all required fields." %}');
+        }
+    });
+
+    // Phone number formatting
+    const phoneField = document.getElementById('{{ form.patient_phone.id_for_label }}');
+    if (phoneField) {
+        phoneField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,349 @@
+{% extends "base/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Doctors{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/doctors/doctor_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Hidden CSRF token for JavaScript -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<div class="content-page-header text-center">
+    <div class="container">
+        <h1 class="display-4 mb-3">
+            <i class="bi bi-person-badge-fill me-3"></i>Doctors Management
+        </h1>
+        <p class="lead">Manage hospital doctors and specialists</p>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Search and Filter Section -->
+    <div class="search-form">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label for="search" class="form-label">
+                    <i class="bi bi-search me-2"></i>Search Doctors
+                </label>
+                {{ search_form.q }}
+            </div>
+            <div class="col-md-4">
+                <label for="specialization" class="form-label">
+                    <i class="bi bi-funnel me-2"></i>Specialization
+                </label>
+                {{ search_form.specialization }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search me-1"></i>Search
+                </button>
+                <a href="{% url 'doctors:doctor_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ doctors.paginator.count }}</h4>
+                            <p class="card-text">Total Doctors</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-vcard-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ active_count|default:0 }}</h4>
+                            <p class="card-text">Active Doctors</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ specialization_count|default:0 }}</h4>
+                            <p class="card-text">Specializations</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-heart-pulse-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ new_this_month|default:0 }}</h4>
+                            <p class="card-text">New This Month</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-calendar-plus-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>Doctors List
+                {% if search_form.q.value %}
+                    <small class="text-muted">- Search results for "{{ search_form.q.value }}"</small>
+                {% endif %}
+            </h3>
+        </div>
+        <div>
+            <a href="{% url 'doctors:doctor_create' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg me-2"></i>Add New Doctor
+            </a>
+            {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+                <a href="{% url 'doctors:doctors_without_users' %}" class="btn btn-warning ms-2">
+                    <i class="bi bi-person-dash-fill me-2"></i>Doctors Without Accounts
+                </a>
+            {% endif %}
+            <a href="#" class="btn btn-outline-primary ms-2" onclick="window.print()">
+                <i class="bi bi-printer me-2"></i>Print List
+            </a>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar (Hidden by default) -->
+    <div id="bulkActionsBar" class="alert alert-info d-none mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-check2-square me-2"></i>
+                <span id="selectedCount">0</span> doctor(s) selected
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-success me-2" onclick="bulkActivate()">
+                    <i class="bi bi-check-lg me-1"></i>Activate
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-warning me-2" onclick="bulkDeactivate()">
+                    <i class="bi bi-pause-fill me-1"></i>Deactivate
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDelete()">
+                    <i class="bi bi-trash-fill me-1"></i>Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctors Table -->
+    {% if doctors %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="min-width: 1200px;">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="selectAll" class="form-check-input" title="Select All">
+                        </th>
+                        <th style="width: 100px;">Doctor ID</th>
+                        <th style="width: 60px;">Photo</th>
+                        <th style="width: 180px;">Name</th>
+                        <th style="width: 120px;">License #</th>
+                        <th style="width: 100px;">Employee ID</th>
+                        <th style="width: 150px;">Contact</th>
+                        <th style="width: 120px;">User Account</th>
+                        <th style="width: 100px;">Joining Date</th>
+                        <th style="width: 80px;">Status</th>
+                        <th style="width: 130px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doctor in doctors %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_doctors" value="{{ doctor.id }}" class="form-check-input doctor-checkbox">
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="fw-bold text-primary me-2" style="font-family: 'Courier New', monospace;">
+                                        {{ doctor.doctor_id|default:"<span class='text-muted fst-italic'>Not Set</span>" }}
+                                    </div>
+                                    {% if doctor.doctor_id %}
+                                        <button class="btn btn-sm btn-outline-secondary border-0"
+                                                onclick="copyToClipboard('{{ doctor.doctor_id }}')"
+                                                title="Copy ID">
+                                            <i class="fas fa-copy" style="font-size: 0.7em;"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if doctor.image %}
+                                    <img src="{{ doctor.image.url }}" alt="{{ doctor.get_full_name }}"
+                                         class="rounded-circle doctor-avatar">
+                                {% else %}
+                                    <div class="rounded-circle doctor-avatar bg-primary d-flex align-items-center justify-content-center text-white">
+                                        <i class="bi bi-person-badge"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ doctor.get_full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ doctor.get_specialization_display }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <code class="small">{{ doctor.license_number|default:"N/A" }}</code>
+                            </td>
+                            <td>
+                                <span class="small">{{ doctor.employee_id|default:"N/A" }}</span>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div><i class="fas fa-phone me-1"></i>{{ doctor.phone_number|default:"N/A" }}</div>
+                                    <div><i class="fas fa-envelope me-1"></i>{{ doctor.email|truncatechars:20 }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if doctor.cached_user %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-person-check-fill me-1"></i>Linked
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">{{ doctor.cached_user.username }}</small>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-user-times me-1"></i>No Account
+                                    </span>
+                                    {% if request.user.role == 'ADMIN' or request.user.role == 'SUPERADMIN' %}
+                                        <br>
+                                        <small>
+                                            <a href="{% url 'doctors:create_user_for_doctor' doctor.pk %}"
+                                               class="text-decoration-none">Create</a>
+                                        </small>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ doctor.joining_date|date:"m/d/y" }}</small>
+                            </td>
+                            <td>
+                                {% if doctor.is_active %}
+                                    <span class="badge bg-success status-badge">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger status-badge">
+                                        <i class="fas fa-times-circle me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'doctors:doctor_detail' doctor.id %}"
+                                       class="btn btn-outline-info btn-sm" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'doctors:doctor_update' doctor.id %}"
+                                       class="btn btn-outline-warning btn-sm" title="Edit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a href="{% url 'doctors:doctor_delete' doctor.id %}"
+                                       class="btn btn-outline-danger btn-sm" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if doctors.has_other_pages %}
+            <nav aria-label="Doctors pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if doctors.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i> First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ doctors.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                <i class="fas fa-angle-left"></i> Previous
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ doctors.number }} of {{ doctors.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if doctors.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ doctors.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                Next <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ doctors.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.specialization %}&specialization={{ request.GET.specialization }}{% endif %}">
+                                Last <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-user-md fa-5x text-muted"></i>
+            </div>
+            <h3 class="text-muted">No Doctors Found</h3>
+            <p class="text-muted mb-4">
+                {% if search_form.q.value or search_form.specialization.value %}
+                    No doctors match your search criteria. Try adjusting your filters.
+                {% else %}
+                    No doctors have been added to the system yet.
+                {% endif %}
+            </p>
+            <a href="{% url 'doctors:doctor_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add First Doctor
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/doctors/doctor_list.js' %}"></script>
+{% endblock %}

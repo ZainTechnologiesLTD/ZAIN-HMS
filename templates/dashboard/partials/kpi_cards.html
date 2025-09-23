@@ -1,0 +1,161 @@
+{% load humanize %}
+{% load i18n %}
+
+<!-- Modern KPI Cards Container -->
+<div class="kpi-grid">
+    <!-- Patients KPI -->
+    <div class="kpi-card" style="--kpi-color: #3b82f6; --kpi-color-light: #60a5fa;"
+         x-data="{ count: {{ patient_metrics.total|default:total_patients|default:0 }}, newToday: {{ patient_metrics.new_today|default:new_patients_today|default:0 }} }">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="kpi-icon">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.1);">
+                    <i class="bi bi-people-fill text-primary" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-success bg-opacity-20 text-success" x-show="newToday > 0">
+                    <i class="bi bi-arrow-up"></i> +<span x-text="newToday"></span>
+                </span>
+                <span class="badge bg-secondary bg-opacity-20 text-secondary" x-show="newToday === 0">
+                    <i class="bi bi-people"></i>
+                </span>
+            </div>
+        </div>
+        <div class="kpi-content">
+            <h3 class="kpi-value mb-1" x-text="count.toLocaleString()">{{ patient_metrics.total|default:total_patients|default:0|intcomma }}</h3>
+            <p class="kpi-label text-muted mb-2">{% trans "Total Patients" %}</p>
+            <div class="kpi-details">
+                <small class="text-success d-flex align-items-center" x-show="newToday > 0">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    <span x-text="newToday"></span> {% trans "new today" %}
+                </small>
+                <small class="text-muted d-flex align-items-center" x-show="newToday === 0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {% trans "No new registrations today" %}
+                </small>
+                {% if patient_metrics.growth_rate %}
+                <small class="text-muted mt-1 d-block">
+                    {% if patient_metrics.growth_rate > 0 %}+{% endif %}{{ patient_metrics.growth_rate }}% {% trans "from last month" %}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments KPI -->
+    <div class="kpi-card" style="--kpi-color: #10b981; --kpi-color-light: #34d399;"
+         x-data="{ count: {{ appointment_metrics.today_total|default:today_appointments|default:0 }}, pending: {{ appointment_metrics.today_pending|default:pending_appointments|default:0 }} }">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="kpi-icon">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1);">
+                    <i class="bi bi-calendar-check text-success" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-warning bg-opacity-20 text-warning" x-show="pending > 0">
+                    <i class="bi bi-clock"></i> <span x-text="pending"></span>
+                </span>
+                <span class="badge bg-success bg-opacity-20 text-success" x-show="pending === 0">
+                    <i class="bi bi-check-circle"></i>
+                </span>
+            </div>
+        </div>
+        <div class="kpi-content">
+            <h3 class="kpi-value mb-1" x-text="count.toLocaleString()">{{ appointment_metrics.today_total|default:today_appointments|default:0|intcomma }}</h3>
+            <p class="kpi-label text-muted mb-2">{% trans "Today's Appointments" %}</p>
+            <div class="kpi-details">
+                <small class="text-warning d-flex align-items-center" x-show="pending > 0">
+                    <i class="bi bi-clock me-1"></i>
+                    <span x-text="pending"></span> {% trans "pending" %}
+                </small>
+                <small class="text-success d-flex align-items-center" x-show="pending === 0">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {% trans "All completed" %}
+                </small>
+                {% if appointment_metrics.completion_rate %}
+                <small class="text-muted mt-1 d-block">
+                    {{ appointment_metrics.completion_rate }}% {% trans "completion rate" %}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue KPI -->
+    <div class="kpi-card" style="--kpi-color: #f59e0b; --kpi-color-light: #fbbf24;"
+         x-data="{ today: {{ revenue_metrics.today|default:revenue_today|default:0 }}, month: {{ revenue_metrics.month|default:revenue_month|default:0 }} }">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="kpi-icon">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1);">
+                    <i class="bi bi-currency-dollar text-warning" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <div class="text-end">
+                {% if revenue_metrics.growth_rate > 0 %}
+                <span class="badge bg-success bg-opacity-20 text-success">
+                    <i class="bi bi-arrow-up"></i> {{ revenue_metrics.growth_rate }}%
+                </span>
+                {% elif revenue_metrics.growth_rate < 0 %}
+                <span class="badge bg-danger bg-opacity-20 text-danger">
+                    <i class="bi bi-arrow-down"></i> {{ revenue_metrics.growth_rate }}%
+                </span>
+                {% else %}
+                <span class="badge bg-primary bg-opacity-20 text-primary">
+                    <i class="bi bi-graph-up"></i>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="kpi-content">
+            <h3 class="kpi-value mb-1">$<span x-text="today.toLocaleString()">{{ revenue_metrics.today|default:revenue_today|default:0|floatformat:0|intcomma }}</span></h3>
+            <p class="kpi-label text-muted mb-2">{% trans "Today's Revenue" %}</p>
+            <div class="kpi-details">
+                <small class="text-success d-flex align-items-center">
+                    <i class="bi bi-graph-up me-1"></i>
+                    $<span x-text="month.toLocaleString()">{{ revenue_metrics.month|default:revenue_month|default:0|floatformat:0|intcomma }}</span> {% trans "MTD" %}
+                </small>
+                {% if revenue_metrics.pending %}
+                <small class="text-muted mt-1 d-block">
+                    ${{ revenue_metrics.pending|floatformat:0|intcomma }} {% trans "pending" %}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff KPI -->
+    <div class="kpi-card" style="--kpi-color: #8b5cf6; --kpi-color-light: #a78bfa;"
+         x-data="{ count: {{ staff_metrics.total|default:total_staff|default:0 }}, active: {{ staff_metrics.active|default:0 }} }">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="kpi-icon">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width: 48px; height: 48px; background: rgba(139, 92, 246, 0.1);">
+                    <i class="bi bi-person-badge" style="font-size: 1.5rem; color: #8b5cf6;"></i>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-info bg-opacity-20 text-info">
+                    <i class="bi bi-people"></i> <span x-text="active">{{ staff_metrics.active|default:0 }}</span>
+                </span>
+            </div>
+        </div>
+        <div class="kpi-content">
+            <h3 class="kpi-value mb-1" x-text="count.toLocaleString()">{{ staff_metrics.total|default:total_staff|default:0|intcomma }}</h3>
+            <p class="kpi-label text-muted mb-2">{% trans "Total Staff" %}</p>
+            <div class="kpi-details">
+                <small class="text-info d-flex align-items-center">
+                    <i class="bi bi-activity me-1"></i>
+                    <span x-text="active">{{ staff_metrics.active|default:0 }}</span> {% trans "active" %}
+                </small>
+                <small class="text-muted mt-1 d-block">
+                    {{ staff_metrics.doctors|default:total_doctors|default:0 }} {% trans "doctors" %} •
+                    {{ staff_metrics.nurses|default:total_nurses|default:0 }} {% trans "nurses" %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End modern KPI grid -->

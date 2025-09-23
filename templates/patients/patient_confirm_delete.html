@@ -1,0 +1,167 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Confirm Patient Deactivation - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-exclamation-triangle text-warning me-3"></i>Confirm Patient Deactivation
+                    </h2>
+                    <p class="text-muted mb-0">This action will deactivate the patient record</p>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'patients:list' %}">Patients</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'patients:detail' object.pk %}">{{ object.get_full_name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Deactivate</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Confirmation Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Patient Deactivation Confirmation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Patient Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-warning" role="alert">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Notice</h6>
+                                <p class="mb-0">You are about to deactivate the following patient record. This action will:</p>
+                                <ul class="mb-0 mt-2">
+                                    <li>Hide the patient from active patient lists</li>
+                                    <li>Preserve all medical history and records</li>
+                                    <li>Allow reactivation if needed in the future</li>
+                                    <li>Cancel any upcoming appointments</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patient Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-user me-2"></i>Patient Information</h6>
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr>
+                                            <td class="fw-bold">Name:</td>
+                                            <td>{{ object.get_full_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Patient ID:</td>
+                                            <td>{{ object.patient_id }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Phone:</td>
+                                            <td>{{ object.phone|default:"Not provided" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Email:</td>
+                                            <td>{{ object.email|default:"Not provided" }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-calendar me-2"></i>Registration Details</h6>
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr>
+                                            <td class="fw-bold">Registered:</td>
+                                            <td>{{ object.created_at|date:"M d, Y" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Last Updated:</td>
+                                            <td>{{ object.updated_at|date:"M d, Y" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Status:</td>
+                                            <td>
+                                                {% if object.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Hospital:</td>
+                                            <td>{{ object.hospital.name }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post" class="mb-0">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-danger" role="alert">
+                                    <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Final Confirmation</h6>
+                                    <p class="mb-3">Are you sure you want to deactivate this patient record?</p>
+
+                                    <!-- Action Buttons -->
+                                    <div class="d-flex gap-3">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-user-times me-2"></i>Yes, Deactivate Patient
+                                        </button>
+                                        <a href="{% url 'patients:detail' object.pk %}" class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel & Return
+                                        </a>
+                                        <a href="{% url 'patients:list' %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-list me-2"></i>Back to Patient List
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h6 class="card-title text-info">
+                        <i class="fas fa-lightbulb me-2"></i>Need Help?
+                    </h6>
+                    <p class="card-text small text-muted mb-0">
+                        If you need to permanently remove a patient record or have questions about patient data management,
+                        please contact your system administrator. Patient records should only be deactivated when:
+                    </p>
+                    <ul class="small text-muted mt-2 mb-0">
+                        <li>Patient has permanently moved to another facility</li>
+                        <li>Patient has requested data privacy (inactive but preserved for legal compliance)</li>
+                        <li>Duplicate patient record needs to be consolidated</li>
+                        <li>Patient is deceased (consider using a specific deceased status instead)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/patients/patient_confirm_delete.js' %}"></script>
+{% endblock %}

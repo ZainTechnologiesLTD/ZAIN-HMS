@@ -1,0 +1,360 @@
+{% load i18n %}
+{% load permission_tags %}
+
+<!-- Centralized Sidebar Component -->
+<!-- This sidebar maintains all access control logic and can be used across all dashboard templates -->
+
+<div class="sidebar" id="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center">
+            <div class="hospital-logo d-flex align-items-center justify-content-center bg-primary text-white rounded" style="width: 40px; height: 40px;">
+                <i class="fas fa-hospital" style="font-size: 20px;"></i>
+            </div>
+            <div class="ms-3 logo-text">
+                <h5 class="mb-0">
+                    {% if user.hospital %}
+                        ZAIN HMS
+                    {% else %}
+                        ZAIN HMS
+                    {% endif %}
+                </h5>
+                <small class="opacity-75">
+                    {% if user.hospital %}
+                        Healthcare System
+                    {% else %}
+                        Management System
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+        <ul class="list-unstyled">
+            <!-- Dashboard Section - Smart routing based on user role -->
+            {% if user.role == 'DOCTOR' %}
+            <li>
+                <a href="{% url 'doctors:doctor_dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-md"></i>
+                    <span>{% trans "My Dashboard" %}</span>
+                </a>
+            </li>
+            {% else %}
+            <li>
+                <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>{% trans "Dashboard" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Core Modules Section Header -->
+            <li class="nav-section-header">
+                <div class="nav-section-title">
+                    {% if user.role == 'DOCTOR' %}
+                        {% trans "My Work" %}
+                    {% else %}
+                        {% trans "Core Modules" %}
+                    {% endif %}
+                </div>
+            </li>
+
+            <!-- Barcode Scanner - Available to all users except doctors -->
+            {% if user.role != 'DOCTOR' %}
+            <li>
+                <a href="{% url 'dashboard:barcode_scanner' %}" class="{% if 'barcode-scanner' in request.path %}active{% endif %}">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>{% trans "Barcode Scanner" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Main Modules with Permission Checks -->
+            {% if user|can_access_module:"patients" %}
+            <li>
+                <a href="{% url 'patients:list' %}" class="{% if 'patients' in request.path %}active{% endif %}">
+                    <i class="bi bi-people"></i>
+                    <span>
+                        {% if user.role == 'DOCTOR' %}
+                            {% trans "My Patients" %}
+                        {% else %}
+                            {% trans "Patients" %}
+                        {% endif %}
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if user|can_access_module:"appointments" %}
+            <li>
+                <a href="{% url 'appointments:appointment_list' %}" class="{% if 'appointments' in request.path %}active{% endif %}">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>
+                        {% if user.role == 'PATIENT' %}
+                            {% trans "My Appointments" %}
+                        {% elif user.role == 'DOCTOR' %}
+                            {% trans "My Appointments" %}
+                        {% else %}
+                            {% trans "Appointments" %}
+                        {% endif %}
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Doctors Module (Hidden from regular doctors) -->
+            {% if user.role != 'DOCTOR' and user|can_access_module:"doctors" %}
+            <li class="nav-dropdown">
+                <a href="#" class="dropdown-toggle {% if 'doctors' in request.path %}active{% endif %}" data-dropdown-toggle>
+                    <i class="bi bi-person-badge"></i>
+                    <span>{% trans "Doctors" %}</span>
+                </a>
+                <ul class="nav-dropdown-menu list-unstyled">
+                    <li>
+                        <a href="{% url 'doctors:doctor_list' %}" class="{% if 'doctors' in request.path and 'schedule' not in request.path %}active{% endif %}">
+                            <i class="bi bi-people"></i>
+                            <span>{% trans "Manage Doctors" %}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'doctors:schedule_list' %}" class="{% if 'schedule' in request.path %}active{% endif %}">
+                            <i class="bi bi-calendar3"></i>
+                            <span>{% trans "Doctor Schedules" %}</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            {% endif %}
+
+            <!-- Nurses Module -->
+            {% if user.role != 'DOCTOR' and user|can_access_module:"nurses" %}
+            <li>
+                <a href="{% url 'nurses:nurse_list' %}" class="{% if 'nurses' in request.path %}active{% endif %}">
+                    <i class="bi bi-person-heart"></i>
+                    <span>{% trans "Nurses" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Staff Module -->
+            {% if user.role != 'DOCTOR' and user|can_access_module:"staff" %}
+            <li>
+                <a href="{% url 'staff:staff_categories' %}" class="{% if 'staff' in request.path %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>{% trans "Staff" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Emergency Module -->
+            {% if user|can_access_module:"emergency" %}
+            <li>
+                <a href="{% url 'emergency:emergency_list' %}" class="{% if 'emergency' in request.path %}active{% endif %}">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>{% trans "Emergency" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Billing Module (Hidden from regular doctors) -->
+            {% if user.role != 'DOCTOR' and user|can_access_module:"billing" %}
+            <li>
+                <a href="{% url 'billing:dashboard' %}" class="{% if 'billing' in request.path %}active{% endif %}">
+                    <i class="bi bi-receipt"></i>
+                    <span>
+                        {% if user.role == 'PATIENT' %}
+                            {% trans "My Bills" %}
+                        {% else %}
+                            {% trans "Billing" %}
+                        {% endif %}
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Patient-specific menu items -->
+            {% if user.role == 'PATIENT' %}
+            <li>
+                <a href="#" class="{% if 'records' in request.path %}active{% endif %}">
+                    <i class="bi bi-file-earmark-medical"></i>
+                    <span>{% trans "My Records" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Medical Modules Section -->
+            <li class="nav-section-header">
+                <div class="nav-section-title">{% trans "Medical Services" %}</div>
+            </li>
+
+            <!-- Laboratory Module -->
+            {% if user|can_access_module:"laboratory" %}
+            <li>
+                <a href="{% url 'laboratory:dashboard' %}" class="{% if 'laboratory' in request.path %}active{% endif %}">
+                    <i class="bi bi-prescription2"></i>
+                    <span>{% trans "Laboratory" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Radiology Module -->
+            {% if user|can_access_module:"radiology" %}
+            <li>
+                <a href="{% url 'radiology:dashboard' %}" class="{% if 'radiology' in request.path %}active{% endif %}">
+                    <i class="bi bi-x-ray"></i>
+                    <span>{% trans "Radiology" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Pharmacy Module -->
+            {% if user|can_access_module:"pharmacy" %}
+            <li>
+                <a href="{% url 'pharmacy:dashboard' %}" class="{% if 'pharmacy' in request.path %}active{% endif %}">
+                    <i class="bi bi-capsule"></i>
+                    <span>{% trans "Pharmacy" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Surgery Module -->
+            {% if user|can_access_module:"surgery" %}
+            <li>
+                <a href="{% url 'surgery:surgery_list' %}" class="{% if 'surgery' in request.path %}active{% endif %}">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>{% trans "Surgery" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- IPD Module -->
+            {% if user|can_access_module:"ipd" %}
+            <li>
+                <a href="{% url 'ipd:ipd_list' %}" class="{% if 'ipd' in request.path %}active{% endif %}">
+                    <i class="bi bi-hospital"></i>
+                    <span>{% trans "IPD" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- OPD Module -->
+            {% if user|can_access_module:"opd" %}
+            <li>
+                <a href="{% url 'opd:opd_list' %}" class="{% if 'opd' in request.path %}active{% endif %}">
+                    <i class="bi bi-door-open"></i>
+                    <span>{% trans "OPD" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Inventory & Management Section -->
+            <li class="nav-section-header">
+                <div class="nav-section-title">{% trans "Management" %}</div>
+            </li>
+
+            <!-- Inventory Module -->
+            {% if user|can_access_module:"inventory" %}
+            <li>
+                <a href="{% url 'inventory:dashboard' %}" class="{% if 'inventory' in request.path %}active{% endif %}">
+                    <i class="bi bi-boxes"></i>
+                    <span>{% trans "Inventory" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Room Management Module -->
+            {% if user.role != 'DOCTOR' and user|can_access_module:"room_management" %}
+            <li>
+                <a href="{% url 'ipd:room_list' %}" class="{% if 'room' in request.path %}active{% endif %}">
+                    <i class="bi bi-door-closed"></i>
+                    <span>{% trans "Room Management" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- HR Module -->
+            {% if user.role != 'DOCTOR' and user|can_access_module:"hr" %}
+            <li>
+                <a href="{% url 'hr:dashboard' %}" class="{% if 'hr' in request.path %}active{% endif %}">
+                    <i class="bi bi-person-workspace"></i>
+                    <span>{% trans "HR" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Analytics & Reports Section -->
+            <li class="nav-section-header">
+                <div class="nav-section-title">{% trans "Analytics & Reports" %}</div>
+            </li>
+
+            <!-- Analytics Module -->
+            {% if user|can_access_module:"analytics" %}
+            <li>
+                <a href="{% url 'analytics:dashboard' %}" class="{% if 'analytics' in request.path %}active{% endif %}">
+                    <i class="bi bi-graph-up"></i>
+                    <span>{% trans "Analytics" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Reports Module -->
+            {% if user|can_access_module:"reports" %}
+            <li>
+                <a href="{% url 'reports:report_list' %}" class="{% if 'reports' in request.path %}active{% endif %}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>{% trans "Reports" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Administration Section -->
+            {% if user.role in 'SUPERADMIN,ADMIN' %}
+            <li class="nav-section-header">
+                <div class="nav-section-title">{% trans "Administration" %}</div>
+            </li>
+
+            <!-- Admin Dashboard - For administrators -->
+            {% if user.role in 'SUPERADMIN,ADMIN' %}
+            <li>
+                <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' and 'admin' in user.role|lower %}active{% endif %}">
+                    <i class="bi bi-speedometer"></i>
+                    <span>{% trans "Admin Dashboard" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- User Management -->
+            {% if user.role == 'SUPERADMIN' %}
+            <li>
+                <a href="{% url 'accounts:user_list' %}" class="{% if 'accounts' in request.path %}active{% endif %}">
+                    <i class="bi bi-people"></i>
+                    <span>{% trans "User Management" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- System Settings -->
+            {% if user.role in 'SUPERADMIN,ADMIN' %}
+            <li>
+                <a href="{% url 'dashboard:system_config' %}" class="{% if 'system-config' in request.path %}active{% endif %}">
+                    <i class="bi bi-gear"></i>
+                    <span>{% trans "System Settings" %}</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Activity Logs -->
+            {% if user.role == 'SUPERADMIN' %}
+            <li>
+                <a href="{% url 'dashboard:activity_log' %}" class="{% if 'activity-log' in request.path %}active{% endif %}">
+                    <i class="bi bi-activity"></i>
+                    <span>{% trans "Activity Logs" %}</span>
+                </a>
+            </li>
+            {% endif %}
+            {% endif %}
+        </ul>
+    </nav>
+</div>

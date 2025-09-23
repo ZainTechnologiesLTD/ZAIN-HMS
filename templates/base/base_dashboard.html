@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% load static %}
+{% load permission_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}HMS - Hospital Management System{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}">
+
+    <!-- Inter Font -->
+    <link rel="stylesheet" href="{% static 'fonts/inter.css' %}">
+
+    <!-- Dashboard Component CSS - Loaded directly to avoid @import performance issues -->
+    <link rel="stylesheet" href="{% static 'css/components/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/footer.css' %}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/all.min.css' %}" />
+
+    {% block extra_css %}
+    {% endblock %}
+</head>
+<body class="dashboard-body">
+    <!-- Centralized Sidebar Component -->
+    {% include 'components/dashboard_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Centralized Header Component -->
+        {% include 'components/dashboard_header.html' %}
+
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="container-fluid">
+                {% block content %}
+                <!-- Page-specific content goes here -->
+                {% endblock %}
+            </div>
+        </main>
+
+        <!-- Centralized Footer Component -->
+        {% include 'components/dashboard_footer.html' %}
+    </div>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Core JavaScript -->
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+
+    <!-- HTMX for Dynamic Content -->
+    <script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
+
+    <!-- Alpine.js for Reactive Components -->
+    <script defer src="{% static 'vendor/alpinejs/alpine.min.js' %}"></script>
+
+    <!-- Dashboard JavaScript -->
+    <script src="{% static 'js/components/dashboard.js' %}"></script>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="scroll-to-top" title="{% trans 'Scroll to top' %}" aria-label="Scroll to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1200;">
+        {% for message in messages %}
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true">
+            <div class="toast-header">
+                <strong class="me-auto">
+                    {% if message.tags == 'error' %}<i class="fas fa-exclamation-triangle text-danger"></i>{% endif %}
+                    {% if message.tags == 'warning' %}<i class="fas fa-exclamation-circle text-warning"></i>{% endif %}
+                    {% if message.tags == 'success' %}<i class="fas fa-check-circle text-success"></i>{% endif %}
+                    {% if message.tags == 'info' %}<i class="fas fa-info-circle text-info"></i>{% endif %}
+                    {% trans "Notification" %}
+                </strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">{{ message }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block extra_js %}
+    {% endblock %}
+
+    <!-- Initialize Dashboard Features -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Initialize popovers
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function(popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+
+            // Auto-hide toasts
+            const toasts = [].slice.call(document.querySelectorAll('.toast'));
+            toasts.map(function(toastElement) {
+                const toast = new bootstrap.Toast(toastElement, {
+                    autohide: true,
+                    delay: 5000
+                });
+                toast.show();
+            });
+        });
+    </script>
+</body>
+</html>

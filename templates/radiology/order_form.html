@@ -1,0 +1,380 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Create Radiology Order - ZAIN HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-file-medical me-2"></i>Create Radiology Order
+                    </h4>
+                    <a href="{% url 'radiology:order_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Orders
+                    </a>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" id="radiologyOrderForm">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- Patient and Doctor Information -->
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-user-md me-2"></i>Patient & Doctor Information
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ form.patient.id_for_label }}" class="form-label">
+                                                Patient <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="position-relative">
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-user-injured"></i></span>
+                                                    <input type="text" class="form-control" id="patientSearchInput"
+                                                           placeholder="Type to search patients..." autocomplete="off">
+                                                    <button type="button" class="btn btn-outline-secondary" id="clearPatientBtn" style="display: none;">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                                <div id="patientDropdown" class="dropdown-menu w-100" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1050; position: absolute; top: 100%;">
+                                                    <!-- Patient options will be populated here -->
+                                                </div>
+                                                {{ form.patient|add_class:"form-select d-none" }}
+                                                <div id="selectedPatient" class="mt-2 p-2 bg-light rounded" style="display: none;">
+                                                    <small class="text-muted">Selected Patient:</small>
+                                                    <div id="selectedPatientInfo" class="fw-bold"></div>
+                                                </div>
+                                            </div>
+                                            {% if form.patient.errors %}
+                                                <div class="text-danger small">{{ form.patient.errors }}</div>
+                                            {% endif %}
+                                            <small class="text-muted">Search and select the patient for this radiology order</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.ordering_doctor.id_for_label }}" class="form-label">
+                                                Ordering Doctor <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="position-relative">
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-user-md"></i></span>
+                                                    <input type="text" class="form-control" id="doctorSearchInput"
+                                                           placeholder="Type to search doctors..." autocomplete="off">
+                                                    <button type="button" class="btn btn-outline-secondary" id="clearDoctorBtn" style="display: none;">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                                <div id="doctorDropdown" class="dropdown-menu w-100" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1050; position: absolute; top: 100%;">
+                                                    <!-- Doctor options will be populated here -->
+                                                </div>
+                                                {{ form.ordering_doctor|add_class:"form-select d-none" }}
+                                                <div id="selectedDoctor" class="mt-2 p-2 bg-light rounded" style="display: none;">
+                                                    <small class="text-muted">Selected Doctor:</small>
+                                                    <div id="selectedDoctorInfo" class="fw-bold"></div>
+                                                </div>
+                                            </div>
+                                            {% if form.ordering_doctor.errors %}
+                                                <div class="text-danger small">{{ form.ordering_doctor.errors }}</div>
+                                            {% endif %}
+                                            <small class="text-muted">Search and select the doctor requesting the radiology studies</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.clinical_indication.id_for_label }}" class="form-label">
+                                                Clinical Indication <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.clinical_indication|add_class:"form-control" }}
+                                            {% if form.clinical_indication.errors %}
+                                                <div class="text-danger small">{{ form.clinical_indication.errors }}</div>
+                                            {% endif %}
+                                            <small class="text-muted">Clinical reason for the study</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order Details -->
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-clipboard-list me-2"></i>Order Details
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                                    Priority
+                                                </label>
+                                                {{ form.priority|add_class:"form-select" }}
+                                                {% if form.priority.errors %}
+                                                    <div class="text-danger small">{{ form.priority.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.urgent.id_for_label }}" class="form-label">
+                                                    Urgent Order
+                                                </label>
+                                                <div class="form-check mt-2">
+                                                    {{ form.urgent|add_class:"form-check-input" }}
+                                                    <label class="form-check-label" for="{{ form.urgent.id_for_label }}">
+                                                        Mark as urgent
+                                                    </label>
+                                                </div>
+                                                {% if form.urgent.errors %}
+                                                    <div class="text-danger small">{{ form.urgent.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                                Additional Notes
+                                            </label>
+                                            {{ form.notes|add_class:"form-control" }}
+                                            {% if form.notes.errors %}
+                                                <div class="text-danger small">{{ form.notes.errors }}</div>
+                                            {% endif %}
+                                            <small class="text-muted">Any special instructions or notes</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Order Status</label>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                New orders are automatically set to <strong>PENDING</strong> status
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Study Selection by Modality -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-x-ray me-2"></i>Select Radiology Studies by Modality
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if study_types %}
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-lightbulb me-2"></i>
+                                                <strong>Instructions:</strong> Choose studies from different imaging modalities below. Click on study cards to select/deselect them.
+                                            </div>
+
+                                            <!-- Modality Tabs -->
+                                            <ul class="nav nav-tabs mb-4" id="modalityTabs" role="tablist">
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link active" id="xray-tab" data-bs-toggle="tab" data-bs-target="#xray-panel" type="button" role="tab">
+                                                        <i class="fas fa-x-ray me-2"></i>X-Ray <span class="badge bg-secondary ms-1" id="xray-count">0</span>
+                                                    </button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link" id="ct-tab" data-bs-toggle="tab" data-bs-target="#ct-panel" type="button" role="tab">
+                                                        <i class="fas fa-circle-notch me-2"></i>CT Scan <span class="badge bg-secondary ms-1" id="ct-count">0</span>
+                                                    </button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link" id="mri-tab" data-bs-toggle="tab" data-bs-target="#mri-panel" type="button" role="tab">
+                                                        <i class="fas fa-magnet me-2"></i>MRI <span class="badge bg-secondary ms-1" id="mri-count">0</span>
+                                                    </button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link" id="ultrasound-tab" data-bs-toggle="tab" data-bs-target="#ultrasound-panel" type="button" role="tab">
+                                                        <i class="fas fa-wave-square me-2"></i>Ultrasound <span class="badge bg-secondary ms-1" id="ultrasound-count">0</span>
+                                                    </button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link" id="mammography-tab" data-bs-toggle="tab" data-bs-target="#mammography-panel" type="button" role="tab">
+                                                        <i class="fas fa-female me-2"></i>Mammography <span class="badge bg-secondary ms-1" id="mammography-count">0</span>
+                                                    </button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-panel" type="button" role="tab">
+                                                        <i class="fas fa-plus me-2"></i>Other <span class="badge bg-secondary ms-1" id="other-count">0</span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+
+                                            <!-- Tab Content -->
+                                            <div class="tab-content" id="modalityTabsContent">
+                                                <!-- X-Ray Panel -->
+                                                <div class="tab-pane fade show active" id="xray-panel" role="tabpanel">
+                                                    <div class="row" id="xray-studies">
+                                                        {% for study_type in study_types %}
+                                                            {% if study_type.modality == 'X_RAY' %}
+                                                                <div class="col-lg-4 col-md-6 mb-3">
+                                                                    {% include 'radiology/partials/study_card.html' with study=study_type %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div id="xray-empty" class="text-center text-muted py-4" style="display: none;">
+                                                        <i class="fas fa-x-ray fa-3x mb-3"></i>
+                                                        <p>No X-Ray studies available</p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- CT Scan Panel -->
+                                                <div class="tab-pane fade" id="ct-panel" role="tabpanel">
+                                                    <div class="row" id="ct-studies">
+                                                        {% for study_type in study_types %}
+                                                            {% if study_type.modality == 'CT' %}
+                                                                <div class="col-lg-4 col-md-6 mb-3">
+                                                                    {% include 'radiology/partials/study_card.html' with study=study_type %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div id="ct-empty" class="text-center text-muted py-4" style="display: none;">
+                                                        <i class="fas fa-circle-notch fa-3x mb-3"></i>
+                                                        <p>No CT studies available</p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- MRI Panel -->
+                                                <div class="tab-pane fade" id="mri-panel" role="tabpanel">
+                                                    <div class="row" id="mri-studies">
+                                                        {% for study_type in study_types %}
+                                                            {% if study_type.modality == 'MRI' %}
+                                                                <div class="col-lg-4 col-md-6 mb-3">
+                                                                    {% include 'radiology/partials/study_card.html' with study=study_type %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div id="mri-empty" class="text-center text-muted py-4" style="display: none;">
+                                                        <i class="fas fa-magnet fa-3x mb-3"></i>
+                                                        <p>No MRI studies available</p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Ultrasound Panel -->
+                                                <div class="tab-pane fade" id="ultrasound-panel" role="tabpanel">
+                                                    <div class="row" id="ultrasound-studies">
+                                                        {% for study_type in study_types %}
+                                                            {% if study_type.modality == 'ULTRASOUND' %}
+                                                                <div class="col-lg-4 col-md-6 mb-3">
+                                                                    {% include 'radiology/partials/study_card.html' with study=study_type %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div id="ultrasound-empty" class="text-center text-muted py-4" style="display: none;">
+                                                        <i class="fas fa-wave-square fa-3x mb-3"></i>
+                                                        <p>No Ultrasound studies available</p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Mammography Panel -->
+                                                <div class="tab-pane fade" id="mammography-panel" role="tabpanel">
+                                                    <div class="row" id="mammography-studies">
+                                                        {% for study_type in study_types %}
+                                                            {% if study_type.modality == 'MAMMOGRAPHY' %}
+                                                                <div class="col-lg-4 col-md-6 mb-3">
+                                                                    {% include 'radiology/partials/study_card.html' with study=study_type %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div id="mammography-empty" class="text-center text-muted py-4" style="display: none;">
+                                                        <i class="fas fa-female fa-3x mb-3"></i>
+                                                        <p>No Mammography studies available</p>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Other Panel -->
+                                                <div class="tab-pane fade" id="other-panel" role="tabpanel">
+                                                    <div class="row" id="other-studies">
+                                                        {% for study_type in study_types %}
+                                                            {% if study_type.modality not in 'X_RAY,CT,MRI,ULTRASOUND,MAMMOGRAPHY' %}
+                                                                <div class="col-lg-4 col-md-6 mb-3">
+                                                                    {% include 'radiology/partials/study_card.html' with study=study_type %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div id="other-empty" class="text-center text-muted py-4" style="display: none;">
+                                                        <i class="fas fa-plus fa-3x mb-3"></i>
+                                                        <p>No other imaging studies available</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Selected Studies Summary -->
+                                            <div id="selectedStudiesSummary" class="mt-4" style="display: none;">
+                                                <div class="card border-success">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="card-title mb-0 text-success">
+                                                            <i class="fas fa-check-circle me-2"></i>Selected Studies
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="selectedStudiesList"></div>
+                                                        <div class="row mt-3">
+                                                            <div class="col-6">
+                                                                <strong>Total Studies: <span id="totalStudies">0</span></strong>
+                                                            </div>
+                                                            <div class="col-6 text-end">
+                                                                <strong>Total Cost: $<span id="totalCost">0.00</span></strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                No study types are configured for this hospital. Please contact your administrator to set up radiology study types.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'radiology:order_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="submitOrderBtn" disabled>
+                                        <i class="fas fa-save me-1"></i>Create Radiology Order
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden fields for selected studies -->
+                        <div id="hiddenStudyFields"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<script src="{% static 'js/radiology/order_form.js' %}"></script>

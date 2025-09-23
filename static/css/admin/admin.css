@@ -1,0 +1,508 @@
+/* Beautiful Admin CSS - ZAIN HMS Custom Admin Styles */
+
+/* Admin Dashboard Enhancement - Compatible with base layout */
+.dashboard-container {
+    background: transparent; /* Let base dashboard handle background */
+}
+
+/* Admin Dashboard Layout - Work with base layout, not against it */
+.admin-dashboard {
+    background: transparent; /* Remove conflicting background */
+    min-height: 100vh;
+}
+
+/* Essential Main Card Styles - Ensure cards display properly */
+/* KPI Card Badge Visibility Fix */
+.kpi-card .badge {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    padding: 0.375rem 0.625rem !important;
+    border-radius: 0.375rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    min-width: auto !important;
+    white-space: nowrap !important;
+}
+
+/* Ensure badge text is always visible with proper contrast */
+.kpi-card .badge.bg-success {
+    background-color: rgba(34, 197, 94, 0.15) !important;
+    color: #15803d !important;
+    border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+
+.kpi-card .badge.bg-primary {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #1e40af !important;
+    border: 1px solid rgba(59, 130, 246, 0.25) !important;
+}
+
+.kpi-card .badge.bg-warning {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #d97706 !important;
+    border: 1px solid rgba(245, 158, 11, 0.25) !important;
+}
+
+.kpi-card .badge.bg-danger {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #dc2626 !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+.kpi-card .badge.bg-secondary {
+    background-color: rgba(107, 114, 128, 0.15) !important;
+    color: #4b5563 !important;
+    border: 1px solid rgba(107, 114, 128, 0.25) !important;
+}
+
+.kpi-card .badge.bg-info {
+    background-color: rgba(14, 165, 233, 0.15) !important;
+    color: #0369a1 !important;
+    border: 1px solid rgba(14, 165, 233, 0.25) !important;
+}
+
+/* Ensure icons in badges are properly sized */
+.kpi-card .badge i {
+    font-size: 0.8rem !important;
+    opacity: 1 !important;
+}
+
+/* Charts Section Layout and Styling */
+.charts-section {
+    margin-bottom: 2rem;
+}
+
+.charts-section .main-card {
+    height: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.charts-section .main-card .card-header {
+    flex-shrink: 0;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.5rem;
+}
+
+.charts-section .main-card .card-body {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+/* Chart Container Styling */
+.chart-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-container canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Revenue and Appointments Chart Specific Fixes */
+#revenue-chart-container,
+#appointments-chart-container {
+    min-height: 220px !important;
+    height: 220px !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#revenueChart,
+#appointmentsChart {
+    max-width: 100% !important;
+    max-height: 200px !important;
+    width: 100% !important;
+    height: 200px !important;
+}
+
+/* Chart Loading States */
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 220px;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Chart Error States */
+.chart-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 220px;
+    color: #ef4444;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* Responsive Chart Layout */
+@media (max-width: 768px) {
+    .charts-section .col-md-6 {
+        margin-bottom: 1.5rem;
+    }
+    
+    .charts-section .main-card {
+        min-height: 280px;
+    }
+    
+    #revenue-chart-container,
+    #appointments-chart-container {
+        height: 200px !important;
+    }
+}
+
+/* HTMX Chart Update Animation */
+.charts-section .main-card[hx-indicator] {
+    transition: opacity 0.3s ease;
+}
+
+.charts-section .main-card.htmx-request {
+    opacity: 0.7;
+}
+
+/* Chart Grid Enhancement */
+.charts-section .row {
+    --bs-gutter-x: 2rem;
+    --bs-gutter-y: 2rem;
+}
+
+.charts-section .main-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Task List Component with modern styling */
+.task-list {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.task-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.main-card .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.main-card .card-header h5 {
+    margin: 0;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.125rem;
+    display: flex;
+    align-items: center;
+}
+
+.main-card .card-header .card-title-icon {
+    margin-right: 0.5rem;
+    color: #6b7280;
+}
+
+.main-card .card-body {
+    padding: 1.5rem;
+}
+
+.main-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Activity Feed Styles */
+.activity-feed-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-description {
+    font-size: 0.875rem;
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+
+.activity-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Quick Actions Grid */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 0;
+    margin: 0;
+}
+
+.quick-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.quick-action-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: white;
+    text-decoration: none;
+}
+
+.quick-action-item .icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.quick-action-item .icon.primary {
+    background: #3b82f6;
+}
+
+.quick-action-item .icon.success {
+    background: #10b981;
+}
+
+.quick-action-item .icon.info {
+    background: #6b7280;
+}
+
+.quick-action-item .icon.danger {
+    background: #ef4444;
+}
+
+.quick-action-item .icon.secondary {
+    background: #6b7280;
+}
+
+.quick-action-item span {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+/* Admin Cards */
+.admin-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.admin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+/* Admin Header - Reduce conflicts */
+.admin-header {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+    padding: 2rem 0;
+    border-radius: 0 0 20px 20px;
+}
+
+/* Admin Navigation */
+.admin-nav {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Admin Buttons */
+.btn-admin-primary {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-admin-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+    color: white;
+}
+
+/* Admin Stats Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-left: 4px solid #4a90e2;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4a90e2;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Enhanced Tool Buttons */
+.enhanced-tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #e5e7eb;
+    height: 100%;
+    min-height: 140px;
+}
+
+.enhanced-tool-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    text-decoration: none;
+    color: inherit;
+}
+
+.tool-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.tool-icon.bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.tool-icon.bg-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+}
+
+.tool-icon.bg-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.tool-icon.bg-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.tool-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.tool-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.3;
+    margin-top: auto;
+}
+
+/* Tool button grid responsive adjustments */
+    .admin-tools-grid .col-6,
+.admin-tools-grid .col-md-3 {
+    display: flex;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+.admin-card {
+    margin-bottom: 1rem;
+    }
+
+.stat-number {
+    font-size: 2rem;
+    }
+}

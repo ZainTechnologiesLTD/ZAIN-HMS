@@ -1,0 +1,146 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Send Bulk Notification" %}{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/notifications/create_bulk_notification.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid create-notification-container mt-4">
+    <div class="notification-form">
+        <div class="form-header">
+            <h2><i class="fas fa-broadcast-tower me-2 text-success"></i>{% trans "Send Bulk Notification" %}</h2>
+            <p>{% trans "Send notifications to multiple patients at once" %}</p>
+        </div>
+
+        <div class="recipient-info">
+            <h6><i class="fas fa-info-circle me-2"></i>{% trans "Recipient Options:" %}</h6>
+            <ul>
+                <li><strong>{% trans "All Patients:" %}</strong> {% trans "Send to all registered patients in your hospital" %}</li>
+                <li><strong>{% trans "Recent Patients:" %}</strong> {% trans "Send to patients registered in the last 30 days" %}</li>
+                <li><strong>{% trans "Custom Group:" %}</strong> {% trans "Select specific patients manually" %}</li>
+            </ul>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" id="bulkNotificationForm">
+            {% csrf_token %}
+
+            <!-- Recipient Type Selection -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-users me-2"></i>{% trans "Select Recipient Group" %}
+                </label>
+                <div class="recipients-section">
+                    {% for choice in form.recipient_type %}
+                        <div class="form-check">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                {{ choice.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.recipient_type.errors %}
+                    <div class="text-danger mt-2">{{ form.recipient_type.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Custom Patients Selection (Hidden by default) -->
+            <div class="form-group">
+                <div class="custom-patients-section" id="customPatientsSection">
+                    <label for="{{ form.custom_patients.id_for_label }}">
+                        <i class="fas fa-user-check me-2"></i>{% trans "Select Specific Patients" %}
+                    </label>
+                    {% for choice in form.custom_patients %}
+                        <div class="form-check">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                {{ choice.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                    {% if form.custom_patients.help_text %}
+                        <div class="help-text">{{ form.custom_patients.help_text }}</div>
+                    {% endif %}
+                    {% if form.custom_patients.errors %}
+                        <div class="text-danger mt-2">{{ form.custom_patients.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notification Level -->
+            <div class="form-group">
+                <label for="{{ form.level.id_for_label }}">
+                    <i class="fas fa-flag me-2"></i>{% trans "Notification Level" %}
+                </label>
+                {{ form.level }}
+                {% if form.level.errors %}
+                    <div class="text-danger mt-2">{{ form.level.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Title -->
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">
+                    <i class="fas fa-heading me-2"></i>{% trans "Title" %}
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger mt-2">{{ form.title.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Message -->
+            <div class="form-group">
+                <label for="{{ form.message.id_for_label }}">
+                    <i class="fas fa-comment me-2"></i>{% trans "Message" %}
+                </label>
+                {{ form.message }}
+                {% if form.message.errors %}
+                    <div class="text-danger mt-2">{{ form.message.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Action URL (Optional) -->
+            <div class="form-group">
+                <label for="{{ form.action_url.id_for_label }}">
+                    <i class="fas fa-link me-2"></i>{% trans "Action URL" %} <span class="text-muted">({% trans "Optional" %})</span>
+                </label>
+                {{ form.action_url }}
+                <div class="help-text">{% trans "Optional URL for action button (e.g., link to appointment, report, etc.)" %}</div>
+                {% if form.action_url.errors %}
+                    <div class="text-danger mt-2">{{ form.action_url.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="{% url 'notifications:all' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Notifications" %}
+                </a>
+                <div>
+                    <button type="submit" class="btn btn-success btn-create">
+                        <i class="fas fa-broadcast-tower me-2"></i>{% trans "Send Bulk Notification" %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/notifications/create_bulk_notification.js' %}"></script>

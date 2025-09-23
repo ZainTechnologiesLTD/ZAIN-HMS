@@ -1,0 +1,256 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Pharmacy PoS - Sale Interface{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/pos/sale_interface.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pos-container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">
+            <i class="fas fa-shopping-cart text-primary"></i>
+            Pharmacy PoS Sale
+        </h3>
+        <div>
+            <a href="{% url 'pharmacy:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row h-100">
+        <!-- Left Panel - Product Selection -->
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-pills text-success"></i>
+                        Medicine Selection
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Search Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="medicine-search"
+                                       placeholder="Search medicines by name, generic name, or batch number...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#prescriptionModal">
+                                <i class="fas fa-prescription-bottle"></i>
+                                Load Prescription
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div id="search-results" class="medicine-search">
+                        <!-- Initial medicine display -->
+                        {% for medicine in medicines|slice:":20" %}
+                        <div class="medicine-card" data-medicine-id="{{ medicine.id }}"
+                             data-medicine-name="{{ medicine.name }}"
+                             data-medicine-price="{{ medicine.unit_price }}"
+                             data-medicine-stock="{{ medicine.current_stock }}"
+                             data-medicine-unit="{{ medicine.unit }}">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">{{ medicine.name }}</h6>
+                                    <small class="text-muted">{{ medicine.generic_name }} - {{ medicine.strength }}</small>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span class="badge bg-{% if medicine.current_stock > 10 %}success{% elif medicine.current_stock > 5 %}warning{% else %}danger{% endif %}">
+                                        {{ medicine.current_stock }} {{ medicine.unit }}
+                                    </span>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <strong>${{ medicine.unit_price|floatformat:2 }}</strong>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <button class="btn btn-sm btn-primary add-to-cart">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Cart and Checkout -->
+        <div class="col-lg-5">
+            <div class="cart-container">
+                <!-- Customer Selection -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Customer</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="customer-search"
+                               placeholder="Search patient by name or phone...">
+                        <button class="btn btn-outline-secondary" type="button" id="customer-clear">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="selected-customer" class="mt-2 d-none">
+                        <div class="alert alert-info p-2">
+                            <i class="fas fa-user"></i>
+                            <span id="customer-name"></span>
+                            <small class="text-muted ms-2" id="customer-phone"></small>
+                        </div>
+                    </div>
+                    <!-- Walk-in customer fields -->
+                    <div id="walk-in-customer" class="mt-2">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text" class="form-control form-control-sm" id="walk-in-name"
+                                       placeholder="Walk-in customer name (optional)">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-sm" id="walk-in-phone"
+                                       placeholder="Phone">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Items -->
+                <div class="cart-items">
+                    <h6 class="fw-bold mb-3">Cart Items</h6>
+                    <div id="cart-container">
+                        <div class="text-center py-5 text-muted" id="empty-cart">
+                            <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                            <p>Cart is empty</p>
+                            <small>Search and add medicines to start</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <div class="row mb-2">
+                        <div class="col">Subtotal:</div>
+                        <div class="col-auto">$<span id="subtotal">0.00</span></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col">
+                            Discount:
+                            <input type="number" class="form-control form-control-sm d-inline-block ms-2"
+                                   id="discount-percentage" placeholder="%" style="width: 60px;" min="0" max="100">
+                        </div>
+                        <div class="col-auto">$<span id="discount-amount">0.00</span></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col">Tax (0%):</div>
+                        <div class="col-auto">$<span id="tax-amount">0.00</span></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col"><strong>Total:</strong></div>
+                        <div class="col-auto"><strong>$<span id="total-amount">0.00</span></strong></div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Payment Method</label>
+                        <div class="payment-methods">
+                            <div class="payment-method">
+                                <input type="radio" class="btn-check" name="payment-method" id="payment-cash" value="CASH" checked>
+                                <label class="btn btn-outline-success w-100" for="payment-cash">
+                                    <i class="fas fa-money-bill"></i><br>Cash
+                                </label>
+                            </div>
+                            <div class="payment-method">
+                                <input type="radio" class="btn-check" name="payment-method" id="payment-card" value="CARD">
+                                <label class="btn btn-outline-info w-100" for="payment-card">
+                                    <i class="fas fa-credit-card"></i><br>Card
+                                </label>
+                            </div>
+                            <div class="payment-method">
+                                <input type="radio" class="btn-check" name="payment-method" id="payment-mobile" value="MOBILE_MONEY">
+                                <label class="btn btn-outline-warning w-100" for="payment-mobile">
+                                    <i class="fas fa-mobile-alt"></i><br>Mobile
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amount Paid -->
+                    <div class="mb-3">
+                        <label for="amount-paid" class="form-label fw-bold">Amount Paid</label>
+                        <input type="number" class="form-control" id="amount-paid" step="0.01" min="0">
+                        <div class="mt-1">
+                            <small>Change: $<span id="change-amount">0.00</span></small>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <button type="button" class="btn btn-success btn-pos w-100" id="checkout-btn" disabled>
+                        <i class="fas fa-check"></i>
+                        Complete Sale
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prescription Modal -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Load Prescription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Items</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in pending_prescriptions %}
+                            <tr>
+                                <td>{{ prescription.date|date:"M d, Y" }}</td>
+                                <td>{{ prescription.patient.get_full_name }}</td>
+                                <td>{{ prescription.doctor.get_full_name|default:"N/A" }}</td>
+                                <td>{{ prescription.items.count }} items</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary load-prescription"
+                                            data-prescription-id="{{ prescription.id }}">
+                                        Load
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'js/pos/sale_interface.js' %}"></script>
+{% endblock %}

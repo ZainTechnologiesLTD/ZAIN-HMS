@@ -1,0 +1,184 @@
+{% extends 'base/base_dashboard.html' %}
+
+{% block title %}Create Lab Test{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Create Lab Test</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'laboratory:dashboard' %}">Laboratory</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'laboratory:lab_test_list' %}">Lab Tests</a></li>
+                        <li class="breadcrumb-item active">Create</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Basic Information</h5>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">Test Name *</label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger">{{ form.name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="text-danger">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.category.id_for_label }}" class="form-label">Category *</label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger">{{ form.category.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.price.id_for_label }}" class="form-label">Price *</label>
+                                    {{ form.price }}
+                                    {% if form.price.errors %}
+                                        <div class="text-danger">{{ form.price.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.reporting_time_hours.id_for_label }}" class="form-label">Reporting Time (Hours) *</label>
+                                    {{ form.reporting_time_hours }}
+                                    {% if form.reporting_time_hours.errors %}
+                                        <div class="text-danger">{{ form.reporting_time_hours.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Sample Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Sample Information</h5>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.sample_type.id_for_label }}" class="form-label">Sample Type *</label>
+                                    {{ form.sample_type }}
+                                    {% if form.sample_type.errors %}
+                                        <div class="text-danger">{{ form.sample_type.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.sample_volume.id_for_label }}" class="form-label">Sample Volume</label>
+                                    {{ form.sample_volume }}
+                                    {% if form.sample_volume.errors %}
+                                        <div class="text-danger">{{ form.sample_volume.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.collection_instructions.id_for_label }}" class="form-label">Collection Instructions</label>
+                                    {{ form.collection_instructions }}
+                                    {% if form.collection_instructions.errors %}
+                                        <div class="text-danger">{{ form.collection_instructions.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.units.id_for_label }}" class="form-label">Units</label>
+                                    {{ form.units }}
+                                    {% if form.units.errors %}
+                                        <div class="text-danger">{{ form.units.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.requires_fasting }}
+                                        <label class="form-check-label" for="{{ form.requires_fasting.id_for_label }}">
+                                            Requires Fasting
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            Active
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reference Ranges -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3 mt-3">Reference Ranges</h5>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.reference_range_male.id_for_label }}" class="form-label">Male Reference Range</label>
+                                    {{ form.reference_range_male }}
+                                    {% if form.reference_range_male.errors %}
+                                        <div class="text-danger">{{ form.reference_range_male.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.reference_range_female.id_for_label }}" class="form-label">Female Reference Range</label>
+                                    {{ form.reference_range_female }}
+                                    {% if form.reference_range_female.errors %}
+                                        <div class="text-danger">{{ form.reference_range_female.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.reference_range_child.id_for_label }}" class="form-label">Child Reference Range</label>
+                                    {{ form.reference_range_child }}
+                                    {% if form.reference_range_child.errors %}
+                                        <div class="text-danger">{{ form.reference_range_child.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="text-end">
+                                    <a href="{% url 'laboratory:lab_test_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                                    <button type="submit" class="btn btn-success">Create Test</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

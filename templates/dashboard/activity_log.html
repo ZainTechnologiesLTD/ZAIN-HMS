@@ -1,0 +1,196 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Activity Logs" %} - ZAIN HMS{% endblock %}
+
+{% block page_title %}{% trans "Activity Logs" %}{% endblock %}
+
+{% block page_subtitle %}{% trans "System activity and user action logs" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.activity-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.activity-item {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-time {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item active">{% trans "Activity Logs" %}</li>
+        </ol>
+    </nav>
+
+    <!-- Filters -->
+    <div class="filters">
+        <h5 class="mb-3">{% trans "Filter Activities" %}</h5>
+        <div class="row">
+            <div class="col-md-3">
+                <label for="date_filter" class="form-label">{% trans "Date Range" %}</label>
+                <select class="form-select" id="date_filter">
+                    <option value="today">{% trans "Today" %}</option>
+                    <option value="week" selected>{% trans "This Week" %}</option>
+                    <option value="month">{% trans "This Month" %}</option>
+                    <option value="all">{% trans "All Time" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="user_filter" class="form-label">{% trans "User" %}</label>
+                <select class="form-select" id="user_filter">
+                    <option value="">{% trans "All Users" %}</option>
+                    <option value="admin">{% trans "Administrators" %}</option>
+                    <option value="doctor">{% trans "Doctors" %}</option>
+                    <option value="nurse">{% trans "Nurses" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="action_filter" class="form-label">{% trans "Action Type" %}</label>
+                <select class="form-select" id="action_filter">
+                    <option value="">{% trans "All Actions" %}</option>
+                    <option value="create">{% trans "Create" %}</option>
+                    <option value="update">{% trans "Update" %}</option>
+                    <option value="delete">{% trans "Delete" %}</option>
+                    <option value="login">{% trans "Login" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>{% trans "Apply Filters" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity List -->
+    <div class="activity-card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-activity me-2"></i>{% trans "Recent Activities" %}</h5>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-icon bg-success text-white">
+                <i class="bi bi-person-plus"></i>
+            </div>
+            <div class="activity-content">
+                <div><strong>MD Mehedi Hossain</strong> {% trans "registered a new patient" %} <strong>John5 Doe5</strong></div>
+                <div class="activity-time">{% trans "13 hours ago" %}</div>
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-icon bg-success text-white">
+                <i class="bi bi-person-plus"></i>
+            </div>
+            <div class="activity-content">
+                <div><strong>MD Mehedi Hossain</strong> {% trans "registered a new patient" %} <strong>John4 Doe4</strong></div>
+                <div class="activity-time">{% trans "13 hours ago" %}</div>
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-icon bg-success text-white">
+                <i class="bi bi-person-plus"></i>
+            </div>
+            <div class="activity-content">
+                <div><strong>MD Mehedi Hossain</strong> {% trans "registered a new patient" %} <strong>John3 Doe3</strong></div>
+                <div class="activity-time">{% trans "13 hours ago" %}</div>
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-icon bg-primary text-white">
+                <i class="bi bi-box-arrow-in-right"></i>
+            </div>
+            <div class="activity-content">
+                <div><strong>MD Mehedi Hossain</strong> {% trans "logged into the system" %}</div>
+                <div class="activity-time">{% trans "1 day ago" %}</div>
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-icon bg-warning text-white">
+                <i class="bi bi-gear"></i>
+            </div>
+            <div class="activity-content">
+                <div><strong>System</strong> {% trans "performed automatic backup" %}</div>
+                <div class="activity-time">{% trans "1 day ago" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Activity logs pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <span class="page-link">{% trans "Previous" %}</span>
+            </li>
+            <li class="page-item active">
+                <span class="page-link">1</span>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">2</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">3</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">{% trans "Next" %}</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

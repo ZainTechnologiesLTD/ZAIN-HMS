@@ -1,0 +1,171 @@
+<!-- templates/appointments/appointment_edit.html -->
+
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Edit Appointment{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Edit Appointment</h5>
+                <small class="text-muted">
+                    Created by: {{ appointment.created_by.get_full_name|default:appointment.created_by.username }}
+                    on {{ appointment.created_at|date:"M d, Y H:i" }}
+                </small>
+            </div>
+            <div>
+                <span class="badge {% if appointment.status == 'SCHEDULED' %}bg-primary
+                    {% elif appointment.status == 'CONFIRMED' %}bg-success
+                    {% elif appointment.status == 'CANCELLED' %}bg-danger
+                    {% elif appointment.status == 'COMPLETED' %}bg-info{% endif %}">
+                    {{ appointment.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="post" id="appointmentForm" novalidate>
+                {% csrf_token %}
+
+                <!-- Hidden Fields -->
+                <input type="hidden" name="created_by" value="{{ appointment.created_by.id }}">
+                {{ form.patient }}
+                {{ form.doctor }}
+                {{ form.time }}
+
+                <!-- Patient Search Section -->
+                <div class="mb-4">
+                    <label class="form-label">Search Patient</label>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" name="search_name" id="search_name"
+                                   class="form-control" placeholder="Patient Name"
+                                   value="{{ form.search_name.value|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="search_phone" id="search_phone"
+                                   class="form-control" placeholder="Mobile Number"
+                                   value="{{ form.search_phone.value|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="search_patient_id" id="search_patient_id"
+                                   class="form-control" placeholder="Patient ID"
+                                   value="{{ form.search_patient_id.value|default_if_none:'' }}">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary mt-2"
+                            hx-get="{% url 'appointments:search_patients' %}"
+                            hx-include="[name='search_name'], [name='search_phone'], [name='search_patient_id']"
+                            hx-target="#patientResults"
+                            hx-swap="innerHTML">
+                        Search
+                    </button>
+                </div>
+
+                <!-- Search Results -->
+                <div id="patientResults" class="mb-4"></div>
+
+                <!-- Selected Patient Info -->
+                <input type="hidden" name="patient" id="selectedPatient"
+                       value="{{ appointment.patient.id }}" required>
+                <div id="selectedPatientInfo"
+                     class="alert alert-info {% if not appointment.patient %}d-none{% endif %}">
+                    Selected Patient: {{ appointment.patient.get_full_name }}
+                </div>
+
+                <!-- Doctor Selection Section -->
+                <div class="mb-4">
+                    <label class="form-label">Specialization</label>
+                    <select name="specialization" id="specialization"
+                            class="form-select mb-3"
+                            hx-get="{% url 'appointments:get_doctors' %}"
+                            hx-target="#doctorSelect"
+                            hx-trigger="change"
+                            required>
+                        <option value="">Select Specialization</option>
+                        {% for spec in specializations %}
+                            <option value="{{ spec.0 }}"
+                                    {% if appointment.doctor.specialization == spec.0 %}selected{% endif %}>
+                                {{ spec.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="form-label">Doctor</label>
+                    <select name="doctor" id="doctorSelect"
+                            class="form-select"
+                            hx-get="{% url 'appointments:get_doctor_schedule' %}"
+                            hx-target="#availableSlots"
+                            hx-trigger="change"
+                            required
+                            {% if not appointment.doctor %}disabled{% endif %}>
+                        <option value="">First select specialization</option>
+                        {% if appointment.doctor %}
+                            <option value="{{ appointment.doctor.id }}" selected>
+                                {{ appointment.doctor.get_full_name }}
+                            </option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- Available Time Slots -->
+                <div class="mb-3">
+                    <label for="availableSlots" class="form-label">Available Time Slots</label>
+                    <select id="availableSlots" name="time" class="form-select" required>
+                        <option value="">Select doctor first</option>
+                        {% if appointment.date_time %}
+                            <option value="{{ appointment.date_time|date:'Y-m-d H:i' }}" selected>
+                                {{ appointment.date_time|date:"M d, Y H:i" }}
+                            </option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- Appointment Type -->
+                <div class="mb-4">
+                    <label class="form-label">Appointment Type</label>
+                    <select name="appointment_type" id="appointmentType" class="form-select" required>
+                        {% for type in appointment_types %}
+                            <option value="{{ type.0 }}"
+                                    {% if appointment.appointment_type == type.0 %}selected{% endif %}>
+                                {{ type.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Reason for Visit -->
+                <div class="mb-3">
+                    <label for="id_reason" class="form-label">Reason for Visit</label>
+                    <textarea name="reason" id="id_reason"
+                              class="form-control" rows="3"
+                              required>{{ appointment.reason }}</textarea>
+                </div>
+
+                <!-- Fee -->
+                <div class="mb-3">
+                    <label class="form-label">Fee</label>
+                    <input type="number" name="fee" class="form-control"
+                           step="0.01" value="{{ appointment.fee }}">
+                </div>
+
+
+                <!-- Error Messages -->
+                <div id="appointment-errors" class="alert alert-danger d-none"></div>
+
+                <!-- Form Buttons -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <a href="{% url 'appointments:appointment_list' %}"
+                       class="btn btn-secondary ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+<script src="{% static 'js/appointments/appointment_edit.js' %}"></script>

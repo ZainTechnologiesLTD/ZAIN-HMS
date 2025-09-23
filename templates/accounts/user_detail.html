@@ -1,0 +1,158 @@
+{% extends 'base/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}User Details - {{ user_detail.get_full_name|default:user_detail.username }}{% endblock %}
+
+{% block extra_css %}
+
+    <link rel="stylesheet" href="{% static 'css/accounts/user_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="h3 mb-0">
+                        <i class="fas fa-user me-2 text-primary"></i>User Details
+                    </h2>
+                    <p class="text-muted mb-0">Comprehensive user information and management</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Users
+                    </a>
+                    <a href="{% url 'accounts:user_edit' user_detail.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-1"></i>Edit User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card">
+                <div class="user-profile-header text-center">
+                    <div class="profile-avatar">
+                        {% if user_detail.profile_picture %}
+                            <img src="{{ user_detail.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-user"></i>
+                        {% endif %}
+                    </div>
+                    <h4 class="mb-1">{{ user_detail.get_full_name|default:user_detail.username }}</h4>
+                    <div class="role-badge {% if user_detail.role == 'DOCTOR' %}bg-success{% elif user_detail.role == 'NURSE' %}bg-info{% elif user_detail.role == 'ADMIN' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                        {{ user_detail.get_role_display }}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-envelope me-2"></i>Email:</span>
+                        <span class="info-value">{{ user_detail.email|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-phone me-2"></i>Phone:</span>
+                        <span class="info-value">{{ user_detail.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-hospital me-2"></i>Hospital:</span>
+                        <span class="info-value">{{ user_detail.hospital.name|default:"Not assigned" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-circle me-2"></i>Status:</span>
+                        <span class="role-badge {% if user_detail.is_active %}status-active{% else %}status-inactive{% endif %}">
+                            {% if user_detail.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Account Information -->
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-user-circle me-2 text-primary"></i>Account Information
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Username:</span>
+                            <span class="info-value">{{ user_detail.username }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Employee ID:</span>
+                            <span class="info-value">{{ user_detail.employee_id|default:"Not assigned" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Date Joined:</span>
+                            <span class="info-value">{{ user_detail.date_joined|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Last Login:</span>
+                            <span class="info-value">{{ user_detail.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Staff Status:</span>
+                            <span class="info-value">
+                                {% if user_detail.is_staff %}Staff Member{% else %}Regular User{% endif %}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Superuser:</span>
+                            <span class="info-value">
+                                {% if user_detail.is_superuser %}Yes{% else %}No{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-cogs me-2 text-primary"></i>Actions
+                </h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'accounts:user_edit' user_detail.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-1"></i>Edit User
+                    </a>
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash me-1"></i>Delete User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong>{{ user_detail.username }}</strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'accounts:user_delete' user_detail.pk %}" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete User
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

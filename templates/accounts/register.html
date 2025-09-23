@@ -1,0 +1,361 @@
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Patient Signup" %} - ZAIN HMS</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/accounts/register.css' %}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/all.min.css' %}">
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <i class="fas fa-hospital"></i>
+                </div>
+                <div>
+                    <h1 class="brand-text">ZAIN HMS</h1>
+                    <p class="brand-subtitle">{% trans "Healthcare Management System" %}</p>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'dashboard:dashboard' %}" class="nav-link">
+                    <i class="fas fa-home"></i> {% trans "Dashboard" %}
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-info-circle"></i> {% trans "About" %}
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-headset"></i> {% trans "Support" %}
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="register-card">
+            <div class="register-header">
+                <h2 class="register-title">{% trans "Create Account" %}</h2>
+                <p class="register-subtitle">{% trans "Join ZAIN HMS for better healthcare management" %}</p>
+            </div>
+
+            <!-- Error Messages -->
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Registration Form -->
+            <form method="post" id="registrationForm">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.first_name }}
+                            <label for="{{ form.first_name.id_for_label }}" class="floating-label">
+                                <i class="fas fa-user me-2"></i>{% trans "First Name" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        {% if form.first_name.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.first_name.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.last_name }}
+                            <label for="{{ form.last_name.id_for_label }}" class="floating-label">
+                                <i class="fas fa-user me-2"></i>{% trans "Last Name" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        {% if form.last_name.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.last_name.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container">
+                        {{ form.email }}
+                        <label for="{{ form.email.id_for_label }}" class="floating-label">
+                            <i class="fas fa-envelope me-2"></i>{% trans "Email Address" %}
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    {% if form.email.errors %}
+                        <div class="text-danger mt-1" role="alert">
+                            {% for error in form.email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container">
+                        {{ form.username }}
+                        <label for="{{ form.username.id_for_label }}" class="floating-label">
+                            <i class="fas fa-user-circle me-2"></i>{% trans "Username" %}
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1" role="alert">
+                            {% for error in form.username.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.password1 }}
+                            <label for="{{ form.password1.id_for_label }}" class="floating-label">
+                                <i class="fas fa-lock me-2"></i>{% trans "Password" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <button type="button" id="togglePassword1" class="password-toggle">
+                                <i class="fas fa-eye" id="passwordIcon1"></i>
+                            </button>
+                        </div>
+                        {% if form.password1.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.password1.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.password2 }}
+                            <label for="{{ form.password2.id_for_label }}" class="floating-label">
+                                <i class="fas fa-lock me-2"></i>{% trans "Confirm Password" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <button type="button" id="togglePassword2" class="password-toggle">
+                                <i class="fas fa-eye" id="passwordIcon2"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.password2.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.phone }}
+                            <label for="{{ form.phone.id_for_label }}" class="floating-label">
+                                <i class="fas fa-phone me-2"></i>{% trans "Phone Number" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                        </div>
+                        {% if form.phone.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.phone.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.date_of_birth }}
+                            <label for="{{ form.date_of_birth.id_for_label }}" class="floating-label">
+                                <i class="fas fa-calendar me-2"></i>{% trans "Date of Birth" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                        </div>
+                        {% if form.date_of_birth.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.date_of_birth.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.gender }}
+                            <label for="{{ form.gender.id_for_label }}" class="floating-label">
+                                <i class="fas fa-venus-mars me-2"></i>{% trans "Gender" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        {% if form.gender.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.gender.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if form.role %}
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.role }}
+                            <label for="{{ form.role.id_for_label }}" class="floating-label">
+                                <i class="fas fa-user-tag me-2"></i>{% trans "Role" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-user-tag"></i>
+                            </div>
+                        </div>
+                        {% if form.role.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.role.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="form-group">
+                        <div class="input-container">
+                            {{ form.address }}
+                            <label for="{{ form.address.id_for_label }}" class="floating-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>{% trans "Address" %}
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                        </div>
+                        {% if form.address.errors %}
+                            <div class="text-danger mt-1" role="alert">
+                                {% for error in form.address.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Hospital field (optional) - will render only if present in form #}
+                {% if form.hospital %}
+                <div class="form-group">
+                    <div class="input-container">
+                        {{ form.hospital }}
+                        <label for="{{ form.hospital.id_for_label }}" class="floating-label">
+                            <i class="fas fa-hospital me-2"></i>{% trans "Hospital" %}
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-hospital"></i>
+                        </div>
+                    </div>
+                    {% if form.hospital.errors %}
+                        <div class="text-danger mt-1" role="alert">
+                            {% for error in form.hospital.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn-primary" id="registerBtn">
+                    <span class="btn-text">
+                        <i class="fas fa-user-plus me-2"></i>
+                        {% trans "Create Account" %}
+                    </span>
+                </button>
+            </form>
+
+            <!-- Additional Links -->
+            <div class="auth-links">
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    {% trans "Already have an account?" %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary" style="padding: 0.5rem 1.5rem; font-weight: 600; font-size: 1rem;">
+                        {% trans "Sign In" %}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+
+    <script src="{% static 'js/accounts/register.js' %}"></script>
+</body>
+</html>

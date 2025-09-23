@@ -1,0 +1,291 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Medical Record - {{ patient.first_name }} {{ patient.last_name }}</title>
+
+    <!-- Print-optimized CSS -->
+
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/patients/patient_print_clean.css' %}">
+</head>
+<body>
+    <!-- Print Controls (hidden when printing) -->
+    <div class="print-controls no-print">
+        <button onclick="window.print()" class="print-btn">
+            <i class="fas fa-print"></i>
+            Print Record
+        </button>
+        <button onclick="window.close()" class="print-btn">
+            <i class="fas fa-times"></i>
+            Close
+        </button>
+    </div>
+
+    <!-- Document Header -->
+    <div class="document-header">
+        <div class="hospital-info">
+            <div class="hospital-name">ZANGO MEDICLINIC</div>
+            <div class="hospital-details">
+                Luanda, Angola<br>
+                Phone: +244 XXX XXX XXX<br>
+                Email: info@zangomediclinic.com
+            </div>
+        </div>
+
+        <div class="document-meta">
+            <div class="print-date">
+                Printed: {% now "F d, Y" %}<br>
+                Time: {% now "H:i" %}
+            </div>
+            <div class="document-id">
+                Record ID: {{ patient.patient_id }}
+            </div>
+        </div>
+
+        <div class="document-title">
+            PATIENT MEDICAL RECORD
+        </div>
+        <div class="document-subtitle">
+            Comprehensive Healthcare Documentation
+        </div>
+    </div>
+
+    <!-- Patient Photo and Basic Info -->
+    <div class="patient-photo-section avoid-break">
+        <div class="patient-photo-container">
+            {% if patient.photo %}
+                <img src="{{ patient.photo.url }}" alt="Patient Photo" class="patient-photo">
+            {% else %}
+                <div class="patient-photo-placeholder">
+                    {{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}
+                </div>
+            {% endif %}
+            <div class="patient-name-display">{{ patient.first_name }} {{ patient.last_name }}</div>
+            <div class="patient-id-display">{{ patient.patient_id }}</div>
+        </div>
+    </div>
+
+    <!-- Basic Information -->
+    <div class="info-section avoid-break">
+        <h2 class="section-header">
+            <i class="fas fa-user"></i>
+            Patient Information
+        </h2>
+        <div class="section-content">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-birthday-cake"></i>
+                        Date of Birth
+                    </div>
+                    <div class="info-value">
+                        {% if patient.date_of_birth %}
+                            {{ patient.date_of_birth|date:"F d, Y" }}
+                            {% if patient.date_of_birth %}
+                                (Age: {% widthratio "now"|date:"Y" 1 1 %}{% widthratio patient.date_of_birth|date:"Y" 1 -1 %}{% widthratio "now"|date:"Y" 1 0 %})
+                            {% endif %}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-venus-mars"></i>
+                        Gender
+                    </div>
+                    <div class="info-value">{{ patient.gender|default:"Not specified" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-tint"></i>
+                        Blood Group
+                    </div>
+                    <div class="info-value">{{ patient.blood_group|default:"Not specified" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-ring"></i>
+                        Marital Status
+                    </div>
+                    <div class="info-value">{{ patient.marital_status|default:"Not specified" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-phone"></i>
+                        Primary Phone
+                    </div>
+                    <div class="info-value">{{ patient.phone|default:"Not specified" }}</div>
+                </div>
+
+                {% if patient.email %}
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-envelope"></i>
+                        Email
+                    </div>
+                    <div class="info-value">{{ patient.email }}</div>
+                </div>
+                {% endif %}
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-check"></i>
+                        Registration Date
+                    </div>
+                    <div class="info-value">{{ patient.created_at|date:"F d, Y" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-info-circle"></i>
+                        Status
+                    </div>
+                    <div class="info-value">
+                        {% if patient.is_active %}
+                            <span class="status-badge status-active">Active</span>
+                        {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                        {% endif %}
+                        {% if patient.is_vip %}
+                            <span class="status-badge status-vip">VIP</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Information -->
+    <div class="info-section avoid-break">
+        <h2 class="section-header">
+            <i class="fas fa-map-marker-alt"></i>
+            Address Information
+        </h2>
+        <div class="section-content">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-home"></i>
+                        Address
+                    </div>
+                    <div class="info-value">
+                        {% if patient.address %}
+                            {{ patient.address }}<br>
+                            {% if patient.address2 %}{{ patient.address2 }}<br>{% endif %}
+                            {{ patient.city|default:"" }}{% if patient.city and patient.state %}, {% endif %}{{ patient.state|default:"" }} {{ patient.postal_code|default:"" }}<br>
+                            {{ patient.country|default:"Angola" }}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Contact -->
+    {% if patient.emergency_contact_name %}
+    <div class="info-section avoid-break">
+        <h2 class="section-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            Emergency Contact
+        </h2>
+        <div class="section-content">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-user"></i>
+                        Contact Name
+                    </div>
+                    <div class="info-value">{{ patient.emergency_contact_name }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-users"></i>
+                        Relationship
+                    </div>
+                    <div class="info-value">{{ patient.emergency_contact_relationship|default:"Not specified" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-phone"></i>
+                        Phone Number
+                    </div>
+                    <div class="info-value">{{ patient.emergency_contact_phone|default:"Not specified" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Doctor's Notes/Advice Section -->
+    <div class="advice-section avoid-break">
+        <div class="advice-header">
+            <i class="fas fa-user-md"></i>
+            Doctor's Notes & Advice
+        </div>
+        <div class="advice-content">
+            <div class="advice-lines"></div>
+        </div>
+        <p style="font-size: 11px; color: #666; margin-bottom: 0;">
+            This section is reserved for handwritten notes and medical advice by the attending physician.
+        </p>
+
+        <!-- Signature Area -->
+        <div class="signature-area">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-label">Doctor's Signature</div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-label">Date</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Footer -->
+    <div class="document-footer">
+        <div class="footer-content">
+            <div class="footer-item">
+                <div class="footer-label">Hospital</div>
+                <div class="footer-value">Zango Mediclinic</div>
+            </div>
+            <div class="footer-item">
+                <div class="footer-label">Address</div>
+                <div class="footer-value">Luanda, Angola</div>
+            </div>
+            <div class="footer-item">
+                <div class="footer-label">Phone</div>
+                <div class="footer-value">+244 XXX XXX XXX</div>
+            </div>
+            <div class="footer-item">
+                <div class="footer-label">Generated</div>
+                <div class="footer-value">{% now "M d, Y H:i" %}</div>
+            </div>
+        </div>
+
+        <div class="confidential-notice">
+            <i class="fas fa-lock" style="margin-right: 6px;"></i>
+            CONFIDENTIAL MEDICAL RECORD - This document contains sensitive patient information
+            and is intended solely for authorized healthcare personnel. Unauthorized access or
+            disclosure is prohibited and may result in legal action.
+        </div>
+    </div>
+
+
+    <script src="{% static 'js/patients/patient_print.js' %}"></script>
+</body>
+</html>

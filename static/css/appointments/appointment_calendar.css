@@ -1,0 +1,654 @@
+.calendar-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    }
+
+.calendar-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(50px, -50px);
+    }
+
+.calendar-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    }
+
+.calendar-subtitle {
+    opacity: 0.8;
+    font-size: 1rem;
+    }
+
+.calendar-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+    }
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    }
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    }
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    }
+
+.calendar-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* FullCalendar container styling */
+#appointmentCalendar {
+    min-height: 600px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Ensure proper spacing for the calendar */
+.fc {
+    height: 100% !important;
+}
+
+.fc-view-harness {
+    height: 100% !important;
+}
+
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    }
+
+.view-buttons {
+    display: flex;
+    background: #f8f9fa;
+    border-radius: 25px;
+    padding: 5px;
+    gap: 5px;
+    }
+
+.view-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    }
+
+.view-btn.active {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    }
+
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+    }
+
+.filter-btn {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+.filter-btn:hover {
+    border-color: #667eea;
+    }
+
+.filter-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    min-width: 250px;
+    display: none;
+    z-index: 1000;
+    }
+
+.filter-menu.show {
+    display: block;
+    }
+
+.filter-group {
+    margin-bottom: 1rem;
+    }
+
+.filter-group:last-child {
+    margin-bottom: 0;
+    }
+
+.filter-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    }
+
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    }
+
+.filter-option {
+    padding: 4px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    }
+
+.filter-option.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    }
+
+    /* FullCalendar Customizations */
+.fc {
+    font-family: inherit;
+    }
+
+.fc-toolbar {
+    margin-bottom: 1.5rem !important;
+    padding: 1rem 0 !important;
+    }
+
+.fc-toolbar-title {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: #2c3e50 !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    margin: 0 20px !important;
+    padding: 10px 0 !important;
+    }
+
+    /* Navigation Button Styling */
+.fc-button {
+    background: linear-gradient(135deg, #6c757d, #495057) !important;
+    border: 2px solid #6c757d !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0.3px !important;
+    }
+
+.fc-button:hover {
+    background: linear-gradient(135deg, #5a6268, #343a40) !important;
+    border-color: #5a6268 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25) !important;
+    animation: buttonPulse 0.6s ease-in-out !important;
+    }
+
+.fc-button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    }
+
+.fc-button:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.25) !important;
+    }
+
+.fc-button:disabled {
+    background: linear-gradient(135deg, #e9ecef, #dee2e6) !important;
+    border-color: #e9ecef !important;
+    color: #6c757d !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    }
+
+    /* Button hover animations */
+@keyframes buttonPulse {
+0% { transform: translateY(-2px) scale(1); }
+50% { transform: translateY(-2px) scale(1.05); }
+100% { transform: translateY(-2px) scale(1); }
+    }
+
+    /* Toolbar improvements */
+.fc-toolbar {
+    margin-bottom: 2rem !important;
+    padding: 1rem 0 !important;
+    border-bottom: 2px solid #f8f9fa !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    }
+
+.fc-toolbar-chunk {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    }
+
+    /* Specific button types */
+    .fc-prev-button,
+.fc-next-button {
+    font-size: 16px !important;
+    min-width: 44px !important;
+    height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    }
+
+    .fc-prev-button:before,
+.fc-next-button:before {
+    content: '' !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)) !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1 !important;
+    }
+
+    .fc-prev-button .fc-icon,
+.fc-next-button .fc-icon {
+    z-index: 2 !important;
+    position: relative !important;
+    }
+
+.fc-today-button {
+    font-size: 14px !important;
+    padding: 10px 20px !important;
+    margin-left: 8px !important;
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    border-color: #28a745 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 8px !important;
+    }
+
+.fc-today-button:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34) !important;
+    border-color: #1e7e34 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3) !important;
+    }
+
+    /* Fix button group layout */
+.fc-button-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    }
+
+    /* Ensure toolbar layout is proper */
+.fc-toolbar-chunk {
+    display: flex !important;
+    align-items: center !important;
+    }
+
+    /* Legacy support for older class names */
+.fc-button-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    font-weight: 500 !important;
+    color: white !important;
+    }
+
+.fc-button-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c4298 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3) !important;
+    color: white !important;
+    }
+
+.fc-button-primary:disabled {
+    background: #6c757d !important;
+    opacity: 0.6;
+    }
+
+.fc-daygrid-day {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    }
+
+.fc-daygrid-day:hover {
+    background-color: rgba(102, 126, 234, 0.05) !important;
+    }
+
+.fc-day-today {
+    background-color: rgba(102, 126, 234, 0.1) !important;
+    }
+
+.fc-event {
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 2px 6px !important;
+    margin: 1px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    }
+
+.fc-event:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Appointment Status Colors */
+.fc-event.status-scheduled {
+    background: #e3f2fd !important;
+    color: #1976d2 !important;
+    border-left: 3px solid #1976d2 !important;
+    }
+
+.fc-event.status-confirmed {
+    background: #e8f5e8 !important;
+    color: #2e7d32 !important;
+    border-left: 3px solid #2e7d32 !important;
+    }
+
+.fc-event.status-completed {
+    background: #e8f5e8 !important;
+    color: #2e7d32 !important;
+    border-left: 3px solid #2e7d32 !important;
+    }
+
+.fc-event.status-cancelled {
+    background: #ffebee !important;
+    color: #c62828 !important;
+    border-left: 3px solid #c62828 !important;
+    }
+
+.fc-event.status-in-progress {
+    background: #fff3e0 !important;
+    color: #ef6c00 !important;
+    border-left: 3px solid #ef6c00 !important;
+    }
+
+    /* Priority Indicators */
+.fc-event.priority-urgent {
+    background: linear-gradient(45deg, #dc3545, #fd7e14) !important;
+    color: white !important;
+    animation: pulse 2s infinite;
+    }
+
+.fc-event.priority-high {
+    background: #fff3e0 !important;
+    color: #ef6c00 !important;
+    border-left: 3px solid #ffc107 !important;
+    }
+
+@keyframes pulse {
+0% { opacity: 1; }
+50% { opacity: 0.7; }
+100% { opacity: 1; }
+    }
+
+.appointment-sidebar {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    position: sticky;
+    top: 2rem;
+    }
+
+.sidebar-section {
+    margin-bottom: 2rem;
+    }
+
+.sidebar-section:last-child {
+    margin-bottom: 0;
+    }
+
+.sidebar-title {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    }
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    }
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    }
+
+.quick-action-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+    }
+
+.quick-action-btn:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+    }
+
+.btn-primary-action {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    }
+
+.btn-outline-action {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    }
+
+.btn-outline-action:hover {
+    background: #667eea;
+    color: white;
+    }
+
+.upcoming-appointments {
+    max-height: 300px;
+    overflow-y: auto;
+    }
+
+.upcoming-item {
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    }
+
+.upcoming-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    }
+
+.upcoming-time {
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 2px;
+    }
+
+.upcoming-patient {
+    color: #495057;
+    margin-bottom: 2px;
+    }
+
+.upcoming-doctor {
+    color: #6c757d;
+    font-size: 0.8rem;
+    }
+
+.modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    }
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    }
+
+@media (max-width: 768px) {
+.calendar-header {
+    padding: 1.5rem;
+        }
+
+.calendar-title {
+    font-size: 1.5rem;
+        }
+
+.calendar-stats {
+    grid-template-columns: repeat(2, 1fr);
+        }
+
+.calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+        }
+
+.view-buttons {
+    justify-content: center;
+        }
+
+.appointment-sidebar {
+    position: static;
+    margin-top: 2rem;
+        }
+
+        /* Mobile calendar button adjustments */
+.fc-toolbar {
+    flex-direction: column !important;
+    gap: 1rem !important;
+        }
+
+.fc-toolbar-chunk {
+    justify-content: center !important;
+        }
+
+.fc-button {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+        }
+
+.fc-toolbar-title {
+    font-size: 1.3rem !important;
+    text-align: center !important;
+    margin-bottom: 0.5rem !important;
+        }
+
+    .fc-prev-button,
+.fc-next-button {
+    min-width: 40px !important;
+        }
+
+.fc-today-button {
+    padding: 8px 16px !important;
+        }
+    }
+
+    /* Small mobile devices */
+@media (max-width: 480px) {
+.fc-button {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    margin: 0 2px !important;
+        }
+
+.fc-toolbar-title {
+    font-size: 1.1rem !important;
+        }
+
+    .fc-prev-button,
+.fc-next-button {
+    min-width: 36px !important;
+        }
+
+.calendar-container {
+    padding: 1rem !important;
+        }
+    }

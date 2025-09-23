@@ -1,0 +1,971 @@
+:root {
+            /* Consistent color system */
+    --primary-color: #053377;
+    --secondary-color: #f8f9fa;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+
+            /* Layout variables - unified across system */
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+    --header-height: 70px;
+    --border-radius: 12px;
+
+            /* Consistent transitions */
+    --transition-speed: 0.3s;
+    --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Z-index system */
+    --z-sidebar: 1050;
+    --z-header: 1040;
+    --z-overlay: 1060;
+        }
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+        }
+
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+        }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f7fa;
+    color: #2c3e50;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+        }
+
+        /* RTL Support */
+[dir="rtl"] {
+    direction: rtl;
+        }
+
+[dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+        }
+
+[dir="rtl"] .main-content {
+    margin-left: 0;
+    margin-right: var(--sidebar-width);
+    background-color: #f5f7fa;
+        }
+
+[dir="rtl"] .sidebar.collapsed ~ .main-content {
+    margin-right: 80px;
+        }
+
+[dir="rtl"] .sidebar-nav a {
+    border-left: none;
+    border-right: 3px solid transparent;
+        }
+
+    [dir="rtl"] .sidebar-nav a:hover,
+[dir="rtl"] .sidebar-nav a.active {
+    border-right-color: white;
+        }
+
+        /* Sidebar Styles - Unified and consistent with full height coverage */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    max-height: 100vh;
+    width: var(--sidebar-width);
+    background: var(--primary-color);
+    color: white;
+    transition: width var(--transition-speed) var(--transition-easing),
+    transform var(--transition-speed) var(--transition-easing);
+    z-index: var(--z-sidebar);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Ensure sidebar background fills entire height even with content overflow */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--primary-color);
+    z-index: -1;
+        }
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+        }
+
+.sidebar.active {
+    transform: translateX(0);
+        }
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+.sidebar.collapsed .sidebar-header .logo-text {
+    display: none;
+        }
+
+.sidebar-nav {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+        }
+
+.sidebar-nav li {
+    margin: 0;
+        }
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+        }
+
+    .sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-left-color: #ffc107;
+        }
+
+.sidebar-nav a i {
+    width: 20px;
+    margin-right: 15px;
+    text-align: center;
+    font-size: 1.1rem;
+        }
+
+.sidebar.collapsed .sidebar-nav a span {
+    display: none;
+        }
+
+        /* Navigation section headers */
+.nav-section-header {
+    padding: 0.75rem 1rem 0.5rem 1rem;
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+.nav-section-header:first-child {
+    border-top: none;
+    margin-top: 0;
+        }
+
+.nav-section-title {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+        }
+
+.sidebar.collapsed .nav-section-header {
+    display: none;
+        }
+
+        /* Sidebar Dropdown/Submenu Styles */
+.sidebar-nav .nav-dropdown {
+    position: relative;
+        }
+
+.sidebar-nav .nav-dropdown > a {
+    position: relative;
+        }
+
+.sidebar-nav .nav-dropdown > a::after {
+    content: "\f107"; /* FontAwesome chevron down */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+        }
+
+.sidebar-nav .nav-dropdown.show > a::after {
+    transform: translateY(-50%) rotate(180deg);
+        }
+
+.sidebar-nav .nav-dropdown-menu {
+    display: none;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0.375rem;
+    margin: 0.25rem 0;
+    transition: all 0.3s ease;
+        }
+
+.sidebar-nav .nav-dropdown.show .nav-dropdown-menu {
+    display: block;
+        }
+
+.sidebar-nav .nav-dropdown-menu li {
+    margin: 0;
+        }
+
+.sidebar-nav .nav-dropdown-menu a {
+    padding: 0.5rem 1rem 0.5rem 3.5rem;
+    font-size: 0.9rem;
+    border-radius: 0.25rem;
+    margin: 0.125rem 0.5rem;
+        }
+
+.sidebar-nav .nav-dropdown-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+        }
+
+.sidebar-nav .nav-dropdown-menu a.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-left: 3px solid #ffc107;
+        }
+
+.sidebar.collapsed .nav-dropdown-menu {
+    display: none;
+        }
+
+.sidebar.collapsed .nav-dropdown > a::after {
+    display: none;
+        }
+
+        /* Main Content - Unified layout system */
+.main-content {
+    margin-left: 281px !important;
+    min-height: 100vh;
+    transition: margin-left var(--transition-speed) var(--transition-easing);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+            /* Ensure the content area color matches app background to avoid visual seams */
+    background-color: #f5f7fa;
+        }
+
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+            /* Pull content flush against sidebar by eliminating any potential pixel gaps */
+    padding: 20px 20px 20px 0;
+    margin-left: -1px;
+    overflow-y: auto;
+    min-height: calc(100vh - var(--header-height));
+        }
+
+.content-wrapper > div:not(.main-footer) {
+    flex-grow: 1;
+        }
+
+        /* Consistent footer styling */
+.main-footer {
+    background: #053377 !important;
+    color: white;
+    border-top: none;
+    padding: 20px 30px;
+    font-size: .875rem;
+    flex-shrink: 0;
+    margin: 0;
+    width: 100%;
+        }
+
+        /* Block content should expand to fill space */
+.main-content > .content-wrapper > [id*="block"] {
+    flex: 1;
+        }
+
+.sidebar.collapsed + .main-content {
+    margin-left: 80px !important;
+        }
+
+        /* RTL Support for main content */
+[dir="rtl"] .main-content {
+    margin-left: 0;
+    margin-right: var(--sidebar-width);
+        }
+
+[dir="rtl"] .sidebar.collapsed + .main-content {
+    margin-right: 80px;
+        }
+
+        /* Header */
+.main-header {
+    background: #053377 !important;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+            /* Ensure header stays above sidebar/other overlays for reliable clicks */
+    z-index: var(--z-overlay);
+    border-bottom: 1px solid #e2e8f0;
+    margin-left: 0;
+    width: 100%;
+    transition: margin-left 0.3s ease;
+    min-height: var(--header-height);
+    color: white !important;
+        }
+
+        /* Header text visibility */
+.main-header * {
+    position: relative;
+    z-index: inherit;
+    color: white !important;
+        }
+
+.main-header .navbar-page-title {
+    color: white !important;
+    font-weight: 600;
+        }
+
+.main-header .navbar-page-subtitle {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.875rem;
+        }
+
+.main-header .sidebar-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: white !important;
+    cursor: pointer;
+        }
+
+.main-header .btn {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+.main-header .btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+.main-header .form-control {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+        }
+
+.main-header .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+.main-header .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+        }
+
+.main-header .dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* Language switcher visibility fixes */
+.main-header .language-switcher .btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+        }
+
+.main-header .language-switcher .btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+    color: white !important;
+        }
+
+.main-header .language-switcher .btn:focus {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
+        }
+
+.main-header .language-switcher .btn-outline-light {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+    .main-header .language-switcher .btn-outline-light:hover,
+.main-header .language-switcher .btn-outline-light:focus {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+        }
+
+        /* Language name text visibility */
+.main-header .language-name {
+    color: white !important;
+    font-weight: 500;
+        }
+
+.main-header .language-switcher i {
+    color: white !important;
+        }
+
+        /* Search box visibility */
+.main-header .search-box .form-control {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+        }
+
+.main-header .search-box .form-control:focus {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
+        }
+
+.main-header .search-box .btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+        }
+
+.main-header .search-box .btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+        }
+
+        /* Notification button */
+.main-header .notification-dropdown .btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+        }
+
+.main-header .notification-dropdown .btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* User dropdown */
+.main-header .dropdown .btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+        }
+
+.main-header .dropdown .btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+    .main-header .dropdown .fw-semibold,
+.main-header .dropdown small {
+    color: white !important;
+        }
+
+        /* Dropdown menu contrast */
+.main-header .dropdown-menu {
+    background: white !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+.main-header .dropdown-menu .dropdown-item {
+    color: #212529 !important;
+        }
+
+    .main-header .dropdown-menu .dropdown-item:hover,
+.main-header .dropdown-menu .dropdown-item:focus {
+    background-color: #f8f9fa !important;
+    color: #16181b !important;
+        }
+
+.main-header .dropdown-menu .dropdown-item.active {
+    background-color: #053377 !important;
+    color: white !important;
+        }
+
+.sidebar + .main-content .main-header {
+    margin-left: 0;
+        }
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+        }
+
+.header-middle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+        }
+
+.navbar-page-header {
+    text-align: center;
+        }
+
+.navbar-page-title {
+    color: #2c3e50;
+    font-weight: 600;
+        }
+
+.navbar-page-subtitle {
+    font-size: 0.875rem;
+        }
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+        }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+        }
+
+        /* User Dropdown Integration */
+.header-right .dropdown {
+    position: relative;
+        }
+
+.header-right .dropdown .btn {
+    border: 1px solid #e2e8f0;
+    background: #f8f9fa;
+    color: #495057;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    height: auto;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+        }
+
+.header-right .dropdown .btn:hover {
+    border-color: #d1d5db;
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+    .header-right .dropdown .btn:focus,
+.header-right .dropdown .btn:active {
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.2);
+    border-color: var(--primary-color);
+    background: #f8f9fa;
+        }
+
+.header-right .dropdown .btn.show {
+    border-color: var(--primary-color);
+    background: #f8f9fa;
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.2);
+        }
+
+.header-right .dropdown-menu {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-top: 8px;
+            /* Keep menus above header and content */
+    z-index: calc(var(--z-overlay) + 1);
+        }
+
+        /* Ensure user profile content is properly aligned */
+.header-right .dropdown .btn .d-flex {
+    gap: 8px;
+    align-items: center;
+        }
+
+.notification-dropdown {
+    position: relative;
+        }
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+        }
+
+        /* Content Area */
+.content-wrapper {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    height: calc(100vh - var(--header-height));
+    min-height: 0;
+        }
+
+        /* Ensure proper spacing for hospital admin content */
+.content-wrapper > * {
+    position: relative;
+    z-index: 1;
+        }
+
+        /* Fix for any overlapping elements */
+.card, .alert, .hospital-info-bar {
+    position: relative;
+    z-index: 10;
+        }
+
+        /* Ensure footer stays at bottom */
+.main-footer {
+    background: #053377 !important;
+    border: none !important; /* Remove any borders */
+    margin-top: auto;
+    position: relative;
+    z-index: 1000;
+    clear: both;
+    color: white !important;
+            /* Stay within content-wrapper bounds */
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    padding: 15px 20px;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+        }
+
+.main-footer .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+.main-footer strong {
+    color: white !important;
+        }
+
+        /* Remove any border from footer content */
+.main-footer .border-top {
+    border-top: none !important;
+        }
+
+        /* Footer responsive behavior */
+@media (min-width: 769px) {
+.main-footer {
+                /* Keep footer within main-content area */
+    position: relative;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+            }
+        }
+
+        /* Mobile responsive footer */
+@media (max-width: 768px) {
+.main-footer {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    padding: 12px 15px;
+            }
+        }
+
+        /* --- Footer Layout Fixes --- */
+        /* Ensure proper flex layout for content wrapper */
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--header-height));
+    position: relative;
+        }
+
+        /* Content area should grow to push footer down */
+.content-wrapper > div:not(.main-footer) {
+    flex: 1;
+        }
+
+        /* Ensure footer stays at bottom without phantom space */
+.main-footer {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin-top: auto !important; /* Push to bottom */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding: 16px 20px !important;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+        }
+
+        /* Ensure last element above footer doesn't add large gap */
+.content-wrapper > *:last-child:not(.main-footer) {
+    margin-bottom: 0 !important;
+        }
+
+        /* Prevent horizontal scroll */
+body {
+    overflow-x: hidden;
+        }
+
+        /* Ensure sidebar and main content work together */
+.main-content {
+    flex: 1;
+    position: relative;
+        }
+
+        /* Hospital Info Bar */
+.hospital-info-bar {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+    clear: both;
+        }
+
+.hospital-info-bar .d-flex {
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+        }
+
+        /* Quick Actions Improvements */
+.quick-actions .btn {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+        }
+
+.quick-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+.quick-actions .btn-outline-primary:hover {
+    border-color: #0d6efd;
+    background-color: #0d6efd;
+    color: white;
+        }
+
+.quick-actions .btn-outline-success:hover {
+    border-color: #198754;
+    background-color: #198754;
+    color: white;
+        }
+
+.quick-actions .btn-outline-info:hover {
+    border-color: #0dcaf0;
+    background-color: #0dcaf0;
+    color: white;
+        }
+
+.quick-actions .btn-outline-secondary:hover {
+    border-color: #6c757d;
+    background-color: #6c757d;
+    color: white;
+        }
+
+.quick-actions .btn-outline-warning:hover {
+    border-color: #ffc107;
+    background-color: #ffc107;
+    color: black;
+        }
+
+        /* Cards */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+        }
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid #eee;
+    padding: 20px 24px;
+    font-weight: 600;
+        }
+
+.card-body {
+    padding: 24px;
+        }
+
+        /* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 8px 20px;
+    transition: all 0.3s ease;
+        }
+
+.btn-primary {
+    background: #053377 !important;
+    border-color: #053377 !important;
+    color: white !important;
+        }
+
+.alert-primary {
+    background-color: rgba(5, 51, 119, 0.1) !important;
+    border-color: #053377 !important;
+    color: #053377 !important;
+        }
+
+.bg-primary {
+    background-color: #053377 !important;
+        }
+
+.text-primary {
+    color: #053377 !important;
+        }
+
+        /* Badge primary */
+.badge.bg-primary {
+    background-color: #053377 !important;
+        }
+
+.btn-primary:hover {
+    background: #1e3d72;
+    border-color: #1e3d72;
+        }
+
+        /* Tables */
+.table {
+    margin-bottom: 0;
+        }
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 12px;
+        }
+
+.table td {
+    padding: 16px 12px;
+    vertical-align: middle;
+    border-top: 1px solid #f1f3f4;
+        }
+
+        /* Responsive Design - Single breakpoint system */
+@media (max-width: 768px) {
+.sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+    transition: transform var(--transition-speed) var(--transition-easing);
+            }
+
+.sidebar.active {
+    transform: translateX(0);
+    box-shadow: 2px 0 20px rgba(0,0,0,0.2);
+            }
+
+.main-content {
+    margin-left: 0;
+            }
+
+    .sidebar.collapsed + .main-content,
+.sidebar.collapsed ~ .main-content {
+    margin-left: 0;
+            }
+
+.content-wrapper {
+    padding: 20px 15px;
+            }
+
+.main-header {
+    padding: 0 15px;
+    margin-left: 0;
+            }
+
+.hospital-info-bar .d-flex {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+            }
+
+.hospital-info-bar .d-flex > div {
+    width: 100%;
+            }
+        }
+
+@media (max-width: 576px) {
+.content-wrapper {
+    padding: 15px 10px;
+            }
+
+.main-header {
+    padding: 0 10px;
+    height: auto;
+    min-height: var(--header-height);
+    flex-wrap: wrap;
+    gap: 10px;
+            }
+
+.header-left, .header-right {
+    gap: 10px;
+            }
+
+.brand-text h1 {
+    font-size: 20px;
+            }
+
+.sidebar {
+    width: calc(100% - 60px);
+            }
+        }
+
+        /* Custom Scrollbar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+        }
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+        }
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+        }
+
+        /* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+        }
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+        }

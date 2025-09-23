@@ -1,0 +1,237 @@
+.print-document {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.4;
+}
+
+.hospital-header {
+    border-bottom: 3px solid #007bff;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.hospital-name {
+    color: #007bff;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.hospital-details p {
+    margin: 2px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.hospital-details i {
+    width: 16px;
+    color: #007bff;
+}
+
+.document-header {
+    margin-bottom: 25px;
+}
+
+.document-title {
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.bill-info-section {
+    margin-bottom: 30px;
+}
+
+.info-box {
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.info-box h5 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.info-table {
+    width: 100%;
+    font-size: 14px;
+}
+
+.info-table td {
+    padding: 4px 8px 4px 0;
+    vertical-align: top;
+}
+
+.info-table td:first-child {
+    width: 40%;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-paid { background-color: #d4edda; color: #155724; }
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-draft { background-color: #f8f9fa; color: #6c757d; }
+.status-overdue { background-color: #f8d7da; color: #721c24; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+.status-partially_paid { background-color: #cce5ff; color: #004085; }
+
+.bill-items-section {
+    margin-bottom: 30px;
+}
+
+.bill-items-section h5 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.bill-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .bill-items-table th,
+.bill-items-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.bill-items-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.bill-items-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.bill-summary-section {
+    margin-bottom: 30px;
+}
+
+.notes-section {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.notes-section h6 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.summary-box {
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f8f9ff;
+}
+
+.summary-table {
+    width: 100%;
+    font-size: 14px;
+}
+
+.summary-table td {
+    padding: 6px 0;
+}
+
+.total-row {
+    border-top: 2px solid #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+.total-row td {
+    padding: 12px 0;
+    font-size: 16px;
+    color: #007bff;
+}
+
+.balance-row {
+    border-top: 1px solid #dee2e6;
+}
+
+.balance-row td {
+    padding: 8px 0;
+    color: #dc3545;
+}
+
+.payment-history-section {
+    margin-bottom: 30px;
+}
+
+.payment-history-section h5 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.payment-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+    .payment-history-table th,
+.payment-history-table td {
+    padding: 8px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.payment-history-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+.print-footer {
+    border-top: 1px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 30px;
+}
+
+/* Print-specific styles */
+@media print {
+.print-document {
+    padding: 0;
+    box-shadow: none;
+    }
+
+.info-box {
+    border: 1px solid #ccc;
+    break-inside: avoid;
+    }
+
+.bill-items-table {
+    page-break-inside: avoid;
+    }
+
+.summary-box {
+    break-inside: avoid;
+    }
+
+.payment-history-section {
+    break-inside: avoid;
+    }
+}

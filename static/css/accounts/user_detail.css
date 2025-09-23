@@ -1,0 +1,60 @@
+.btn-save {
+    background: #053377 !important;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+}
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 1rem;
+    }
+.info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+    }
+.info-row:last-child {
+    border-bottom: none;
+    }
+.info-label {
+    font-weight: 600;
+    color: #6c757d;
+    min-width: 140px;
+    }
+.info-value {
+    color: #2c3e50;
+    font-weight: 500;
+    }
+.role-badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    }
+.status-active {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    }
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    }

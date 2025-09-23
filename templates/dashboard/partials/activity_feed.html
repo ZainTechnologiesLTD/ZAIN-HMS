@@ -1,0 +1,100 @@
+{% load i18n %}
+{% load humanize %}
+
+<!-- Activity Feed Partial Template for HTMX Updates (Alpine-free, no nested HTMX) -->
+<div class="activity-feed-container">
+    <div class="card-body p-0">
+        <div class="activity-list">
+            {% if recent_activities %}
+                {% for activity in recent_activities %}
+                <div class="activity-item" role="listitem">
+                    <div class="activity-icon {% if activity.activity_type == 'patient_registration' %}bg-success{% elif activity.activity_type == 'appointment_scheduled' %}bg-primary{% elif activity.activity_type == 'appointment_modified' %}bg-warning{% elif activity.activity_type == 'test_result' %}bg-info{% else %}bg-secondary{% endif %}">
+                        {% if activity.activity_type == 'patient_registration' %}
+                            <i class="bi bi-person-plus" aria-hidden="true"></i>
+                        {% elif activity.activity_type == 'appointment_scheduled' %}
+                            <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+                        {% elif activity.activity_type == 'appointment_modified' %}
+                            <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                        {% elif activity.activity_type == 'test_result' %}
+                            <i class="bi bi-clipboard-data" aria-hidden="true"></i>
+                        {% elif activity.activity_type == 'billing' %}
+                            <i class="bi bi-receipt" aria-hidden="true"></i>
+                        {% else %}
+                            <i class="bi bi-activity" aria-hidden="true"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="activity-content">
+                        <div class="activity-header">
+                            <p class="activity-description mb-1">
+                                <strong>{% if activity.user %}{{ activity.user.get_full_name|default:activity.user.username|default:"System" }}{% else %}{{ activity.user_name|default:"System" }}{% endif %}</strong>
+                                {{ activity.description }}
+                                {% if activity.target_object %}
+                                    <a href="{{ activity.get_target_url }}"
+                                       class="text-decoration-none"
+                                       aria-label="{% trans 'View details' %}">
+                                        {{ activity.target_object }}
+                                    </a>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="activity-meta d-flex align-items-center gap-3">
+                            <small class="text-muted d-flex align-items-center">
+                                <i class="bi bi-clock me-1" aria-hidden="true"></i>
+                                <time datetime="{{ activity.timestamp|date:'c' }}"
+                                      title="{{ activity.timestamp|date:'F j, Y, g:i A' }}">
+                                    {{ activity.timestamp|naturaltime }}
+                                </time>
+                            </small>
+
+                            {% if activity.ip_address %}
+                            <small class="text-muted d-flex align-items-center">
+                                <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
+                                {{ activity.ip_address }}
+                            </small>
+                            {% endif %}
+
+                            {% if activity.priority %}
+                            <span class="badge badge-sm {% if activity.priority == 'high' %}bg-danger{% elif activity.priority == 'medium' %}bg-warning{% elif activity.priority == 'low' %}bg-info{% endif %}">
+                                {{ activity.get_priority_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if activity.can_dismiss %}
+                    <div class="activity-actions">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                hx-delete="{% url 'dashboard:dismiss_activity' activity.id %}"
+                                hx-target="closest .activity-item"
+                                hx-swap="outerHTML"
+                                hx-confirm="{% trans 'Are you sure you want to dismiss this activity?' %}"
+                                title="{% trans 'Dismiss activity' %}">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state text-center py-5" role="status">
+                    <div class="empty-state-icon mb-3">
+                        <i class="bi bi-bell-slash text-muted" style="font-size: 3rem;" aria-hidden="true"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">{% trans "No Recent Activity" %}</h6>
+                    <p class="text-muted small mb-3">
+                        {% trans "When you start using the system, recent activities will appear here." %}
+                    </p>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary"
+                            onclick="htmx.trigger('#activities-container', 'refresh')">
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        {% trans "Refresh" %}
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
