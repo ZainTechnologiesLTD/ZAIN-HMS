@@ -91,12 +91,13 @@ simple_*.html
 cookies.txt
 hospital_*.db
 
-# Documentation and report files (keep README.md)
+# Documentation and report files (keep README.md and docs/ directory)
 *.md
 !README.md
 !CHANGELOG.md
 !CONTRIBUTING.md
 !LICENSE.md
+!docs/*.md
 
 # Temporary files
 *.tmp
