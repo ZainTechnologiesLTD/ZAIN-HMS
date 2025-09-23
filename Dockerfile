@@ -40,8 +40,11 @@ WORKDIR /app
 # Copy application code
 COPY --chown=zain:zain . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create necessary directories
+RUN mkdir -p logs media staticfiles
+
+# Skip collectstatic in Docker build - will be done at runtime
+# RUN python manage.py collectstatic --noinput
 
 # Configure nginx and supervisor
 COPY docker/nginx.conf /etc/nginx/sites-available/default
