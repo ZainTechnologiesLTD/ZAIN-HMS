@@ -10,6 +10,11 @@ VERSION_MAJOR = 2
 VERSION_MINOR = 1
 VERSION_PATCH = 0
 
+# Branch configuration for updates
+PRODUCTION_BRANCH = "main"  # Clients get updates from this branch
+DEVELOPMENT_BRANCH = "development"  # Active development happens here
+UPDATE_CHECK_BRANCH = PRODUCTION_BRANCH  # Which branch to check for updates
+
 # Release information
 RELEASE_NAME = "ZAIN HMS v2.1.0"
 RELEASE_CODENAME = "September 2025 Release"

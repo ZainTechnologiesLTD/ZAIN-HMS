@@ -1,0 +1,86 @@
+name: Production Release Workflow
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v2.1.0)'
+        required: true
+        default: 'v2.1.0'
+
+jobs:
+  create-production-release:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout Development
+      uses: actions/checkout@v4
+      with:
+        ref: development
+        fetch-depth: 0
+        
+    - name: Setup Git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        
+    - name: Create/Update Main Branch
+      run: |
+        # Check if main branch exists
+        if git ls-remote --exit-code origin main; then
+          echo "Main branch exists, updating..."
+          git checkout main
+          git pull origin main
+          git merge development --no-ff -m "Release: Merge development into main for production"
+        else
+          echo "Creating main branch from development..."
+          git checkout -b main
+        fi
+        
+    - name: Push Main Branch
+      run: |
+        git push origin main
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name || github.event.inputs.version }}
+        release_name: "ZAIN HMS ${{ github.ref_name || github.event.inputs.version }}"
+        body: |
+          🏥 **ZAIN HMS Production Release**
+          
+          ## 🚀 New Features & Improvements
+          - Production-ready deployment system
+          - Zero-downtime updates with maintenance mode
+          - Automated database migration validation
+          - In-app update notifications
+          - Enhanced security and monitoring
+          
+          ## 🛡️ Security & Safety
+          - Migration rollback capabilities
+          - Automatic backup creation
+          - Enhanced authentication systems
+          - Comprehensive audit logging
+          
+          ## 📋 Installation & Update
+          Clients should update from the `main` branch for production releases.
+          
+          For detailed changelog, see [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+        draft: false
+        prerelease: false
+
+  notify-production-update:
+    needs: create-production-release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Update Notifications
+      run: |
+        echo "🔔 Production release completed!"
+        echo "Clients will be notified of available updates automatically"
+        echo "New version available on main branch: ${{ github.ref_name || github.event.inputs.version }}"
