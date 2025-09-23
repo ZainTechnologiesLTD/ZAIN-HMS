@@ -162,3 +162,45 @@ ipython_config.py
 hospitals/*/db.sqlite3
 hospitals/*/*.db
 staticfiles/
+
+# Cleanup & Organization Updates (2024)
+# Logs and archived logs
+logs/*.log
+logs/*_*.log
+
+# Backup files and folders
+backups/
+*.backup
+*.bak
+*.tmp
+
+# Test files
+test_*.html
+*_test.html
+test_data/
+chatbot_test.html
+navbar_footer_color_test.html
+full_width_test.html
+
+# Personal/temporary files
+haiku.py
+todo_personal.md
+temp_*
+scratch.*
+
+# Production deployment files (keep deploy_unified.sh only)
+deploy_*.sh
+settings_production.py
+
+# Archive and cleanup files
+*_COMPLETE.md
+*_SUMMARY.md
+*_REPORT.md
+*_FIX.md
+verify_*.sh
+
+# Build and cache artifacts
+.cache/
+.pytest_cache/
+.coverage
+.nyc_output

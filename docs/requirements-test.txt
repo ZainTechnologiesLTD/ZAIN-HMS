@@ -1,0 +1,23 @@
+# Testing-specific requirements
+# Install with: pip install -r requirements-test.txt
+
+# Include base requirements
+-r requirements.txt
+
+# Testing framework
+pytest==8.3.3
+pytest-django==4.9.0
+pytest-cov==5.0.0
+pytest-mock==3.14.0
+pytest-xdist==3.6.0
+
+# Test data generation
+factory-boy==3.3.1
+faker==30.0.0
+
+# Code coverage
+coverage==7.6.1
+
+# Testing utilities
+responses==0.25.3
+freezegun==1.5.1

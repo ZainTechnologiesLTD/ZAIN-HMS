@@ -58,7 +58,7 @@ source venv/bin/activate
 
 print_status "Installing Python dependencies..."
 pip install --upgrade pip
-pip install -r requirements_production.txt
+pip install -r requirements.txt
 pip install gunicorn psycopg2-binary redis
 
 print_status "Installing additional production packages..."
@@ -218,7 +218,7 @@ source venv/bin/activate
 git pull origin main
 
 # Install any new dependencies
-pip install -r requirements_production.txt
+pip install -r requirements.txt
 
 # Run migrations
 python manage.py migrate --settings=zain_hms.production_settings

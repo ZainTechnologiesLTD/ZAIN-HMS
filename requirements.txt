@@ -1,0 +1,104 @@
+# ZAIN HMS - Production Requirements (Optimized & Updated)
+
+# ===== CORE DJANGO FRAMEWORK =====
+Django==5.2.6  # Latest stable - All security patches applied
+python-decouple==3.8
+django-environ==0.11.2
+
+# ===== DATABASE & CACHING =====
+psycopg2-binary==2.9.9  # PostgreSQL adapter
+redis==6.4.0  # Updated from 5.0.1 - Latest stable
+django-redis==5.4.0
+hiredis==2.2.3  # Redis performance optimization
+
+# ===== API FRAMEWORK =====
+djangorestframework==3.16.1  # Updated from 3.14.0 - Latest stable  
+django-cors-headers==4.3.1
+drf-spectacular==0.26.5  # API documentation
+
+# ===== BACKGROUND TASKS =====
+celery==5.5.3  # Updated from 5.3.4 - Latest stable
+# django-celery-beat==2.5.0  # TEMPORARY: Disabled due to Django 5.2+ compatibility issue
+# django-celery-results==2.5.1  # TEMPORARY: Disabled due to Django 5.2+ compatibility issue
+
+# ===== SECURITY & AUTHENTICATION =====
+django-otp==1.3.0
+qrcode==7.4.2
+cryptography>=43.0.1  # Added - used for secure operations
+django-two-factor-auth==1.15.0
+
+# ===== FILE PROCESSING =====
+Pillow==11.3.0  # CRITICAL: Latest version fixes security vulnerabilities
+openpyxl==3.1.2  # Excel file processing
+
+# ===== PDF GENERATION =====
+xhtml2pdf>=0.2.5  # Added - actually used in billing module
+reportlab==4.0.7  # Keep as fallback PDF solution
+
+# ===== COMMUNICATIONS =====
+phonenumbers>=8.13.0  # Added - used for phone validation
+requests==2.32.5  # Updated from 2.31.0 - Latest stable
+django-anymail==10.2
+
+# ===== MONITORING & DEBUGGING =====
+sentry-sdk==2.38.0  # Latest - Critical for production monitoring
+psutil>=5.9.0  # Added - system monitoring utilities
+
+# ===== PRODUCTION SERVER =====
+gunicorn==21.2.0  # WSGI server
+whitenoise==6.6.0  # Static files serving
+
+# ===== STATIC FILES & COMPRESSION =====
+django-compressor==4.4
+csscompressor==0.9.5
+jsmin==3.0.1
+
+# ===== UTILITIES =====
+django-filter>=23.0  # Added - for filtering APIs
+python-barcode>=0.15.1  # Added - barcode generation
+python-dateutil==2.8.2
+pytz==2023.4  # Updated timezone data
+
+# ===== OPTIONAL FEATURES =====
+# Cloud storage (uncomment if using AWS S3)
+# django-storages==1.14.2
+# boto3==1.34.0
+
+# Health monitoring (uncomment if using)
+# django-health-check==3.17.0
+
+# Database backups (uncomment if using)
+# django-dbbackup==4.0.2
+
+# Translation management (uncomment if using)
+# django-rosetta==0.9.9
+
+# Form styling (uncomment if using)
+# django-crispy-forms==2.1
+# crispy-bootstrap5==0.7
+
+# Development tools (uncomment for development)
+# django-debug-toolbar==4.2.0
+# django-extensions==3.2.3
+
+# ===== HEAVY DATA SCIENCE PACKAGES =====
+# Note: These are commented out to reduce Docker image size and installation time
+# Uncomment only if you need data analysis features
+# pandas==2.2.2
+# numpy==1.26.4
+# matplotlib==3.8.2
+# seaborn==0.13.0
+# plotly==5.17.0
+
+# Additional Excel processing (uncomment if needed)
+# xlsxwriter==3.1.9
+
+# Alternative PDF processor (uncomment if needed)
+# weasyprint==60.2
+
+# OpenAI integration (uncomment if using AI features)
+# openai>=1.12.0
+
+# Note: Development and testing dependencies are in separate files:
+# - requirements-dev.txt: Development tools and debugging
+# - requirements-test.txt: Testing frameworks and coverage tools

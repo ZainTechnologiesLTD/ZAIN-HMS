@@ -277,7 +277,7 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 # Session Configuration
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_SERIALIZER = 'apps.core.serializers.DateTimeAwareJSONSerializer'  # Handle datetime objects
-SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_COOKIE_AGE = env.int('SESSION_COOKIE_AGE', default=86400)  # 24 hours default, overridden in production
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
@@ -354,7 +354,6 @@ LOGIN_ATTEMPT_TIMEOUT = 300  # 5 minutes timeout for failed attempts
 
 # Enhanced Session Security
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_AGE = 3600  # 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -570,5 +569,252 @@ ADMIN_INDEX_TITLE = 'Hospital Dashboard'
 # Custom Admin Settings  
 ADMIN_SHOW_FULL_RESULT_COUNT = False
 ADMIN_REORDER_APPS = True
+
+# PRODUCTION ENVIRONMENT CONFIGURATION
+# Load additional production settings if ENVIRONMENT=production
+ENVIRONMENT = env('ENVIRONMENT', default='development')
+
+if ENVIRONMENT == 'production':
+    # Production-specific imports
+    import logging.config
+    import secrets
+    
+    # SECURITY OVERRIDES FOR PRODUCTION
+    DEBUG = False
+    SECRET_KEY = env('SECRET_KEY', default=secrets.token_urlsafe(50))
+    ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')  # Required in production
+    
+    # HTTPS SECURITY - Healthcare Grade
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_TLS = True
+    
+    # HSTS (HTTP Strict Transport Security) - Healthcare grade
+    SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=31536000)  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Enhanced Security Headers
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+    
+    # Session Security
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_AGE = env.int('SESSION_COOKIE_AGE', default=3600)  # 1 hour default
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    
+    # Enhanced CSRF Protection
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    
+    # Content Security Policy - Healthcare Grade
+    CSP_DEFAULT_SRC = ["'self'"]
+    CSP_SCRIPT_SRC = [
+        "'self'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://unpkg.com",
+    ]
+    CSP_STYLE_SRC = [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+    ]
+    CSP_IMG_SRC = ["'self'", "data:", "https:"]
+    CSP_FONT_SRC = ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"]
+    
+    # Enhanced Cache Configuration (Redis for production)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': env('REDIS_CACHE_URL', default='redis://127.0.0.1:6379/1'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+                'CONNECTION_POOL_KWARGS': {
+                    'max_connections': 50,
+                    'retry_on_timeout': True,
+                },
+            },
+            'KEY_PREFIX': 'zain_hms',
+            'TIMEOUT': 300,  # 5 minutes default
+        },
+        'sessions': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': env('REDIS_CACHE_URL', default='redis://127.0.0.1:6379/2'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'sessions',
+            'TIMEOUT': 3600,  # 1 hour
+        },
+        'locks': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': env('REDIS_CACHE_URL', default='redis://127.0.0.1:6379/3'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'locks',
+            'TIMEOUT': 300,
+        }
+    }
+    
+    # Use Redis for sessions (performance + security)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'sessions'
+    
+    # Production Database optimization
+    DATABASES['default'].update({
+        'CONN_MAX_AGE': 60,
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'isolation_level': None,
+        }
+    })
+    
+    # Static Files with WhiteNoise optimization
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = False  # Disabled in production
+    
+    # Enhanced Password Validation for Production
+    AUTH_PASSWORD_VALIDATORS = [
+        {
+            'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+            'OPTIONS': {
+                'min_length': 12,  # Healthcare grade - 12 chars minimum
+            }
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        },
+    ]
+    
+    # Production Email Configuration
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@zainhms.com')
+    
+    # Error email notifications
+    ADMINS = [
+        ('Admin', env('ADMIN_EMAIL', default='admin@zainhms.com')),
+    ]
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+    
+    # Enhanced Production Logging
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+        },
+        'filters': {
+            'require_debug_false': {
+                '()': 'django.utils.log.RequireDebugFalse',
+            },
+        },
+        'handlers': {
+            'file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': BASE_DIR / 'logs' / 'django.log',
+                'maxBytes': 1024*1024*15,  # 15MB
+                'backupCount': 10,
+                'formatter': 'verbose',
+            },
+            'file_auth': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': BASE_DIR / 'logs' / 'authentication.log',
+                'maxBytes': 1024*1024*10,  # 10MB
+                'backupCount': 5,
+                'formatter': 'verbose',
+            },
+            'file_security': {
+                'level': 'WARNING',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': BASE_DIR / 'logs' / 'security.log',
+                'maxBytes': 1024*1024*5,  # 5MB
+                'backupCount': 5,
+                'formatter': 'verbose',
+                'filters': ['require_debug_false'],
+            },
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple'
+            },
+        },
+        'root': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'django.security': {
+                'handlers': ['file_security'],
+                'level': 'WARNING',
+                'propagate': False,
+            },
+            'apps.accounts': {
+                'handlers': ['file_auth'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'apps': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
+    
+    # Sentry Configuration for Error Monitoring
+    SENTRY_DSN = env('SENTRY_DSN', default=None)
+    if SENTRY_DSN:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+        from sentry_sdk.integrations.celery import CeleryIntegration
+        
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[
+                DjangoIntegration(auto_enabling=True),
+                CeleryIntegration(monitor_beat_tasks=True),
+            ],
+            traces_sample_rate=0.1,
+            send_default_pii=False,  # Healthcare compliance
+            environment='production',
+        )
 
 
