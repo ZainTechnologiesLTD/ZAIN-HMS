@@ -11,9 +11,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Repository configuration
-REPO_NAME="zain_hms"
+REPO_NAME="ZAIN-HMS"
 REPO_DESCRIPTION="ZAIN Hospital Management System - Private Repository"
-GITHUB_USERNAME="your-github-username"  # Update this with your GitHub username
+GITHUB_USERNAME="MehediHossain95"
+GITHUB_ORG="Zain-Technologies-22"  # Organization name
 
 echo -e "${BLUE}🚀 GitHub Repository Setup for ZAIN HMS${NC}"
 echo "=============================================="
@@ -36,34 +37,45 @@ fi
 
 echo -e "${GREEN}✅ GitHub CLI is ready${NC}"
 
-# Create private repository
-echo -e "${BLUE}📁 Creating private repository: ${REPO_NAME}${NC}"
+# Check if repository already exists
+echo -e "${BLUE}🔍 Checking if repository exists${NC}"
 
-gh repo create ${REPO_NAME} \
-    --private \
-    --description "${REPO_DESCRIPTION}" \
-    --gitignore Python \
-    --license MIT
-
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Repository created successfully${NC}"
+if gh repo view ${GITHUB_ORG}/${REPO_NAME} &> /dev/null; then
+    echo -e "${GREEN}✅ Repository ${GITHUB_ORG}/${REPO_NAME} already exists${NC}"
+    REPO_EXISTS=true
 else
-    echo -e "${RED}❌ Failed to create repository${NC}"
-    exit 1
+    # Create private repository in organization
+    echo -e "${BLUE}📁 Creating private repository: ${REPO_NAME} in ${GITHUB_ORG}${NC}"
+    
+    gh repo create ${GITHUB_ORG}/${REPO_NAME} \
+        --private \
+        --description "${REPO_DESCRIPTION}" \
+        --gitignore Python \
+        --license MIT
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✅ Repository created successfully${NC}"
+        REPO_EXISTS=true
+    else
+        echo -e "${RED}❌ Failed to create repository${NC}"
+        exit 1
+    fi
 fi
 
-# Clone the repository locally (if not already in the directory)
+# Initialize git repository and set remote
 if [ ! -d ".git" ]; then
-    echo -e "${BLUE}📥 Cloning repository locally${NC}"
-    cd ..
-    git clone https://github.com/${GITHUB_USERNAME}/${REPO_NAME}.git
-    cd ${REPO_NAME}
-fi
-
-# Initialize git if needed
-if [ ! -d ".git" ]; then
+    echo -e "${BLUE}� Initializing git repository${NC}"
     git init
-    git remote add origin https://github.com/${GITHUB_USERNAME}/${REPO_NAME}.git
+    git remote add origin https://github.com/${GITHUB_ORG}/${REPO_NAME}.git
+else
+    # Update remote if it's different
+    CURRENT_REMOTE=$(git remote get-url origin 2>/dev/null)
+    EXPECTED_REMOTE="https://github.com/${GITHUB_ORG}/${REPO_NAME}.git"
+    
+    if [ "$CURRENT_REMOTE" != "$EXPECTED_REMOTE" ]; then
+        echo -e "${BLUE}🔧 Updating git remote${NC}"
+        git remote set-url origin $EXPECTED_REMOTE
+    fi
 fi
 
 # Create branch protection rules
@@ -243,7 +255,7 @@ A comprehensive hospital management system built with Django and modern web tech
 
 1. Clone the repository:
 \`\`\`bash
-git clone https://github.com/${GITHUB_USERNAME}/${REPO_NAME}.git
+git clone https://github.com/${GITHUB_ORG}/${REPO_NAME}.git
 cd ${REPO_NAME}
 \`\`\`
 
@@ -317,7 +329,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you encounter any issues or need support:
 
 1. Check the [documentation](docs/)
-2. Search existing [issues](https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/issues)
+2. Search existing [issues](https://github.com/${GITHUB_ORG}/${REPO_NAME}/issues)
 3. Create a new issue if needed
 
 ## 🏆 Acknowledgments
@@ -332,6 +344,40 @@ If you encounter any issues or need support:
 EOF
 
 echo -e "${GREEN}✅ Repository structure created successfully${NC}"
+
+# Setup repository secrets
+echo -e "${BLUE}🔐 Setting up repository secrets${NC}"
+
+# Set the HMS_SECRET that you provided
+echo -e "${BLUE}   Adding HMS_SECRET...${NC}"
+echo "MehediBabo@1521" | gh secret set HMS_SECRET --repo ${GITHUB_ORG}/${REPO_NAME}
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ HMS_SECRET added successfully${NC}"
+else
+    echo -e "${YELLOW}   ⚠️  Failed to add HMS_SECRET. You can add it manually later.${NC}"
+fi
+
+# Add other essential secrets (you'll need to update these values)
+echo -e "${BLUE}   Setting up placeholder secrets...${NC}"
+
+# Django Secret Key (generate a new one for production)
+DJANGO_SECRET_KEY=$(python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())' 2>/dev/null || echo "django-insecure-change-this-in-production-$(date +%s)")
+echo "$DJANGO_SECRET_KEY" | gh secret set DJANGO_SECRET_KEY --repo ${GITHUB_ORG}/${REPO_NAME} 2>/dev/null
+
+# Database URL placeholder
+echo "postgresql://postgres:password@localhost:5432/zain_hms" | gh secret set DATABASE_URL --repo ${GITHUB_ORG}/${REPO_NAME} 2>/dev/null
+
+# Docker Hub credentials placeholders (you'll need to update these)
+echo "your-dockerhub-username" | gh secret set DOCKER_USERNAME --repo ${GITHUB_ORG}/${REPO_NAME} 2>/dev/null
+echo "your-dockerhub-password" | gh secret set DOCKER_PASSWORD --repo ${GITHUB_ORG}/${REPO_NAME} 2>/dev/null
+
+# Server deployment placeholders (you'll need to update these)
+echo "your-server-ip" | gh secret set SERVER_HOST --repo ${GITHUB_ORG}/${REPO_NAME} 2>/dev/null
+echo "ubuntu" | gh secret set SERVER_USER --repo ${GITHUB_ORG}/${REPO_NAME} 2>/dev/null
+
+echo -e "${GREEN}   ✅ Basic secrets configured${NC}"
+echo -e "${YELLOW}   ⚠️  Please update the placeholder secrets with your actual values${NC}"
 
 # Add all files to git
 echo -e "${BLUE}📤 Adding files to git${NC}"
@@ -350,11 +396,17 @@ git push -u origin main
 echo -e "${GREEN}✅ Repository setup completed successfully!${NC}"
 echo ""
 echo -e "${YELLOW}📋 Next Steps:${NC}"
-echo "1. Update GITHUB_USERNAME in this script with your actual username"
-echo "2. Add repository secrets in GitHub Settings > Secrets and variables > Actions"
-echo "3. Review and update the CI/CD pipeline in .github/workflows/"
-echo "4. Configure your production server details"
+echo "1. ✅ Repository configured with your organization: ${GITHUB_ORG}"
+echo "2. ✅ HMS_SECRET has been added to repository secrets"
+echo "3. 🔧 Update placeholder secrets in GitHub Settings > Secrets and variables > Actions:"
+echo "   - DOCKER_USERNAME (your Docker Hub username)"
+echo "   - DOCKER_PASSWORD (your Docker Hub password)"
+echo "   - SERVER_HOST (your production server IP)"
+echo "   - SERVER_USER (your server username, usually 'ubuntu')"
+echo "   - SERVER_SSH_KEY (your private SSH key for server access)"
+echo "4. Review and update the CI/CD pipeline in .github/workflows/"
 echo "5. Test the deployment pipeline"
 echo ""
-echo -e "${BLUE}🔗 Repository URL: https://github.com/${GITHUB_USERNAME}/${REPO_NAME}${NC}"
+echo -e "${BLUE}🔗 Repository URL: https://github.com/${GITHUB_ORG}/${REPO_NAME}${NC}"
+echo -e "${BLUE}🔐 Secrets URL: https://github.com/${GITHUB_ORG}/${REPO_NAME}/settings/secrets/actions${NC}"
 EOF

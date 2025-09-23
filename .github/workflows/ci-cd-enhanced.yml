@@ -1,0 +1,389 @@
+name: 🚀 ZAIN HMS CI/CD Pipeline
+on:
+  push:
+    branches: [ main, development ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, development ]
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  DJANGO_SETTINGS_MODULE: 'zain_hms.settings'
+
+jobs:
+  # =====================================
+  # TESTING & QUALITY ASSURANCE
+  # =====================================
+  test:
+    name: 🧪 Tests & Quality Checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_zain_hms
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: 📦 Cache Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+    
+    - name: 🔧 Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest-django pytest-xdist
+    
+    - name: 🔍 Code Quality Checks
+      run: |
+        # Linting with flake8
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: 🔒 Security Audit
+      run: |
+        pip install safety bandit
+        safety check --json || true
+        bandit -r . -x tests/ -f json || true
+    
+    - name: 🧪 Run Django Tests
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_zain_hms
+        SECRET_KEY: 'test-secret-key-for-ci'
+        DEBUG: False
+      run: |
+        coverage run --source='.' manage.py test
+        coverage report --show-missing
+        coverage xml
+    
+    - name: 📊 Upload Coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  # =====================================
+  # FRONTEND TESTING
+  # =====================================
+  frontend-test:
+    name: 🎨 Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: 📦 Install Frontend Dependencies
+      run: |
+        if [ -f "package.json" ]; then
+          npm ci
+        fi
+    
+    - name: 🧪 Run JavaScript Tests
+      run: |
+        # Run JavaScript unit tests
+        if [ -f "tests/js" ]; then
+          node --test tests/js
+        fi
+    
+    - name: 🔍 Frontend Linting
+      run: |
+        # ESLint for JavaScript
+        if [ -f ".eslintrc.js" ]; then
+          npx eslint static/js/
+        fi
+
+  # =====================================
+  # DATABASE MIGRATION TESTING
+  # =====================================
+  migration-test:
+    name: 🗄️ Migration Safety Check
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: migration_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: 🔧 Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: 🔍 Validate Migrations
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/migration_test
+        SECRET_KEY: 'test-migration-secret'
+      run: |
+        python manage.py validate_migrations --dry-run --check-backward-compatibility
+        python manage.py migrate --verbosity=2
+
+  # =====================================
+  # DOCKER BUILD
+  # =====================================
+  build:
+    name: 🐳 Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test, frontend-test, migration-test]
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🏗️ Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: 🔑 Login to Docker Registry
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: 🏷️ Extract Metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ secrets.DOCKER_USERNAME }}/zain-hms
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha
+    
+    - name: 🚀 Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.prod
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          VERSION=${{ github.ref_name }}
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          GIT_COMMIT=${{ github.sha }}
+
+  # =====================================
+  # PRODUCTION DEPLOYMENT
+  # =====================================
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    environment: 
+      name: production
+      url: https://zainhms.com
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🔧 Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+    
+    - name: 🚀 Deploy to Server
+      env:
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/zain-hms:${{ github.sha }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        SECRET_KEY: ${{ secrets.HMS_SECRET }}
+      run: |
+        # Copy deployment script to server
+        scp -o StrictHostKeyChecking=no scripts/deploy.sh $SERVER_USER@$SERVER_HOST:/tmp/
+        
+        # Execute deployment
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          export DOCKER_IMAGE="${{ env.DOCKER_IMAGE }}"
+          export DATABASE_URL="${{ env.DATABASE_URL }}"
+          export SECRET_KEY="${{ env.SECRET_KEY }}"
+          export VERSION="${{ github.ref_name }}"
+          
+          chmod +x /tmp/deploy.sh
+          sudo /tmp/deploy.sh $VERSION
+        EOF
+    
+    - name: 🔍 Health Check
+      run: |
+        # Wait for deployment to complete
+        sleep 60
+        
+        # Perform health check
+        curl -f ${{ secrets.SERVER_HOST }}/health/ || exit 1
+    
+    - name: 📢 Deployment Notification
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ ZAIN HMS v${{ github.ref_name }} deployed successfully!"
+        else
+          echo "❌ ZAIN HMS deployment failed!"
+        fi
+
+  # =====================================
+  # RELEASE AUTOMATION
+  # =====================================
+  release:
+    name: 📦 Create Release
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 🏷️ Get Version
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: 📝 Generate Release Notes
+      id: release_notes
+      run: |
+        # Generate comprehensive release notes
+        cat > release_notes.md << 'EOF'
+        # ZAIN HMS v${{ steps.version.outputs.VERSION }} 🏥
+        
+        ## 🚀 What's New
+        - Enhanced AI clinical decision support
+        - Improved multi-tenant hospital management
+        - Better security and performance
+        - Updated dependencies and bug fixes
+        
+        ## 🏥 Healthcare Features
+        - Complete Electronic Medical Records (EMR)
+        - AI-powered clinical alerts and decision support
+        - Multi-tenant hospital management
+        - Real-time notifications and alerts
+        - Comprehensive reporting and analytics
+        
+        ## 🔒 Security & Compliance
+        - HIPAA-compliant design patterns
+        - Enhanced data encryption
+        - Role-based access control
+        - Comprehensive audit trails
+        
+        ## 📱 Technical Improvements
+        - Zero-downtime deployment capability
+        - Automatic database migration validation
+        - Enhanced mobile responsiveness
+        - Performance optimizations
+        
+        ## 🛠️ Installation
+        ```bash
+        docker pull ${{ secrets.DOCKER_USERNAME }}/zain-hms:${{ steps.version.outputs.VERSION }}
+        ```
+        
+        **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.version.outputs.VERSION }}...HEAD
+        EOF
+    
+    - name: 🎉 Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: release_notes.md
+        name: ZAIN HMS v${{ steps.version.outputs.VERSION }}
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 🔔 Update Notification
+      run: |
+        # Trigger update notification system
+        curl -X POST "${{ secrets.SERVER_HOST }}/api/system/check-updates/" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" || true
+
+  # =====================================
+  # MONITORING & ALERTS
+  # =====================================
+  monitor:
+    name: 📊 Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 🔍 System Health Check
+      run: |
+        # Comprehensive health checks
+        curl -f "${{ secrets.SERVER_HOST }}/health/" || exit 1
+        curl -f "${{ secrets.SERVER_HOST }}/api/system/status/" || exit 1
+    
+    - name: 📈 Performance Check
+      run: |
+        # Basic performance testing
+        response_time=$(curl -o /dev/null -s -w "%{time_total}" "${{ secrets.SERVER_HOST }}/")
+        if (( $(echo "$response_time > 3.0" | bc -l) )); then
+          echo "⚠️ Response time is slow: ${response_time}s"
+        else
+          echo "✅ Response time is good: ${response_time}s"
+        fi
+    
+    - name: 📊 Generate Deployment Report
+      run: |
+        echo "## 📋 Deployment Report - $(date)" >> deployment_report.md
+        echo "- **Version**: ${{ github.ref_name }}" >> deployment_report.md
+        echo "- **Commit**: ${{ github.sha }}" >> deployment_report.md  
+        echo "- **Status**: ✅ Successful" >> deployment_report.md
+        echo "- **Health Check**: ✅ Passed" >> deployment_report.md
+        cat deployment_report.md
