@@ -1,10 +1,16 @@
-# Multi-stage Dockerfile for ZAIN HMS Production
-FROM python:3.11-slim as base
+# 🏥 ZAIN HMS Production Dockerfile
+# Multi-stage build for optimized production deployment
+# Optimized for Ubuntu server deployment
+
+# Build stage
+FROM python:3.12-slim as builder
 
 # Build arguments
-ARG VERSION=dev
+ARG PYTHON_VERSION=3.12
+ARG VERSION=latest
 ARG BUILD_DATE
 ARG VCS_REF
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Labels
 LABEL org.opencontainers.image.title="ZAIN HMS" \
@@ -14,63 +20,88 @@ LABEL org.opencontainers.image.title="ZAIN HMS" \
       org.opencontainers.image.revision="$VCS_REF" \
       org.opencontainers.image.licenses="Proprietary"
 
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Upgrade pip and install wheel
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Production stage
+FROM python:3.12-slim
+
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DJANGO_SETTINGS_MODULE=zain_hms.production_settings \
-    VERSION=$VERSION
+    PATH="/opt/venv/bin:$PATH" \
+    DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        postgresql-client \
-        gettext \
-        mime-support \
-        nginx \
-        supervisor \
-        curl \
-        wget \
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    postgresql-client \
+    curl \
+    gettext \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app user
-RUN groupadd -r app && useradd --no-log-init -r -g app app
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
 
-# Set work directory
+# Create app user with proper permissions
+RUN groupadd -r zain && \
+    useradd -r -g zain -d /app -s /bin/bash zain && \
+    mkdir -p /app /app/logs /app/media /app/staticfiles && \
+    chown -R zain:zain /app
+
+# Set working directory
 WORKDIR /app
 
-# Install Python dependencies
-COPY requirements_production.txt apps/requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements_production.txt \
-    && pip install --no-cache-dir -r requirements.txt
+# Copy application code with proper ownership
+COPY --chown=zain:zain . .
 
-# Copy project files
-COPY --chown=app:app . .
+# Create necessary directories with correct permissions
+RUN mkdir -p logs media staticfiles backups && \
+    chown -R zain:zain logs media staticfiles backups && \
+    chmod +x docker/entrypoint.prod.sh
 
-# Create required directories
-RUN mkdir -p /app/staticfiles /app/media /app/logs \
-    && chown -R app:app /app
+# Copy supervisor configuration
+COPY docker/supervisord.prod.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Install application and collect static files
+RUN python manage.py collectstatic --noinput --clear && \
+    python manage.py compilemessages || true
 
-# Configure Nginx
-COPY docker/nginx.conf /etc/nginx/sites-available/default
-COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
+# Health check script
+RUN echo '#!/bin/bash\ncurl -f http://localhost:8000/health/ || exit 1' > /app/healthcheck.sh && \
+    chmod +x /app/healthcheck.sh
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health/ || exit 1
-
-# Create entrypoint script
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Switch to app user
-USER app
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /app/healthcheck.sh
 
 # Expose port
 EXPOSE 8000
 
-# Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+# Switch to app user
+USER zain
+
+# Entry point
+ENTRYPOINT ["docker/entrypoint.prod.sh"]
+
+# Default command
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--worker-class", "gthread", "--threads", "2", "--worker-connections", "1000", "--max-requests", "1000", "--max-requests-jitter", "100", "--preload", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "zain_hms.wsgi:application"]

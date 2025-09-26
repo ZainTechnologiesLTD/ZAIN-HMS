@@ -1,0 +1,160 @@
+name: 📦 Create Downloadable Release Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  create-release-package:
+    name: 📦 Create Release Package
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🛒 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🐳 Set up Docker
+        uses: docker/setup-buildx-action@v3
+        
+      - name: 📦 Create Offline Package
+        run: |
+          # Make script executable
+          chmod +x scripts/create-offline-package.sh
+          
+          # Create offline package
+          sudo ./scripts/create-offline-package.sh
+          
+      - name: 📋 Create Release Assets
+        run: |
+          # Create release directory
+          mkdir -p release-assets
+          
+          # Copy main installation scripts
+          cp install.sh release-assets/
+          cp install-interactive.sh release-assets/
+          
+          # Copy documentation
+          cp docs/DOWNLOADABLE_SOFTWARE_GUIDE.md release-assets/
+          cp INSTALLATION_COMMANDS.md release-assets/
+          cp README.md release-assets/
+          
+          # Copy offline package if it exists
+          if [ -f zain-hms-offline-installer.tar.gz ]; then
+            mv zain-hms-offline-installer.tar.gz release-assets/
+          fi
+          
+          # Create quick start package
+          tar -czf release-assets/zain-hms-quick-start.tar.gz \
+            install.sh \
+            install-interactive.sh \
+            docs/DOWNLOADABLE_SOFTWARE_GUIDE.md \
+            INSTALLATION_COMMANDS.md
+            
+      - name: 📝 Generate Release Notes
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          # 🏥 ZAIN HMS - Hospital Management System
+          
+          **Bismillahir Rahmanir Raheem**
+          
+          ## 🚀 Quick Installation
+          
+          ### One-Command Installation (Recommended):
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/mehedi-hossain95/zain_hms/main/install.sh | sudo bash
+          ```
+          
+          ### Interactive Installation:
+          ```bash
+          wget https://github.com/mehedi-hossain95/zain_hms/releases/latest/download/install-interactive.sh
+          chmod +x install-interactive.sh
+          sudo ./install-interactive.sh
+          ```
+          
+          ### Offline Installation:
+          1. Download `zain-hms-offline-installer.tar.gz`
+          2. Transfer to your server
+          3. Extract and run: `sudo ./install-offline.sh`
+          
+          ## 📦 Release Assets
+          
+          | File | Description | Size |
+          |------|-------------|------|
+          | `install.sh` | One-command installer | ~15KB |
+          | `install-interactive.sh` | Interactive TUI installer | ~25KB |
+          | `zain-hms-quick-start.tar.gz` | Quick start package | ~50KB |
+          | `zain-hms-offline-installer.tar.gz` | Complete offline package | ~2GB |
+          | `DOWNLOADABLE_SOFTWARE_GUIDE.md` | Complete installation guide | ~30KB |
+          
+          ## 🎯 What's Included
+          
+          ✅ **Complete Hospital Management System**
+          - Patient Management & EMR
+          - Appointment Scheduling
+          - Billing & Insurance
+          - Pharmacy Management
+          - Laboratory Integration
+          - Staff Management
+          - Analytics & Reporting
+          
+          ✅ **Production-Ready Infrastructure**
+          - Docker containerized (NGINX → Django → PostgreSQL)
+          - SSL certificate support
+          - Automated backups
+          - Security hardening
+          - Performance optimization
+          
+          ✅ **Easy Management**
+          - Comprehensive maintenance tools
+          - One-command updates
+          - Health monitoring
+          - Log management
+          
+          ## 📋 System Requirements
+          
+          **Minimum**: Ubuntu 18.04+, 2GB RAM, 20GB storage
+          **Recommended**: Ubuntu 20.04 LTS, 4GB+ RAM, 50GB+ SSD
+          
+          ## 🌐 Access After Installation
+          
+          - **Web Interface**: `http://YOUR_SERVER_IP`
+          - **Admin Panel**: `http://YOUR_SERVER_IP/admin/`
+          - **Default Login**: `admin` / `admin123`
+          
+          ## 🔧 Post-Installation
+          
+          ```bash
+          # Access maintenance tools
+          sudo /opt/zain-hms/scripts/zain-hms-maintenance.sh
+          ```
+          
+          ## 📞 Support
+          
+          - **Documentation**: [Installation Guide](https://github.com/mehedi-hossain95/zain_hms/blob/main/docs/DOWNLOADABLE_SOFTWARE_GUIDE.md)
+          - **Issues**: [GitHub Issues](https://github.com/mehedi-hossain95/zain_hms/issues)
+          - **Email**: support@zainhms.com
+          
+          ---
+          
+          **May Allah bless this software and make it beneficial for healthcare services worldwide. Ameen!** 🤲
+          EOF
+          
+      - name: 🏷️ Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "ZAIN HMS v${{ github.ref_name }}"
+          body_path: release_notes.md
+          files: |
+            release-assets/install.sh
+            release-assets/install-interactive.sh
+            release-assets/zain-hms-quick-start.tar.gz
+            release-assets/zain-hms-offline-installer.tar.gz
+            release-assets/DOWNLOADABLE_SOFTWARE_GUIDE.md
+            release-assets/INSTALLATION_COMMANDS.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

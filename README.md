@@ -47,7 +47,74 @@ ZAIN HMS is a comprehensive, modern hospital management system built with Django
 - **Gunicorn 21.2.0** - Production WSGI server
 - **Nginx** - Reverse proxy and static files
 
-## 📁 Project Structure
+## � Quick Installation (Downloadable Software)
+
+ZAIN HMS can be installed as downloadable software directly from GitHub with just one command:
+
+### 1. One-Command Installation (Recommended)
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZainTechnologiesLTD/ZAIN-HMS/main/install.sh | sudo bash
+```
+
+### 2. Interactive Installation
+```bash
+wget https://raw.githubusercontent.com/ZainTechnologiesLTD/ZAIN-HMS/main/install-interactive.sh
+chmod +x install-interactive.sh
+sudo ./install-interactive.sh
+```
+
+### 3. Clone and Install
+```bash
+git clone https://github.com/ZainTechnologiesLTD/ZAIN-HMS.git
+cd ZAIN-HMS
+sudo ./install.sh
+```
+
+### 4. Offline Installation
+```bash
+# Create offline package (on connected machine)
+git clone https://github.com/ZainTechnologiesLTD/ZAIN-HMS.git
+cd ZAIN-HMS
+sudo ./scripts/create-offline-package.sh
+
+# Transfer and install on target server
+tar -xzf zain-hms-offline-installer.tar.gz
+sudo ./install-offline.sh
+```
+
+### 🎯 What You Get:
+- ✅ Complete 3-container Docker architecture (NGINX → Django → PostgreSQL)
+- ✅ Automatic system setup and configuration
+- ✅ SSL certificate support with Let's Encrypt
+- ✅ Comprehensive maintenance tools
+- ✅ Built-in backup and restore functionality
+- ✅ Production-ready security configuration
+
+### 🌐 Access Your System:
+- **Web Interface**: `http://YOUR_SERVER_IP`
+- **Admin Panel**: `http://YOUR_SERVER_IP/admin/`
+- **Default Login**: `admin` / `admin123`
+
+### 🔧 Post-Installation Management:
+```bash
+sudo /opt/zain-hms/scripts/zain-hms-maintenance.sh
+```
+
+## 📋 System Requirements
+
+### Minimum Requirements
+- **OS**: Ubuntu 18.04+ / CentOS 7+ / Debian 9+
+- **RAM**: 2GB (4GB recommended)
+- **Storage**: 20GB (50GB recommended)
+- **CPU**: 2 cores
+
+### Production Requirements
+- **OS**: Ubuntu 20.04 LTS / CentOS Stream 8+
+- **RAM**: 8GB+ (16GB recommended)
+- **Storage**: 100GB+ SSD
+- **CPU**: 4+ cores
+
+## �📁 Project Structure
 
 ```
 zain_hms/
@@ -218,12 +285,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ZAIN HMS is developed by [Zain Technologies](https://zain-technologies.com), a leading healthcare technology company specializing in digital healthcare solutions.
 
-## 📞 Support
+## 📞 Support & Resources
 
-- **Documentation**: `docs/` directory
-- **Issues**: [GitHub Issues](https://github.com/Zain-Technologies-22/ZAIN-HMS/issues)
-- **Email**: support@zain-technologies.com
-- **Website**: [zain-technologies.com](https://zain-technologies.com)
+- **📚 Documentation**: [Complete Installation Guide](docs/DOWNLOADABLE_SOFTWARE_GUIDE.md)
+- **🐛 Issues**: [GitHub Issues](https://github.com/mehedi-hossain95/zain_hms/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/mehedi-hossain95/zain_hms/discussions)
+- **📧 Email**: support@zainhms.com
+- **🌐 Repository**: [github.com/mehedi-hossain95/zain_hms](https://github.com/mehedi-hossain95/zain_hms)
 
 ---
 

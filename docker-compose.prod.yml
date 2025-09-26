@@ -1,0 +1,192 @@
+# 🏥 ZAIN HMS Production Docker Compose Configuration
+# 3-Container Scalable Architecture: NGINX → Django → PostgreSQL
+
+version: '3.8'
+
+services:
+  # 🐘 PostgreSQL Database Container
+  db:
+    image: postgres:15-alpine
+    container_name: zain_hms_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-zain_hms}
+      POSTGRES_USER: ${DB_USER:-zain_hms_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./backups:/backups
+    networks:
+      - zain_hms_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-zain_hms_user} -d ${DB_NAME:-zain_hms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # 🐍 Django Web Application Container
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+      args:
+        PYTHON_VERSION: 3.12
+    image: ghcr.io/zain-technologies-22/zain-hms:${IMAGE_TAG:-latest}
+    container_name: zain_hms_web
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://${DB_USER:-zain_hms_user}:${DB_PASSWORD}@db:5432/${DB_NAME:-zain_hms}
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - MAIN_DOMAIN=${MAIN_DOMAIN:-localhost}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
+    volumes:
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media
+      - ./logs:/app/logs
+    networks:
+      - zain_hms_network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # 🔄 Redis Cache Container
+  redis:
+    image: redis:7-alpine
+    container_name: zain_hms_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - zain_hms_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # 🌐 NGINX Reverse Proxy Container
+  nginx:
+    image: nginx:alpine
+    container_name: zain_hms_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - static_volume:/var/www/static:ro
+      - media_volume:/var/www/media:ro
+      - ./docker/ssl:/etc/ssl/certs:ro
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - zain_hms_network
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # 📊 Monitoring and Logging (Optional)
+  watchtower:
+    image: containrrr/watchtower
+    container_name: zain_hms_watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_INCLUDE_STOPPED=true
+    networks:
+      - zain_hms_network
+
+# 🌐 Networks Configuration
+networks:
+  zain_hms_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# 💾 Volumes Configuration
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/zain_hms/data/postgres
+  
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/zain_hms/data/redis
+  
+  static_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/zain_hms/data/static
+  
+  media_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/zain_hms/data/media
