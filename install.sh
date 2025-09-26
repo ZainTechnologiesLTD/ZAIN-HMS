@@ -156,27 +156,49 @@ interactive_config() {
     # Domain configuration
     if [ -z "$DOMAIN" ]; then
         echo ""
-        echo -e "${BLUE}Enter your domain name (or press Enter for localhost):${NC}"
-        read -p "Domain: " user_domain
-        DOMAIN=${user_domain:-localhost}
+        # Detect current hostname
+        CURRENT_HOSTNAME=$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo "localhost")
+        
+        # Show detected hostname if it's not localhost or empty
+        if [ "$CURRENT_HOSTNAME" != "localhost" ] && [ -n "$CURRENT_HOSTNAME" ] && [ "$CURRENT_HOSTNAME" != "$(hostname -s)" ]; then
+            echo -e "${GREEN}📡 Current hostname detected: ${YELLOW}$CURRENT_HOSTNAME${NC}"
+            echo -e "${BLUE}Enter your domain name [${YELLOW}$CURRENT_HOSTNAME${BLUE}] or press Enter to use detected hostname:${NC}"
+            read -p "Domain: " -t 30 user_domain
+            DOMAIN=${user_domain:-$CURRENT_HOSTNAME}
+        else
+            echo -e "${BLUE}Enter your domain name (or press Enter for localhost):${NC}"
+            read -p "Domain: " -t 30 user_domain
+            DOMAIN=${user_domain:-localhost}
+        fi
+        
+        echo -e "${GREEN}✅ Using domain: ${YELLOW}$DOMAIN${NC}"
+        sleep 1
     fi
     
     # Installation directory
     echo ""
-    echo -e "${BLUE}Installation directory [${INSTALL_DIR}]:${NC}"
-    read -p "Directory: " user_dir
+    echo -e "${BLUE}Installation directory [${YELLOW}${INSTALL_DIR}${BLUE}] or press Enter to use default:${NC}"
+    read -p "Directory: " -t 20 user_dir
     if [ -n "$user_dir" ]; then
         INSTALL_DIR="$user_dir"
     fi
+    echo -e "${GREEN}✅ Using directory: ${YELLOW}$INSTALL_DIR${NC}"
     
     # Docker installation
     if ! command -v docker &> /dev/null; then
         echo ""
-        echo -e "${BLUE}Docker is not installed. Install Docker? [Y/n]:${NC}"
-        read -p "Install Docker: " install_docker
+        echo -e "${YELLOW}⚠️  Docker is not installed and is required for ZAIN HMS${NC}"
+        echo -e "${BLUE}Would you like to install Docker automatically? [${GREEN}Y${BLUE}/n]:${NC}"
+        read -p "Install Docker: " -t 15 install_docker
         if [[ "$install_docker" =~ ^[Nn]$ ]]; then
             SKIP_DOCKER_INSTALL=true
+            echo -e "${RED}⚠️  Warning: ZAIN HMS requires Docker to run${NC}"
+        else
+            echo -e "${GREEN}✅ Docker will be installed automatically${NC}"
         fi
+        sleep 1
+    else
+        echo -e "${GREEN}✅ Docker is already installed${NC}"
     fi
     
     echo ""
