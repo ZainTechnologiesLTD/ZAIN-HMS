@@ -718,6 +718,18 @@ deploy_application() {
     
     # Start services with latest versions
     echo -e "${BLUE}🚀 Starting services...${NC}"
+    echo -e "${YELLOW}⚙️  Building containers with SSL-aware configuration...${NC}"
+    
+    # Build containers with SSL-aware Docker build args
+    sudo -u "$SERVICE_USER" DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build \
+        --build-arg BUILDKIT_INLINE_CACHE=1 \
+        --build-arg PIP_TRUSTED_HOST="pypi.org pypi.python.org files.pythonhosted.org" || \
+    {
+        echo -e "${YELLOW}⚠️  Build failed, retrying with fallback options...${NC}"
+        sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml build --no-cache
+    }
+    
+    # Start services
     sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d
     
     # Show container status
@@ -808,8 +820,20 @@ sudo -u zain-hms docker-compose -f docker-compose.prod.yml down
 echo -e "${YELLOW}📥 Pulling latest images...${NC}"
 sudo -u zain-hms docker-compose -f docker-compose.prod.yml pull
 
+# Build and start services
+echo -e "${YELLOW}🚀 Building and starting updated services...${NC}"
+echo -e "${YELLOW}⚙️  Building containers with SSL-aware configuration...${NC}"
+
+# Build containers with SSL-aware Docker build args
+sudo -u zain-hms DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build \
+    --build-arg BUILDKIT_INLINE_CACHE=1 \
+    --build-arg PIP_TRUSTED_HOST="pypi.org pypi.python.org files.pythonhosted.org" || \
+{
+    echo -e "${YELLOW}⚠️  Build failed, retrying with fallback options...${NC}"
+    sudo -u zain-hms docker-compose -f docker-compose.prod.yml build --no-cache
+}
+
 # Start services
-echo -e "${YELLOW}🚀 Starting updated services...${NC}"
 sudo -u zain-hms docker-compose -f docker-compose.prod.yml up -d
 
 # Wait for services
