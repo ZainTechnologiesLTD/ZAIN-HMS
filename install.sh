@@ -292,33 +292,51 @@ check_latest_versions() {
     
     # Get latest PostgreSQL version
     echo -e "${BLUE}Checking PostgreSQL latest version...${NC}"
-    POSTGRES_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/postgres/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "15-alpine")
+    POSTGRES_LATEST=$(curl -s "https://hub.docker.com/v2/repositories/library/postgres/tags?page_size=100" | jq -r '.results[]? | select(.name | test("^[0-9]+(\\.0)?-alpine$")) | .name' | sort -V | tail -1 2>/dev/null || echo "16-alpine")
+    if [ -z "$POSTGRES_LATEST" ] || [ "$POSTGRES_LATEST" = "null" ]; then
+        POSTGRES_LATEST="16-alpine"
+    fi
     echo -e "${GREEN}✅ Latest PostgreSQL: $POSTGRES_LATEST${NC}"
     
     # Get latest Redis version  
     echo -e "${BLUE}Checking Redis latest version...${NC}"
-    REDIS_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/redis/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "7-alpine")
+    REDIS_LATEST=$(curl -s "https://hub.docker.com/v2/repositories/library/redis/tags?page_size=50" | jq -r '.results[]? | select(.name | test("^[0-9]+(\\.0)?-alpine$")) | .name' | sort -V | tail -1 2>/dev/null || echo "7-alpine")
+    if [ -z "$REDIS_LATEST" ] || [ "$REDIS_LATEST" = "null" ]; then
+        REDIS_LATEST="7-alpine"
+    fi
     echo -e "${GREEN}✅ Latest Redis: $REDIS_LATEST${NC}"
     
     # Get latest NGINX version
     echo -e "${BLUE}Checking NGINX latest version...${NC}"
-    NGINX_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/nginx/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "alpine")
+    NGINX_LATEST=$(curl -s "https://hub.docker.com/v2/repositories/library/nginx/tags?page_size=50" | jq -r '.results[]? | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | sort -V | tail -1 2>/dev/null || echo "1.25-alpine")
+    if [ -z "$NGINX_LATEST" ] || [ "$NGINX_LATEST" = "null" ]; then
+        NGINX_LATEST="1.25-alpine"
+    fi
     echo -e "${GREEN}✅ Latest NGINX: $NGINX_LATEST${NC}"
     
     # Get latest Python version
     echo -e "${BLUE}Checking Python latest version...${NC}"
-    PYTHON_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/python/tags/ | jq -r '.results[] | select(.name | test("^3\\.[0-9]+-slim$")) | .name' | head -1 2>/dev/null || echo "3.12-slim")
+    PYTHON_LATEST=$(curl -s "https://hub.docker.com/v2/repositories/library/python/tags?page_size=50" | jq -r '.results[]? | select(.name | test("^3\\.[0-9]+-slim$")) | .name' | sort -V | tail -1 2>/dev/null || echo "3.12-slim")
+    if [ -z "$PYTHON_LATEST" ] || [ "$PYTHON_LATEST" = "null" ]; then
+        PYTHON_LATEST="3.12-slim"
+    fi
     echo -e "${GREEN}✅ Latest Python: $PYTHON_LATEST${NC}"
     
     # Get latest Node.js version (for any frontend tools)
     echo -e "${BLUE}Checking Node.js latest LTS version...${NC}"
-    NODE_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/node/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "20-alpine")
+    NODE_LATEST=$(curl -s "https://hub.docker.com/v2/repositories/library/node/tags?page_size=50" | jq -r '.results[]? | select(.name | test("^[0-9]+-alpine$")) | .name' | sort -V | tail -1 2>/dev/null || echo "20-alpine")
+    if [ -z "$NODE_LATEST" ] || [ "$NODE_LATEST" = "null" ]; then
+        NODE_LATEST="20-alpine"
+    fi
     echo -e "${GREEN}✅ Latest Node.js: $NODE_LATEST${NC}"
     
-    # Check for latest security updates
-    echo -e "${BLUE}Checking for security updates...${NC}"
-    SECURITY_CHECK=$(curl -s "https://api.github.com/repos/docker/docker/releases/latest" | jq -r .tag_name 2>/dev/null || echo "latest")
-    echo -e "${GREEN}✅ Latest Docker Engine: $SECURITY_CHECK${NC}"
+    # Check for latest Docker Engine version
+    echo -e "${BLUE}Checking for Docker Engine latest version...${NC}"
+    DOCKER_ENGINE_LATEST=$(curl -s "https://api.github.com/repos/moby/moby/releases/latest" | jq -r '.tag_name' 2>/dev/null || echo "v27.0.0")
+    if [ -z "$DOCKER_ENGINE_LATEST" ] || [ "$DOCKER_ENGINE_LATEST" = "null" ]; then
+        DOCKER_ENGINE_LATEST="v27.0.0"
+    fi
+    echo -e "${GREEN}✅ Latest Docker Engine: $DOCKER_ENGINE_LATEST${NC}"
     
     echo -e "${GREEN}🔍 Version check completed!${NC}"
     echo ""
@@ -489,18 +507,37 @@ download_zain_hms() {
     
     # Get download URL
     if [ "$ZAIN_HMS_VERSION" = "latest" ]; then
-        DOWNLOAD_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
-        RELEASE_INFO=$(curl -s "$DOWNLOAD_URL")
-        DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r '.tarball_url')
-        ZAIN_HMS_VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
+        RELEASE_API_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
+        RELEASE_INFO=$(curl -s "$RELEASE_API_URL")
+        
+        # Check if we got valid release info
+        if [ -n "$RELEASE_INFO" ] && [ "$RELEASE_INFO" != "null" ]; then
+            ZAIN_HMS_VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name' 2>/dev/null)
+            DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r '.tarball_url' 2>/dev/null)
+        fi
+        
+        # Fallback if API fails
+        if [ -z "$ZAIN_HMS_VERSION" ] || [ "$ZAIN_HMS_VERSION" = "null" ] || [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
+            echo -e "${YELLOW}⚠️ GitHub API failed, using main branch${NC}"
+            ZAIN_HMS_VERSION="main"
+            DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/archive/refs/heads/main.tar.gz"
+        fi
     else
         DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/archive/refs/tags/${ZAIN_HMS_VERSION}.tar.gz"
     fi
     
     echo -e "${BLUE}Downloading version: $ZAIN_HMS_VERSION${NC}"
+    echo -e "${BLUE}Download URL: $DOWNLOAD_URL${NC}"
     
-    # Download and extract
-    curl -L "$DOWNLOAD_URL" -o zain-hms.tar.gz
+    # Download and extract with error handling
+    if ! curl -L "$DOWNLOAD_URL" -o zain-hms.tar.gz; then
+        echo -e "${RED}❌ Download failed. Trying alternative method...${NC}"
+        # Fallback to direct clone
+        rm -f zain-hms.tar.gz
+        git clone "https://github.com/${GITHUB_REPO}.git" .
+        chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
+        return 0
+    fi
     tar -xzf zain-hms.tar.gz --strip-components=1
     rm zain-hms.tar.gz
     
