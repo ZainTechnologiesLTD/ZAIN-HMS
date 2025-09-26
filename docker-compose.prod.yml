@@ -1,12 +1,10 @@
 # 🏥 ZAIN HMS Production Docker Compose Configuration
-# 3-Container Scalable Architecture: NGINX → Django → PostgreSQL
-
-version: '3.8'
+# 4-Container Scalable Architecture: NGINX → Django → PostgreSQL + Redis
 
 services:
   # 🐘 PostgreSQL Database Container
   db:
-    image: postgres:${POSTGRES_VERSION:-15-alpine}
+    image: postgres:${POSTGRES_VERSION:-16-alpine}
     container_name: zain_hms_postgres
     restart: unless-stopped
     environment:
@@ -74,7 +72,6 @@ services:
       retries: 3
       start_period: 40s
     deploy:
-      replicas: 2
       resources:
         limits:
           memory: 1G
