@@ -556,6 +556,17 @@ setup_directories() {
     mkdir -p "$INSTALL_DIR"/{logs,backups,ssl}
     mkdir -p "$INSTALL_DIR/logs/nginx"
     mkdir -p "$INSTALL_DIR/docker/nginx/conf.d"
+    mkdir -p "$INSTALL_DIR/docker/postgres"
+    
+    # Create PostgreSQL initialization script to prevent directory mount errors
+    cat > "$INSTALL_DIR/docker/postgres/init.sql" << 'EOF'
+-- PostgreSQL initialization script for ZAIN HMS
+-- This file ensures proper database initialization without directory conflicts
+SELECT 'ZAIN HMS PostgreSQL initialized successfully' AS status;
+EOF
+    
+    # Set PostgreSQL data directory ownership (UID 999 is postgres user in container)
+    chown -R 999:999 "$INSTALL_DIR/data/postgres"
     
     # Set permissions
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
