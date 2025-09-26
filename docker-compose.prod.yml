@@ -6,7 +6,7 @@ version: '3.8'
 services:
   # 🐘 PostgreSQL Database Container
   db:
-    image: postgres:15-alpine
+    image: postgres:${POSTGRES_VERSION:-15-alpine}
     container_name: zain_hms_postgres
     restart: unless-stopped
     environment:
@@ -87,7 +87,7 @@ services:
 
   # 🔄 Redis Cache Container
   redis:
-    image: redis:7-alpine
+    image: redis:${REDIS_VERSION:-7-alpine}
     container_name: zain_hms_redis
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
@@ -109,7 +109,7 @@ services:
 
   # 🌐 NGINX Reverse Proxy Container
   nginx:
-    image: nginx:alpine
+    image: nginx:${NGINX_VERSION:-alpine}
     container_name: zain_hms_nginx
     restart: unless-stopped
     ports:

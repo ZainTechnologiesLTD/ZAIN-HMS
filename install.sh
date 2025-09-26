@@ -259,26 +259,189 @@ install_docker() {
     echo -e "${GREEN}✅ Docker installed and started${NC}"
 }
 
-# Install Docker Compose
-install_docker_compose() {
-    if command -v docker-compose &> /dev/null; then
-        echo -e "${GREEN}✅ Docker Compose already installed${NC}"
+# Check and get latest versions
+check_latest_versions() {
+    echo -e "${YELLOW}🔍 Checking latest versions of components...${NC}"
+    
+    # Get latest Docker Compose version
+    echo -e "${BLUE}Checking Docker Compose latest version...${NC}"
+    COMPOSE_LATEST=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name 2>/dev/null || echo "v2.24.0")
+    echo -e "${GREEN}✅ Latest Docker Compose: $COMPOSE_LATEST${NC}"
+    
+    # Get latest PostgreSQL version
+    echo -e "${BLUE}Checking PostgreSQL latest version...${NC}"
+    POSTGRES_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/postgres/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "15-alpine")
+    echo -e "${GREEN}✅ Latest PostgreSQL: $POSTGRES_LATEST${NC}"
+    
+    # Get latest Redis version  
+    echo -e "${BLUE}Checking Redis latest version...${NC}"
+    REDIS_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/redis/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "7-alpine")
+    echo -e "${GREEN}✅ Latest Redis: $REDIS_LATEST${NC}"
+    
+    # Get latest NGINX version
+    echo -e "${BLUE}Checking NGINX latest version...${NC}"
+    NGINX_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/nginx/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "alpine")
+    echo -e "${GREEN}✅ Latest NGINX: $NGINX_LATEST${NC}"
+    
+    # Get latest Python version
+    echo -e "${BLUE}Checking Python latest version...${NC}"
+    PYTHON_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/python/tags/ | jq -r '.results[] | select(.name | test("^3\\.[0-9]+-slim$")) | .name' | head -1 2>/dev/null || echo "3.12-slim")
+    echo -e "${GREEN}✅ Latest Python: $PYTHON_LATEST${NC}"
+    
+    # Get latest Node.js version (for any frontend tools)
+    echo -e "${BLUE}Checking Node.js latest LTS version...${NC}"
+    NODE_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/node/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "20-alpine")
+    echo -e "${GREEN}✅ Latest Node.js: $NODE_LATEST${NC}"
+    
+    # Check for latest security updates
+    echo -e "${BLUE}Checking for security updates...${NC}"
+    SECURITY_CHECK=$(curl -s "https://api.github.com/repos/docker/docker/releases/latest" | jq -r .tag_name 2>/dev/null || echo "latest")
+    echo -e "${GREEN}✅ Latest Docker Engine: $SECURITY_CHECK${NC}"
+    
+    echo -e "${GREEN}🔍 Version check completed!${NC}"
+    echo ""
+}
+
+# Install Docker with latest version
+install_docker() {
+    if [ "$SKIP_DOCKER_INSTALL" = true ]; then
+        echo -e "${YELLOW}⚠️  Skipping Docker installation${NC}"
         return
     fi
     
-    echo -e "${YELLOW}🔧 Installing Docker Compose...${NC}"
+    if command -v docker &> /dev/null; then
+        # Check if Docker version is up to date
+        CURRENT_DOCKER=$(docker --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        echo -e "${BLUE}Current Docker version: $CURRENT_DOCKER${NC}"
+        
+        # Get latest Docker version
+        LATEST_DOCKER=$(curl -s https://api.github.com/repos/docker/docker-ce/releases/latest | jq -r .tag_name | sed 's/v//' 2>/dev/null || echo "24.0.0")
+        echo -e "${BLUE}Latest Docker version: $LATEST_DOCKER${NC}"
+        
+        if [ "$CURRENT_DOCKER" = "$LATEST_DOCKER" ]; then
+            echo -e "${GREEN}✅ Docker is up to date${NC}"
+            return
+        else
+            echo -e "${YELLOW}📈 Updating Docker to latest version...${NC}"
+        fi
+    else
+        echo -e "${YELLOW}� Installing latest Docker version...${NC}"
+    fi
     
-    # Get latest version
-    COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
+    case "$PACKAGE_MANAGER" in
+        apt)
+            # Remove old versions
+            apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
+            
+            # Install prerequisites
+            apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+            
+            # Add Docker GPG key
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            
+            # Add Docker repository
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+            
+            # Update package index
+            apt update
+            
+            # Install latest Docker
+            apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+            ;;
+        yum)
+            # Remove old versions
+            yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine 2>/dev/null || true
+            
+            # Install yum-utils
+            yum install -y yum-utils
+            
+            # Add Docker repository
+            yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            
+            # Install latest Docker
+            yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+            ;;
+    esac
+    
+    # Start and enable Docker
+    systemctl start docker
+    systemctl enable docker
+    
+    # Add current user to docker group (if not root)
+    if [ "$USER" != "root" ] && [ -n "$SUDO_USER" ]; then
+        usermod -aG docker "$SUDO_USER"
+    fi
+    
+    echo -e "${GREEN}✅ Latest Docker installed and started${NC}"
+}
+
+# Install Docker Compose with latest version
+install_docker_compose() {
+    echo -e "${YELLOW}�🔧 Installing latest Docker Compose...${NC}"
+    
+    # Check current version
+    if command -v docker-compose &> /dev/null; then
+        CURRENT_COMPOSE=$(docker-compose --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        echo -e "${BLUE}Current Docker Compose version: $CURRENT_COMPOSE${NC}"
+    fi
+    
+    # Get latest version from GitHub API
+    echo -e "${BLUE}Fetching latest Docker Compose version...${NC}"
+    COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name 2>/dev/null)
+    
+    if [ -z "$COMPOSE_VERSION" ] || [ "$COMPOSE_VERSION" = "null" ]; then
+        echo -e "${YELLOW}⚠️  Could not fetch latest version, using fallback${NC}"
+        COMPOSE_VERSION="v2.24.0"
+    fi
+    
+    echo -e "${GREEN}✅ Installing Docker Compose $COMPOSE_VERSION${NC}"
+    
+    # Download latest Docker Compose
+    ARCH=$(uname -m)
+    OS=$(uname -s)
+    
+    # Handle different architectures
+    case "$ARCH" in
+        x86_64)
+            ARCH="x86_64"
+            ;;
+        aarch64|arm64)
+            ARCH="aarch64"
+            ;;
+        armv7l)
+            ARCH="armv7"
+            ;;
+        *)
+            echo -e "${YELLOW}⚠️  Unknown architecture: $ARCH, trying x86_64${NC}"
+            ARCH="x86_64"
+            ;;
+    esac
     
     # Download and install
-    curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
+    COMPOSE_URL="https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-${OS}-${ARCH}"
     
-    # Create symlink
-    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+    echo -e "${BLUE}Downloading from: $COMPOSE_URL${NC}"
+    curl -L "$COMPOSE_URL" -o /usr/local/bin/docker-compose
     
-    echo -e "${GREEN}✅ Docker Compose installed${NC}"
+    if [ $? -eq 0 ]; then
+        chmod +x /usr/local/bin/docker-compose
+        
+        # Create symlink for compatibility
+        ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+        
+        # Verify installation
+        INSTALLED_VERSION=$(docker-compose --version 2>/dev/null)
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✅ Docker Compose installed successfully${NC}"
+            echo -e "${GREEN}Version: $INSTALLED_VERSION${NC}"
+        else
+            echo -e "${RED}❌ Docker Compose installation verification failed${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}❌ Failed to download Docker Compose${NC}"
+        exit 1
+    fi
 }
 
 # Create application user
@@ -343,7 +506,7 @@ setup_directories() {
 
 # Configure environment
 configure_environment() {
-    echo -e "${YELLOW}🔧 Configuring environment...${NC}"
+    echo -e "${YELLOW}🔧 Configuring environment with latest versions...${NC}"
     
     # Copy environment template
     cp "$INSTALL_DIR/.env.production.template" "$INSTALL_DIR/.env.prod"
@@ -353,7 +516,22 @@ configure_environment() {
     REDIS_PASSWORD=$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-20)
     SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())" 2>/dev/null || openssl rand -base64 75 | tr -d "=+/" | cut -c1-50)
     
-    # Update environment file
+    # Add latest container versions to environment
+    echo "" >> "$INSTALL_DIR/.env.prod"
+    echo "# Container Versions (Auto-detected latest)" >> "$INSTALL_DIR/.env.prod"
+    echo "POSTGRES_VERSION=${POSTGRES_LATEST}" >> "$INSTALL_DIR/.env.prod"
+    echo "REDIS_VERSION=${REDIS_LATEST}" >> "$INSTALL_DIR/.env.prod"
+    echo "NGINX_VERSION=${NGINX_LATEST}" >> "$INSTALL_DIR/.env.prod"
+    echo "PYTHON_VERSION=${PYTHON_LATEST}" >> "$INSTALL_DIR/.env.prod"
+    echo "NODE_VERSION=${NODE_LATEST}" >> "$INSTALL_DIR/.env.prod"
+    echo "" >> "$INSTALL_DIR/.env.prod"
+    echo "# Installation Info" >> "$INSTALL_DIR/.env.prod"
+    echo "INSTALLATION_DATE=$(date -u +%Y-%m-%d_%H:%M:%S_UTC)" >> "$INSTALL_DIR/.env.prod"
+    echo "DOCKER_COMPOSE_VERSION=${COMPOSE_VERSION}" >> "$INSTALL_DIR/.env.prod"
+    echo "INSTALLED_ARCHITECTURE=$(uname -m)" >> "$INSTALL_DIR/.env.prod"
+    echo "SERVER_IP=$(curl -s https://ipinfo.io/ip 2>/dev/null || hostname -I | awk '{print $1}')" >> "$INSTALL_DIR/.env.prod"
+    
+    # Update environment file with generated values
     sed -i "s/your-very-secure-database-password-123/$DB_PASSWORD/g" "$INSTALL_DIR/.env.prod"
     sed -i "s/your-secure-redis-password-123/$REDIS_PASSWORD/g" "$INSTALL_DIR/.env.prod"
     sed -i "s/your-super-secret-django-key-here-must-be-50-characters-long-and-unique-123456789/$SECRET_KEY/g" "$INSTALL_DIR/.env.prod"
@@ -363,7 +541,13 @@ configure_environment() {
     chmod 600 "$INSTALL_DIR/.env.prod"
     chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env.prod"
     
-    echo -e "${GREEN}✅ Environment configured${NC}"
+    # Display version information
+    echo -e "${GREEN}✅ Environment configured with latest versions:${NC}"
+    echo -e "${BLUE}  📊 PostgreSQL: ${POSTGRES_LATEST}${NC}"
+    echo -e "${BLUE}  📊 Redis: ${REDIS_LATEST}${NC}"
+    echo -e "${BLUE}  📊 NGINX: ${NGINX_LATEST}${NC}"
+    echo -e "${BLUE}  📊 Python: ${PYTHON_LATEST}${NC}"
+    echo -e "${BLUE}  📊 Docker Compose: ${COMPOSE_VERSION}${NC}"
 }
 
 # Install system service
@@ -425,9 +609,9 @@ setup_firewall() {
     fi
 }
 
-# Deploy application
+# Deploy application with latest images
 deploy_application() {
-    echo -e "${YELLOW}🚀 Deploying ZAIN HMS...${NC}"
+    echo -e "${YELLOW}🚀 Deploying ZAIN HMS with latest versions...${NC}"
     
     cd "$INSTALL_DIR"
     
@@ -435,13 +619,54 @@ deploy_application() {
     chmod +x scripts/*.sh
     chmod +x docker/entrypoint.prod.sh
     
-    # Pull images
-    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml pull
+    # Show what versions will be deployed
+    echo -e "${BLUE}📦 Container versions to be deployed:${NC}"
+    echo -e "${GREEN}  🐘 PostgreSQL: ${POSTGRES_LATEST}${NC}"
+    echo -e "${GREEN}  🔄 Redis: ${REDIS_LATEST}${NC}"
+    echo -e "${GREEN}  🌐 NGINX: ${NGINX_LATEST}${NC}"
+    echo -e "${GREEN}  🐍 Python: ${PYTHON_LATEST}${NC}"
+    echo ""
     
-    # Start services
+    # Pull latest images with progress
+    echo -e "${BLUE}📥 Pulling latest Docker images...${NC}"
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml pull --quiet
+    
+    # Verify images are up to date
+    echo -e "${BLUE}🔍 Verifying image versions...${NC}"
+    
+    # Check if images exist and show their info
+    POSTGRES_IMAGE="postgres:${POSTGRES_LATEST}"
+    REDIS_IMAGE="redis:${REDIS_LATEST}" 
+    NGINX_IMAGE="nginx:${NGINX_LATEST}"
+    
+    if docker images "$POSTGRES_IMAGE" --format "table" | grep -q "$POSTGRES_LATEST"; then
+        echo -e "${GREEN}✅ PostgreSQL $POSTGRES_LATEST ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  PostgreSQL image verification failed${NC}"
+    fi
+    
+    if docker images "$REDIS_IMAGE" --format "table" | grep -q "$REDIS_LATEST"; then
+        echo -e "${GREEN}✅ Redis $REDIS_LATEST ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Redis image verification failed${NC}"
+    fi
+    
+    if docker images "$NGINX_IMAGE" --format "table" | grep -q "$NGINX_LATEST"; then
+        echo -e "${GREEN}✅ NGINX $NGINX_LATEST ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  NGINX image verification failed${NC}"
+    fi
+    
+    # Start services with latest versions
+    echo -e "${BLUE}🚀 Starting services...${NC}"
     sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d
     
-    echo -e "${GREEN}✅ ZAIN HMS deployed${NC}"
+    # Show container status
+    echo ""
+    echo -e "${BLUE}📊 Container Status:${NC}"
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml ps
+    
+    echo -e "${GREEN}✅ ZAIN HMS deployed with latest versions${NC}"
 }
 
 # Wait for services
@@ -459,6 +684,97 @@ wait_for_services() {
     done
     
     echo -e "${YELLOW}⚠️  Services taking longer than expected${NC}"
+}
+
+# Create update script
+create_update_script() {
+    echo -e "${YELLOW}📝 Creating update script...${NC}"
+    
+    cat > "$INSTALL_DIR/scripts/update-to-latest.sh" << 'EOF'
+#!/bin/bash
+# 🏥 ZAIN HMS - Update to Latest Versions Script
+# Automatically checks and updates to latest container versions
+
+set -e
+
+# Colors
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+INSTALL_DIR="/opt/zain-hms"
+
+echo -e "${CYAN}🔄 ZAIN HMS - Update to Latest Versions${NC}"
+echo "========================================"
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}❌ Please run as root: sudo $0${NC}"
+    exit 1
+fi
+
+# Check latest versions
+echo -e "${YELLOW}🔍 Checking for latest versions...${NC}"
+
+# Get latest versions (same logic as install script)
+POSTGRES_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/postgres/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "15-alpine")
+REDIS_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/redis/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "7-alpine")
+NGINX_LATEST=$(curl -s https://registry.hub.docker.com/v2/repositories/library/nginx/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+\\.[0-9]+-alpine$")) | .name' | head -1 2>/dev/null || echo "alpine")
+
+echo -e "${GREEN}📦 Latest versions found:${NC}"
+echo -e "${BLUE}  🐘 PostgreSQL: $POSTGRES_LATEST${NC}"
+echo -e "${BLUE}  🔄 Redis: $REDIS_LATEST${NC}"
+echo -e "${BLUE}  🌐 NGINX: $NGINX_LATEST${NC}"
+
+# Update environment file
+echo -e "${YELLOW}📝 Updating environment configuration...${NC}"
+cd "$INSTALL_DIR"
+
+# Update versions in environment file
+sed -i "s/POSTGRES_VERSION=.*/POSTGRES_VERSION=$POSTGRES_LATEST/" .env.prod
+sed -i "s/REDIS_VERSION=.*/REDIS_VERSION=$REDIS_LATEST/" .env.prod  
+sed -i "s/NGINX_VERSION=.*/NGINX_VERSION=$NGINX_LATEST/" .env.prod
+
+# Add update timestamp
+echo "LAST_UPDATE=$(date -u +%Y-%m-%d_%H:%M:%S_UTC)" >> .env.prod
+
+# Stop services
+echo -e "${YELLOW}⏹️ Stopping services...${NC}"
+sudo -u zain-hms docker-compose -f docker-compose.prod.yml down
+
+# Pull latest images
+echo -e "${YELLOW}📥 Pulling latest images...${NC}"
+sudo -u zain-hms docker-compose -f docker-compose.prod.yml pull
+
+# Start services
+echo -e "${YELLOW}🚀 Starting updated services...${NC}"
+sudo -u zain-hms docker-compose -f docker-compose.prod.yml up -d
+
+# Wait for services
+echo -e "${YELLOW}⏳ Waiting for services...${NC}"
+sleep 30
+
+# Health check
+if curl -f http://localhost/health/ >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Update completed successfully!${NC}"
+    echo -e "${GREEN}🎉 ZAIN HMS is running with latest versions${NC}"
+else
+    echo -e "${RED}⚠️  Services may still be starting up${NC}"
+    echo -e "${YELLOW}Check status: sudo docker-compose -f $INSTALL_DIR/docker-compose.prod.yml ps${NC}"
+fi
+
+echo ""
+echo -e "${CYAN}📊 Updated container versions:${NC}"
+sudo -u zain-hms docker-compose -f docker-compose.prod.yml ps
+EOF
+
+    chmod +x "$INSTALL_DIR/scripts/update-to-latest.sh"
+    chown zain-hms:zain-hms "$INSTALL_DIR/scripts/update-to-latest.sh"
+    
+    echo -e "${GREEN}✅ Update script created at: $INSTALL_DIR/scripts/update-to-latest.sh${NC}"
 }
 
 # Show completion message
@@ -496,7 +812,16 @@ show_completion() {
     echo -e "${CYAN}║${NC} Restart Service:  sudo systemctl restart zain-hms"
     echo -e "${CYAN}║${NC} Check Status:     sudo systemctl status zain-hms"
     echo -e "${CYAN}║${NC} View Logs:        sudo docker-compose -f $INSTALL_DIR/docker-compose.prod.yml logs -f"
-    echo -e "${CYAN}║${NC} Update System:    $INSTALL_DIR/scripts/update.sh"
+    echo -e "${CYAN}║${NC} Update to Latest: sudo $INSTALL_DIR/scripts/update-to-latest.sh"
+    echo -e "${CYAN}║${NC} Maintenance:      sudo $INSTALL_DIR/scripts/zain-hms-maintenance.sh"
+    echo -e "${CYAN}╠══════════════════════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║                           INSTALLED VERSIONS                                ║${NC}"
+    echo -e "${CYAN}╠══════════════════════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║${NC} 🐘 PostgreSQL:   ${POSTGRES_LATEST}"
+    echo -e "${CYAN}║${NC} 🔄 Redis:        ${REDIS_LATEST}"
+    echo -e "${CYAN}║${NC} 🌐 NGINX:        ${NGINX_LATEST}"
+    echo -e "${CYAN}║${NC} 🐍 Python:       ${PYTHON_LATEST}"
+    echo -e "${CYAN}║${NC} 🔧 Docker Compose: ${COMPOSE_VERSION}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     
@@ -521,10 +846,11 @@ main() {
     detect_os
     interactive_config
     
-    echo -e "${CYAN}🚀 Starting ZAIN HMS Installation...${NC}"
+    echo -e "${CYAN}🚀 Starting ZAIN HMS Installation with Latest Versions...${NC}"
     echo ""
     
     install_dependencies
+    check_latest_versions  # ✨ NEW: Check latest versions first
     install_docker
     install_docker_compose
     create_app_user
@@ -535,6 +861,7 @@ main() {
     setup_firewall
     deploy_application
     wait_for_services
+    create_update_script  # ✨ NEW: Create update script
     show_completion
 }
 
