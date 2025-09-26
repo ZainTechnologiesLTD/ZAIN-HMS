@@ -588,6 +588,9 @@ configure_environment() {
     REDIS_PASSWORD=$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-20)
     SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())" 2>/dev/null || openssl rand -base64 75 | tr -d "=+/" | cut -c1-50)
     
+    # Generate proper Redis URL with password
+    REDIS_URL_WITH_PASSWORD="redis://:${REDIS_PASSWORD}@redis:6379/0"
+    
     # Add latest container versions to environment
     echo "" >> "$INSTALL_DIR/.env.prod"
     echo "# Container Versions (Auto-detected latest)" >> "$INSTALL_DIR/.env.prod"
@@ -609,6 +612,15 @@ configure_environment() {
     sed -i "s/your-super-secret-django-key-here-must-be-50-characters-long-and-unique-123456789/$SECRET_KEY/g" "$INSTALL_DIR/.env.prod"
     sed -i "s/yourdomain.com/$DOMAIN/g" "$INSTALL_DIR/.env.prod"
     
+    # Fix Redis URL to include password (handles both existing formats)
+    sed -i "s|REDIS_URL=redis://redis:6379/0|REDIS_URL=${REDIS_URL_WITH_PASSWORD}|g" "$INSTALL_DIR/.env.prod"
+    sed -i "s|REDIS_URL=redis://:.*@redis:6379/0|REDIS_URL=${REDIS_URL_WITH_PASSWORD}|g" "$INSTALL_DIR/.env.prod"
+    
+    # Ensure Redis URL is properly set if not found in template
+    if ! grep -q "REDIS_URL=" "$INSTALL_DIR/.env.prod"; then
+        echo "REDIS_URL=${REDIS_URL_WITH_PASSWORD}" >> "$INSTALL_DIR/.env.prod"
+    fi
+    
     # Set secure permissions
     chmod 600 "$INSTALL_DIR/.env.prod"
     chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env.prod"
@@ -620,6 +632,7 @@ configure_environment() {
     echo -e "${BLUE}  📊 NGINX: ${NGINX_LATEST}${NC}"
     echo -e "${BLUE}  📊 Python: ${PYTHON_LATEST}${NC}"
     echo -e "${BLUE}  📊 Docker Compose: ${COMPOSE_VERSION}${NC}"
+    echo -e "${BLUE}  🔗 Redis URL: ${REDIS_URL_WITH_PASSWORD}${NC}"
 }
 
 # Install system service
