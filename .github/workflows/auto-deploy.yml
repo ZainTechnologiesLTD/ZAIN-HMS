@@ -1,0 +1,93 @@
+name: 🚀 Auto Deploy Development to Main
+
+on:
+  push:
+    branches: [ development ]
+  workflow_dispatch: # Manual trigger from GitHub Actions tab
+
+jobs:
+  auto-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 🔧 Configure Git
+      run: |
+        git config user.name "ZAIN HMS AutoDeploy"
+        git config user.email "autodeploy@zainhms.com"
+    
+    - name: 📊 Check Deployment Status
+      id: check
+      run: |
+        git checkout main
+        BEHIND=$(git rev-list --count main..development)
+        echo "commits_behind=$BEHIND" >> $GITHUB_OUTPUT
+        echo "📦 Main is $BEHIND commits behind development"
+        
+        if [ "$BEHIND" -gt 0 ]; then
+          echo "🔄 Deployment needed"
+          echo "📋 Changes to deploy:"
+          git log main..development --oneline
+        else
+          echo "✅ Main is up to date"
+        fi
+    
+    - name: 🚀 Deploy to Main
+      if: steps.check.outputs.commits_behind != '0'
+      run: |
+        echo "🚀 Auto-deploying development to main..."
+        git merge development --no-ff -m "chore: auto-deploy development to main - $(date '+%Y-%m-%d %H:%M UTC')"
+        git push origin main
+        echo "✅ Successfully auto-deployed to main!"
+    
+    - name: 📦 Create Auto Release
+      if: steps.check.outputs.commits_behind != '0'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: auto-v${{ github.run_number }}
+        release_name: 🚀 Auto Release v${{ github.run_number }}
+        body: |
+          ## 🚀 Automatic Deployment from Development Branch
+          
+          **📅 Deployment Date:** ${{ github.event.head_commit.timestamp }}
+          **👤 Triggered By:** ${{ github.actor }}
+          **📝 Latest Commit:** ${{ github.event.head_commit.message }}
+          
+          ### 📋 Changes Included:
+          This release contains all changes from the development branch that were automatically merged to main.
+          
+          ### 🔗 Links:
+          - **📊 Compare Changes:** [${{ github.event.before }}...${{ github.sha }}](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
+          - **📥 Installation:** `curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | sudo bash`
+          
+          ### 🏥 ZAIN HMS Features:
+          - ✅ One-command installation
+          - ✅ 3-container Docker architecture  
+          - ✅ Automatic latest version detection
+          - ✅ Production-ready configuration
+          - ✅ Comprehensive healthcare management system
+          
+          ---
+          *🤖 This release was automatically created by GitHub Actions*
+        draft: false
+        prerelease: false
+    
+    - name: 📨 Deployment Notification
+      if: steps.check.outputs.commits_behind != '0'
+      run: |
+        echo "🎉 DEPLOYMENT COMPLETE!"
+        echo "📊 Deployment Summary:"
+        echo "   • Commits deployed: ${{ steps.check.outputs.commits_behind }}"
+        echo "   • Release created: auto-v${{ github.run_number }}"
+        echo "   • Main branch updated: ✅"
+        echo "   • Live URL: https://github.com/${{ github.repository }}"
+        echo ""
+        echo "🔗 Installation command:"
+        echo "curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | sudo bash"
