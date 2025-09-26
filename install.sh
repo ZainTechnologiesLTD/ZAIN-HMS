@@ -554,6 +554,8 @@ setup_directories() {
     # Create data directories
     mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
     mkdir -p "$INSTALL_DIR"/{logs,backups,ssl}
+    mkdir -p "$INSTALL_DIR/logs/nginx"
+    mkdir -p "$INSTALL_DIR/docker/nginx/conf.d"
     
     # Set permissions
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
@@ -718,7 +720,11 @@ deploy_application() {
     
     # Start services with latest versions
     echo -e "${BLUE}🚀 Starting services...${NC}"
-    echo -e "${YELLOW}⚙️  Building containers with SSL-aware configuration...${NC}"
+    echo -e "${YELLOW}⚙️  Preparing environment and building containers with SSL-aware configuration...${NC}"
+    
+    # Create symlink for Docker Compose to find environment variables
+    ln -sf "$INSTALL_DIR/.env.prod" "$INSTALL_DIR/.env"
+    chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env"
     
     # Build containers with SSL-aware Docker build args
     sudo -u "$SERVICE_USER" DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build \
