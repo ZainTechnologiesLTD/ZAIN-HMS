@@ -897,10 +897,10 @@ deploy_application() {
     
     # Start services incrementally for better reliability and debugging
     echo -e "${BLUE}🚀 Phase 1: Starting infrastructure services (PostgreSQL & Redis)...${NC}"
-    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d postgres redis
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d db redis
     
     # Wait for infrastructure to be healthy
-    if check_container_health "postgres" 12 5; then
+    if check_container_health "db" 12 5; then
         echo -e "${GREEN}✅ PostgreSQL is ready${NC}"
     else
         echo -e "${YELLOW}⚠️  PostgreSQL health check failed, but continuing...${NC}"
