@@ -558,6 +558,11 @@ setup_directories() {
     mkdir -p "$INSTALL_DIR/docker/nginx/conf.d"
     mkdir -p "$INSTALL_DIR/docker/postgres"
     
+    # Create Django log files with proper permissions (fixes bind mount logging issues)
+    touch "$INSTALL_DIR/logs/django.log" "$INSTALL_DIR/logs/authentication.log" "$INSTALL_DIR/logs/security.log"
+    chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/logs/"*.log
+    chmod 664 "$INSTALL_DIR/logs/"*.log
+    
     # Create PostgreSQL initialization script to prevent directory mount errors
     cat > "$INSTALL_DIR/docker/postgres/init.sql" << 'EOF'
 -- PostgreSQL initialization script for ZAIN HMS
@@ -813,6 +818,12 @@ deploy_application() {
     echo -e "${BLUE}📁 Creating directory structure for bind mounts...${NC}"
     mkdir -p "$INSTALL_DIR/data"/{redis,static,media,backups}
     
+    # Create Django log files if they don't exist (critical for bind mount logging)
+    echo -e "${BLUE}📝 Ensuring Django log files exist for bind mounting...${NC}"
+    touch "$INSTALL_DIR/logs/django.log" "$INSTALL_DIR/logs/authentication.log" "$INSTALL_DIR/logs/security.log"
+    chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/logs/"*.log 2>/dev/null || true
+    chmod 664 "$INSTALL_DIR/logs/"*.log 2>/dev/null || true
+    
     # Set permissions for bind mount directories  
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media,backups}
     chmod -R 755 "$INSTALL_DIR/data"/{redis,static,media,backups}
@@ -884,15 +895,74 @@ deploy_application() {
     # PostgreSQL permissions already set during directory preparation
     echo -e "${BLUE}🔒 PostgreSQL directory permissions already configured${NC}"
     
-    # Start services
-    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d
+    # Start services incrementally for better reliability and debugging
+    echo -e "${BLUE}🚀 Phase 1: Starting infrastructure services (PostgreSQL & Redis)...${NC}"
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d postgres redis
     
-    # Show container status
+    # Wait for infrastructure to be healthy
+    if check_container_health "postgres" 12 5; then
+        echo -e "${GREEN}✅ PostgreSQL is ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  PostgreSQL health check failed, but continuing...${NC}"
+    fi
+    
+    if check_container_health "redis" 12 5; then
+        echo -e "${GREEN}✅ Redis is ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Redis health check failed, but continuing...${NC}"
+    fi
+    
+    # Start web container
+    echo -e "${BLUE}🚀 Phase 2: Starting web application container...${NC}"
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d web
+    
+    # Wait for web container to start (longer timeout for complex startup)
+    if check_container_health "web" 20 10; then
+        echo -e "${GREEN}✅ Web container is ready${NC}"
+        
+        # Start nginx and watchtower only if web is healthy
+        echo -e "${BLUE}� Phase 3: Starting reverse proxy (NGINX) and monitoring services...${NC}"
+        sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d nginx watchtower
+    else
+        echo -e "${RED}❌ Web container failed health checks${NC}"
+        echo -e "${YELLOW}📋 Debugging info - Web container logs (last 20 lines):${NC}"
+        sudo docker logs zain_hms_web --tail 20 || true
+        echo -e "${YELLOW}⚠️  Skipping NGINX startup due to web container issues${NC}"
+    fi
+    
+    # Show final container status
     echo ""
-    echo -e "${BLUE}📊 Container Status:${NC}"
+    echo -e "${BLUE}📊 Final Container Status:${NC}"
     sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml ps
     
     echo -e "${GREEN}✅ ZAIN HMS deployed with latest versions${NC}"
+}
+
+# Check individual container health with better validation
+check_container_health() {
+    local container_name="$1"
+    local max_attempts="$2"
+    local sleep_time="$3"
+    
+    echo -e "${YELLOW}⏳ Checking $container_name health...${NC}"
+    
+    for i in $(seq 1 $max_attempts); do
+        local status=$(sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml ps -q $container_name | xargs sudo docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+        
+        if [ "$status" = "healthy" ]; then
+            echo -e "${GREEN}✅ $container_name is healthy!${NC}"
+            return 0
+        elif [ "$status" = "unhealthy" ]; then
+            echo -e "${RED}❌ $container_name is unhealthy! Check logs: sudo docker logs zain_hms_$container_name${NC}"
+            return 1
+        else
+            echo -e "${BLUE}⏳ $container_name status: $status (attempt $i/$max_attempts)${NC}"
+            sleep $sleep_time
+        fi
+    done
+    
+    echo -e "${YELLOW}⚠️  $container_name health check timeout after $max_attempts attempts${NC}"
+    return 1
 }
 
 # Wait for services
