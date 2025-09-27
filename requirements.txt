@@ -73,9 +73,9 @@ pytz==2023.4  # Updated timezone data
 # Translation management (uncomment if using)
 # django-rosetta==0.9.9
 
-# Form styling (uncomment if using)
-# django-crispy-forms==2.1
-# crispy-bootstrap5==0.7
+# Form styling (required for Django forms)
+django-crispy-forms==2.1
+crispy-bootstrap5==0.7
 
 # Development tools (uncomment for development)
 # django-debug-toolbar==4.2.0
