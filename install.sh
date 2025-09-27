@@ -744,26 +744,42 @@ deploy_application() {
     # Stop any existing containers and clean up problematic volumes
     echo -e "${BLUE}🔧 Preparing for deployment with bind mounts...${NC}"
     
-    # Stop any existing containers and remove problematic volumes
+    # Stop any existing containers and clean up old volumes
     sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml down -v 2>/dev/null || true
-    docker volume rm zain-hms_postgres_data zain-hms_redis_data zain-hms_static_volume zain-hms_media_volume 2>/dev/null || true
+    docker volume rm zain-hms_redis_data zain-hms_static_volume zain-hms_media_volume 2>/dev/null || true
     
-    # The docker-compose.prod.yml uses bind mounts with PGDATA subdirectory approach
-    # Create directories with proper structure for PostgreSQL
+    # Remove old postgres volume if it exists (we'll create external one)
+    docker volume rm zain-hms_postgres_data 2>/dev/null || true
+    
+    # Create external Docker volume for PostgreSQL with bind mount configuration
+    # This approach avoids Docker overlay filesystem conflicts
     mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
     
-    # Create PostgreSQL data directory structure compatible with PGDATA
-    mkdir -p "$INSTALL_DIR/data/postgres/pgdata"
-    
-    # Set proper ownership for PostgreSQL (UID 999 is postgres user in container)
+    # Set proper ownership for PostgreSQL data directory
     chown -R 999:999 "$INSTALL_DIR/data/postgres"
     chmod -R 700 "$INSTALL_DIR/data/postgres"
     
-    # Set permissions for other data directories
+    # Create external PostgreSQL volume with bind mount to avoid mounting issues
+    echo -e "${BLUE}🐘 Creating external PostgreSQL volume...${NC}"
+    docker volume create --driver local \
+        --opt type=none \
+        --opt o=bind \
+        --opt device="$INSTALL_DIR/data/postgres" \
+        zain_hms_postgres_data || {
+        echo -e "${YELLOW}⚠️  Volume already exists or creation failed, removing and recreating...${NC}"
+        docker volume rm zain_hms_postgres_data 2>/dev/null || true
+        docker volume create --driver local \
+            --opt type=none \
+            --opt o=bind \
+            --opt device="$INSTALL_DIR/data/postgres" \
+            zain_hms_postgres_data
+    }
+    
+    # Set permissions for other data directories  
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media}
     chmod -R 755 "$INSTALL_DIR/data"/{redis,static,media}
     
-    echo -e "${GREEN}✅ PostgreSQL data directory prepared with PGDATA structure${NC}"
+    echo -e "${GREEN}✅ External PostgreSQL volume created with bind mount${NC}"
     
     # Verify docker-compose.prod.yml is valid
     if ! sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
