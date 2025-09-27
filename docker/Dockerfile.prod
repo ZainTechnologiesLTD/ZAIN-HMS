@@ -97,9 +97,11 @@ WORKDIR /app
 # Copy application code with proper ownership
 COPY --chown=zain:zain . .
 
-# Create necessary directories with correct permissions
+# Create necessary directories with correct permissions and log files
 RUN mkdir -p logs media staticfiles backups && \
+    touch logs/django.log logs/authentication.log logs/security.log && \
     chown -R zain:zain logs media staticfiles backups && \
+    chmod 664 logs/*.log && \
     chmod +x docker/entrypoint.prod.sh
 
 # Copy supervisor configuration
