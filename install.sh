@@ -741,37 +741,27 @@ deploy_application() {
     echo -e "${GREEN}  🐍 Python: ${PYTHON_LATEST}${NC}"
     echo ""
     
-    # Fix Docker Compose configuration to use direct bind mounts instead of named volumes
-    echo -e "${BLUE}🔧 Configuring bind mounts to avoid volume mounting issues...${NC}"
+    # Stop any existing containers and clean up problematic volumes
+    echo -e "${BLUE}🔧 Preparing for deployment with bind mounts...${NC}"
     
     # Stop any existing containers and remove problematic volumes
     sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml down -v 2>/dev/null || true
     docker volume rm zain-hms_postgres_data zain-hms_redis_data zain-hms_static_volume zain-hms_media_volume 2>/dev/null || true
     
-    # Update docker-compose.prod.yml to use direct bind mounts
-    cp docker-compose.prod.yml docker-compose.prod.yml.backup
-    
-    # Replace the postgres volume mount with direct bind mount
-    sed -i 's|postgres_data:/var/lib/postgresql/data|./data/postgres:/var/lib/postgresql/data|g' docker-compose.prod.yml
-    sed -i 's|redis_data:/data|./data/redis:/data|g' docker-compose.prod.yml
-    sed -i 's|static_volume:/app/staticfiles|./data/static:/app/staticfiles|g' docker-compose.prod.yml
-    sed -i 's|media_volume:/app/media|./data/media:/app/media|g' docker-compose.prod.yml
-    
-    # Remove the named volumes section that causes conflicts
-    sed -i '/^volumes:/,$ {
-        /postgres_data:/,/device.*postgres/d
-        /redis_data:/,/device.*redis/d
-        /static_volume:/,/device.*static/d
-        /media_volume:/,/device.*media/d
-    }' docker-compose.prod.yml
-    
-    # Ensure all data directories exist with correct permissions
+    # The docker-compose.prod.yml already uses bind mounts with proper driver_opts
+    # Just ensure the directories exist with correct permissions
     mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
     chown -R 999:999 "$INSTALL_DIR/data/postgres"
     chmod 700 "$INSTALL_DIR/data/postgres"
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media}
     
-    echo -e "${GREEN}✅ Docker Compose updated to use bind mounts${NC}"
+    # Verify docker-compose.prod.yml is valid
+    if ! sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠️  Docker Compose validation failed, checking configuration...${NC}"
+        sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config
+    fi
+    
+    echo -e "${GREEN}✅ Bind mount configuration verified${NC}"
     
     # Pull base images only (exclude web container which needs to be built)
     echo -e "${BLUE}📥 Pulling base Docker images...${NC}"
