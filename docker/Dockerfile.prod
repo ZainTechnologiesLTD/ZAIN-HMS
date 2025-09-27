@@ -85,9 +85,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv
 
-# Create app user with proper permissions
-RUN groupadd -r zain && \
-    useradd -r -g zain -d /app -s /bin/bash zain && \
+# Create app user with proper permissions (match host UID for bind mounts)
+RUN groupadd -r -g 1001 zain && \
+    useradd -r -u 1001 -g zain -d /app -s /bin/bash zain && \
     mkdir -p /app /app/logs /app/media /app/staticfiles && \
     chown -R zain:zain /app
 
