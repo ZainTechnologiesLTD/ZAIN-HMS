@@ -711,6 +711,71 @@ setup_firewall() {
     fi
 }
 
+# Complete cleanup of existing ZAIN HMS installation
+complete_cleanup() {
+    echo -e "${YELLOW}🧹 COMPLETE CLEANUP: Removing all existing ZAIN HMS resources...${NC}"
+    
+    # 1. Stop ALL containers immediately (aggressive approach)
+    echo -e "${BLUE}🛑 Stopping ALL Docker containers...${NC}"
+    docker stop $(docker ps -aq) 2>/dev/null || true
+    
+    # 2. Remove ALL ZAIN HMS containers by pattern
+    echo -e "${BLUE}🗑️  Removing all ZAIN HMS containers...${NC}"
+    docker ps -aq --filter "name=zain" | xargs -r docker rm -f 2>/dev/null || true
+    docker ps -aq --filter "name=hms" | xargs -r docker rm -f 2>/dev/null || true
+    
+    # 3. Remove ALL ZAIN HMS networks
+    echo -e "${BLUE}🌐 Removing ZAIN HMS networks...${NC}"
+    docker network ls -q --filter "name=zain" | xargs -r docker network rm 2>/dev/null || true
+    docker network ls -q --filter "name=hms" | xargs -r docker network rm 2>/dev/null || true
+    
+    # 4. Remove ALL ZAIN HMS volumes
+    echo -e "${BLUE}💾 Removing ALL ZAIN HMS volumes...${NC}"
+    docker volume ls -q --filter "name=zain" | xargs -r docker volume rm -f 2>/dev/null || true
+    docker volume ls -q --filter "name=hms" | xargs -r docker volume rm -f 2>/dev/null || true
+    docker volume ls -q --filter "name=postgres" | xargs -r docker volume rm -f 2>/dev/null || true
+    
+    # 5. Remove ALL ZAIN HMS images
+    echo -e "${BLUE}🖼️  Removing ZAIN HMS images...${NC}"
+    docker images -q "*zain*" | xargs -r docker rmi -f 2>/dev/null || true
+    docker images -q "*hms*" | xargs -r docker rmi -f 2>/dev/null || true
+    docker images -q "ghcr.io/zain-technologies-22/*" | xargs -r docker rmi -f 2>/dev/null || true
+    
+    # 6. Kill all conflicting processes
+    echo -e "${BLUE}⚡ Stopping all conflicting processes...${NC}"
+    pkill -f "postgres" 2>/dev/null || true
+    pkill -f "redis-server" 2>/dev/null || true
+    pkill -f "nginx" 2>/dev/null || true
+    pkill -f "gunicorn" 2>/dev/null || true
+    pkill -f "supervisord" 2>/dev/null || true
+    sleep 5
+    
+    # 7. Remove all data directories
+    echo -e "${BLUE}📁 Removing all data directories...${NC}"
+    if [ -d "$INSTALL_DIR" ]; then
+        rm -rf "$INSTALL_DIR/data" "$INSTALL_DIR/logs" "$INSTALL_DIR/backups" 2>/dev/null || true
+        rm -rf "$INSTALL_DIR/.env" "$INSTALL_DIR/.env.prod" 2>/dev/null || true
+    fi
+    
+    # 8. Stop and remove systemd service
+    echo -e "${BLUE}🔧 Removing systemd service...${NC}"
+    systemctl stop zain-hms 2>/dev/null || true
+    systemctl disable zain-hms 2>/dev/null || true
+    rm -f /etc/systemd/system/zain-hms.service
+    systemctl daemon-reload
+    
+    # 9. Complete Docker cleanup
+    echo -e "${BLUE}🧹 Complete Docker system cleanup...${NC}"
+    docker system prune -af --volumes --filter "until=1h" 2>/dev/null || true
+    
+    # 10. Wait for processes to fully terminate
+    echo -e "${BLUE}⏱️  Waiting for processes to terminate...${NC}"
+    sleep 5
+    
+    echo -e "${GREEN}✅ COMPLETE cleanup finished - system ready for fresh installation${NC}"
+    echo ""
+}
+
 # Deploy application with latest images
 deploy_application() {
     echo -e "${YELLOW}🚀 Deploying ZAIN HMS with latest versions...${NC}"
@@ -741,42 +806,8 @@ deploy_application() {
     echo -e "${GREEN}  🐍 Python: ${PYTHON_LATEST}${NC}"
     echo ""
     
-    # Stop any existing containers and clean up problematic volumes
-    echo -e "${BLUE}🔧 Preparing for deployment with bind mounts...${NC}"
-    
-    # Comprehensive cleanup of existing PostgreSQL containers and volumes
-    echo -e "${BLUE}🧹 Performing comprehensive cleanup of existing PostgreSQL resources...${NC}"
-    
-    # Stop and remove all ZAIN HMS containers
-    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml down -v --remove-orphans 2>/dev/null || true
-    
-    # Force stop and remove PostgreSQL container if still running
-    docker stop zain_hms_postgres 2>/dev/null || true
-    docker rm -f zain_hms_postgres 2>/dev/null || true
-    
-    # Remove all related volumes (both old and new naming patterns)
-    docker volume rm zain-hms_postgres_data zain_hms_postgres_data 2>/dev/null || true
-    docker volume rm zain-hms_redis_data zain-hms_static_volume zain-hms_media_volume 2>/dev/null || true
-    
-    # Clean up any orphaned volumes related to zain-hms
-    echo -e "${BLUE}🔍 Cleaning up orphaned volumes...${NC}"
-    docker volume ls -q | grep -E "(zain|hms|postgres)" | xargs -r docker volume rm 2>/dev/null || true
-    
-    # Verify no PostgreSQL processes are using the data directory
-    if lsof "$INSTALL_DIR/data/postgres" 2>/dev/null; then
-        echo -e "${YELLOW}⚠️  PostgreSQL data directory is in use, attempting to free it...${NC}"
-        pkill -f postgres 2>/dev/null || true
-        sleep 2
-    fi
-    
-    # Remove existing PostgreSQL data directory completely for fresh start
-    echo -e "${BLUE}🗑️  Removing existing PostgreSQL data for fresh installation...${NC}"
-    rm -rf "$INSTALL_DIR/data/postgres"
-    
-    # Prune unused Docker resources
-    docker system prune -f --volumes 2>/dev/null || true
-    
-    echo -e "${GREEN}✅ Comprehensive cleanup completed${NC}"
+    # Prepare for deployment (cleanup already done upfront)
+    echo -e "${BLUE}� Preparing for deployment with fresh environment...${NC}"
     
     # Create fresh PostgreSQL data directory structure
     echo -e "${BLUE}📁 Creating fresh PostgreSQL data directory structure...${NC}"
@@ -1097,6 +1128,9 @@ main() {
     
     echo -e "${CYAN}🚀 Starting ZAIN HMS Installation with Latest Versions...${NC}"
     echo ""
+    
+    # FIRST: Complete cleanup of any existing installation
+    complete_cleanup
     
     install_dependencies
     check_latest_versions  # ✨ NEW: Check latest versions first
