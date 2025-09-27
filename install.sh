@@ -744,42 +744,92 @@ deploy_application() {
     # Stop any existing containers and clean up problematic volumes
     echo -e "${BLUE}🔧 Preparing for deployment with bind mounts...${NC}"
     
-    # Stop any existing containers and clean up old volumes
-    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml down -v 2>/dev/null || true
+    # Comprehensive cleanup of existing PostgreSQL containers and volumes
+    echo -e "${BLUE}🧹 Performing comprehensive cleanup of existing PostgreSQL resources...${NC}"
+    
+    # Stop and remove all ZAIN HMS containers
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml down -v --remove-orphans 2>/dev/null || true
+    
+    # Force stop and remove PostgreSQL container if still running
+    docker stop zain_hms_postgres 2>/dev/null || true
+    docker rm -f zain_hms_postgres 2>/dev/null || true
+    
+    # Remove all related volumes (both old and new naming patterns)
+    docker volume rm zain-hms_postgres_data zain_hms_postgres_data 2>/dev/null || true
     docker volume rm zain-hms_redis_data zain-hms_static_volume zain-hms_media_volume 2>/dev/null || true
     
-    # Remove old postgres volume if it exists (we'll create external one)
-    docker volume rm zain-hms_postgres_data 2>/dev/null || true
+    # Clean up any orphaned volumes related to zain-hms
+    echo -e "${BLUE}🔍 Cleaning up orphaned volumes...${NC}"
+    docker volume ls -q | grep -E "(zain|hms|postgres)" | xargs -r docker volume rm 2>/dev/null || true
     
-    # Create external Docker volume for PostgreSQL with bind mount configuration
-    # This approach avoids Docker overlay filesystem conflicts
+    # Verify no PostgreSQL processes are using the data directory
+    if lsof "$INSTALL_DIR/data/postgres" 2>/dev/null; then
+        echo -e "${YELLOW}⚠️  PostgreSQL data directory is in use, attempting to free it...${NC}"
+        pkill -f postgres 2>/dev/null || true
+        sleep 2
+    fi
+    
+    # Remove existing PostgreSQL data directory completely for fresh start
+    echo -e "${BLUE}🗑️  Removing existing PostgreSQL data for fresh installation...${NC}"
+    rm -rf "$INSTALL_DIR/data/postgres"
+    
+    # Prune unused Docker resources
+    docker system prune -f --volumes 2>/dev/null || true
+    
+    echo -e "${GREEN}✅ Comprehensive cleanup completed${NC}"
+    
+    # Create fresh PostgreSQL data directory structure
+    echo -e "${BLUE}📁 Creating fresh PostgreSQL data directory structure...${NC}"
     mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
+    
+    # Verify directory is clean and accessible
+    if [ ! -d "$INSTALL_DIR/data/postgres" ]; then
+        echo -e "${RED}❌ Failed to create PostgreSQL data directory${NC}"
+        exit 1
+    fi
     
     # Set proper ownership for PostgreSQL data directory
     chown -R 999:999 "$INSTALL_DIR/data/postgres"
     chmod -R 700 "$INSTALL_DIR/data/postgres"
     
-    # Create external PostgreSQL volume with bind mount to avoid mounting issues
-    echo -e "${BLUE}🐘 Creating external PostgreSQL volume...${NC}"
-    docker volume create --driver local \
+    # Verify ownership was set correctly
+    if [ "$(stat -c '%u' "$INSTALL_DIR/data/postgres")" != "999" ]; then
+        echo -e "${RED}❌ Failed to set PostgreSQL directory ownership${NC}"
+        exit 1
+    fi
+    
+    # Create external PostgreSQL volume with bind mount configuration
+    echo -e "${BLUE}🐘 Creating external PostgreSQL volume with verification...${NC}"
+    
+    # Double-check volume doesn't exist
+    if docker volume inspect zain_hms_postgres_data >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠️  Volume exists, removing...${NC}"
+        docker volume rm zain_hms_postgres_data
+    fi
+    
+    # Create the external volume
+    if docker volume create --driver local \
         --opt type=none \
         --opt o=bind \
         --opt device="$INSTALL_DIR/data/postgres" \
-        zain_hms_postgres_data || {
-        echo -e "${YELLOW}⚠️  Volume already exists or creation failed, removing and recreating...${NC}"
-        docker volume rm zain_hms_postgres_data 2>/dev/null || true
-        docker volume create --driver local \
-            --opt type=none \
-            --opt o=bind \
-            --opt device="$INSTALL_DIR/data/postgres" \
-            zain_hms_postgres_data
-    }
+        zain_hms_postgres_data; then
+        echo -e "${GREEN}✅ External PostgreSQL volume created successfully${NC}"
+    else
+        echo -e "${RED}❌ Failed to create external PostgreSQL volume${NC}"
+        exit 1
+    fi
+    
+    # Verify the volume was created correctly
+    if ! docker volume inspect zain_hms_postgres_data >/dev/null 2>&1; then
+        echo -e "${RED}❌ PostgreSQL volume verification failed${NC}"
+        exit 1
+    fi
     
     # Set permissions for other data directories  
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media}
     chmod -R 755 "$INSTALL_DIR/data"/{redis,static,media}
     
-    echo -e "${GREEN}✅ External PostgreSQL volume created with bind mount${NC}"
+    echo -e "${GREEN}✅ PostgreSQL volume created and verified successfully${NC}"
     
     # Verify docker-compose.prod.yml is valid
     if ! sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
