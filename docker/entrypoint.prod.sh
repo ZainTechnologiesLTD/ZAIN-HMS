@@ -30,22 +30,37 @@ wait_for_db() {
 wait_for_redis() {
     echo -e "${YELLOW}⏳ Waiting for Redis cache...${NC}"
     
-    # Extract Redis password from REDIS_URL if available
-    if [ -n "$REDIS_URL" ]; then
-        REDIS_PASSWORD=$(echo $REDIS_URL | sed 's|.*://:\([^@]*\)@.*|\1|')
-    fi
-    
-    if [ -n "$REDIS_PASSWORD" ]; then
-        until redis-cli -h redis -a "$REDIS_PASSWORD" ping > /dev/null 2>&1; do
-            echo -e "${YELLOW}Redis is unavailable - sleeping${NC}"
-            sleep 2
-        done
-    else
-        until redis-cli -h redis ping > /dev/null 2>&1; do
-            echo -e "${YELLOW}Redis is unavailable - sleeping${NC}"
-            sleep 2
-        done
-    fi
+    # Use Python to test Redis connection instead of redis-cli (which isn't installed)
+    until python -c "
+import redis
+import os
+import sys
+from urllib.parse import urlparse
+
+redis_url = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+try:
+    if redis_url.startswith('redis://'):
+        # Parse Redis URL
+        parsed = urlparse(redis_url)
+        host = parsed.hostname or 'redis'
+        port = parsed.port or 6379
+        password = parsed.password
+        db = int(parsed.path[1:]) if parsed.path and len(parsed.path) > 1 else 0
+        
+        # Connect to Redis
+        r = redis.Redis(host=host, port=port, password=password, db=db, socket_timeout=2)
+        r.ping()
+        print('Redis connection successful')
+        sys.exit(0)
+    else:
+        sys.exit(1)
+except Exception as e:
+    print(f'Redis connection failed: {e}')
+    sys.exit(1)
+" > /dev/null 2>&1; do
+        echo -e "${YELLOW}Redis is unavailable - sleeping${NC}"
+        sleep 2
+    done
     
     echo -e "${GREEN}✅ Redis is ready!${NC}"
 }
