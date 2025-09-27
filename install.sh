@@ -713,9 +713,11 @@ deploy_application() {
     echo -e "${GREEN}  🐍 Python: ${PYTHON_LATEST}${NC}"
     echo ""
     
-    # Pull latest images with progress
-    echo -e "${BLUE}📥 Pulling latest Docker images...${NC}"
-    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml pull --quiet
+    # Pull base images only (exclude web container which needs to be built)
+    echo -e "${BLUE}📥 Pulling base Docker images...${NC}"
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml pull --quiet --ignore-pull-failures db redis nginx watchtower || {
+        echo -e "${YELLOW}⚠️  Some images failed to pull, continuing with build...${NC}"
+    }
     
     # Verify images are up to date
     echo -e "${BLUE}🔍 Verifying image versions...${NC}"
@@ -751,13 +753,14 @@ deploy_application() {
     ln -sf "$INSTALL_DIR/.env.prod" "$INSTALL_DIR/.env"
     chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env"
     
-    # Build containers with SSL-aware Docker build args
-    sudo -u "$SERVICE_USER" DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build \
+    # Build web container with SSL-aware Docker build args
+    echo -e "${BLUE}🔨 Building web container with SSL-aware configuration...${NC}"
+    sudo -u "$SERVICE_USER" DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build web \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
         --build-arg PIP_TRUSTED_HOST="pypi.org pypi.python.org files.pythonhosted.org" || \
     {
         echo -e "${YELLOW}⚠️  Build failed, retrying with fallback options...${NC}"
-        sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml build --no-cache
+        sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml build web --no-cache
     }
     
     # Start services
@@ -847,21 +850,24 @@ echo "LAST_UPDATE=$(date -u +%Y-%m-%d_%H:%M:%S_UTC)" >> .env.prod
 echo -e "${YELLOW}⏹️ Stopping services...${NC}"
 sudo -u zain-hms docker-compose -f docker-compose.prod.yml down
 
-# Pull latest images
-echo -e "${YELLOW}📥 Pulling latest images...${NC}"
-sudo -u zain-hms docker-compose -f docker-compose.prod.yml pull
+# Pull base images only (exclude web container which needs to be built)
+echo -e "${YELLOW}📥 Pulling base images...${NC}"
+sudo -u zain-hms docker-compose -f docker-compose.prod.yml pull --quiet --ignore-pull-failures db redis nginx watchtower || {
+    echo -e "${YELLOW}⚠️  Some images failed to pull, continuing with build...${NC}"
+}
 
 # Build and start services
 echo -e "${YELLOW}🚀 Building and starting updated services...${NC}"
 echo -e "${YELLOW}⚙️  Building containers with SSL-aware configuration...${NC}"
 
-# Build containers with SSL-aware Docker build args
-sudo -u zain-hms DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build \
+# Build web container with SSL-aware Docker build args
+echo -e "${BLUE}🔨 Building web container with SSL-aware configuration...${NC}"
+sudo -u zain-hms DOCKER_BUILDKIT=1 docker-compose -f docker-compose.prod.yml build web \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --build-arg PIP_TRUSTED_HOST="pypi.org pypi.python.org files.pythonhosted.org" || \
 {
     echo -e "${YELLOW}⚠️  Build failed, retrying with fallback options...${NC}"
-    sudo -u zain-hms docker-compose -f docker-compose.prod.yml build --no-cache
+    sudo -u zain-hms docker-compose -f docker-compose.prod.yml build web --no-cache
 }
 
 # Start services
