@@ -551,7 +551,7 @@ download_zain_hms() {
 setup_directories() {
     echo -e "${YELLOW}📁 Setting up directory structure...${NC}"
     
-    # Create data directories
+    # Create data directories with proper ownership from the start
     mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
     mkdir -p "$INSTALL_DIR"/{logs,backups,ssl}
     mkdir -p "$INSTALL_DIR/logs/nginx"
@@ -565,15 +565,31 @@ setup_directories() {
 SELECT 'ZAIN HMS PostgreSQL initialized successfully' AS status;
 EOF
     
-    # Set PostgreSQL data directory ownership (UID 999 is postgres user in container)
-    chown -R 999:999 "$INSTALL_DIR/data/postgres"
+    # Set PostgreSQL data directory ownership BEFORE Docker tries to mount it
+    # This prevents the "no such file or directory" mount error
+    echo -e "${BLUE}🐘 Configuring PostgreSQL data directory...${NC}"
     
-    # Set permissions
+    # Remove any existing postgres data that might cause conflicts
+    rm -rf "$INSTALL_DIR/data/postgres"
+    mkdir -p "$INSTALL_DIR/data/postgres"
+    
+    # Set correct ownership (UID 999 is postgres user in container)
+    chown -R 999:999 "$INSTALL_DIR/data/postgres"
+    chmod 700 "$INSTALL_DIR/data/postgres"
+    
+    # Create a marker file to ensure directory is properly initialized
+    echo "ZAIN HMS PostgreSQL Data Directory - $(date)" > "$INSTALL_DIR/data/postgres/.zain_hms_marker"
+    chown 999:999 "$INSTALL_DIR/data/postgres/.zain_hms_marker"
+    
+    # Set general permissions
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
     chmod -R 755 "$INSTALL_DIR"
     chmod -R 700 "$INSTALL_DIR/ssl"
     
-    echo -e "${GREEN}✅ Directory structure created${NC}"
+    # Ensure PostgreSQL data directory remains with correct ownership
+    chown -R 999:999 "$INSTALL_DIR/data/postgres"
+    
+    echo -e "${GREEN}✅ Directory structure created with PostgreSQL volume fix${NC}"
 }
 
 # Configure environment
@@ -701,6 +717,18 @@ deploy_application() {
     
     cd "$INSTALL_DIR"
     
+    # Pre-deployment PostgreSQL volume check
+    echo -e "${BLUE}🔍 Verifying PostgreSQL volume setup...${NC}"
+    if [ ! -d "$INSTALL_DIR/data/postgres" ] || [ ! -f "$INSTALL_DIR/data/postgres/.zain_hms_marker" ]; then
+        echo -e "${YELLOW}⚠️  PostgreSQL volume not properly initialized, fixing...${NC}"
+        rm -rf "$INSTALL_DIR/data/postgres"
+        mkdir -p "$INSTALL_DIR/data/postgres"
+        chown -R 999:999 "$INSTALL_DIR/data/postgres"
+        chmod 700 "$INSTALL_DIR/data/postgres"
+        echo "ZAIN HMS PostgreSQL Data Directory - $(date)" > "$INSTALL_DIR/data/postgres/.zain_hms_marker"
+        chown 999:999 "$INSTALL_DIR/data/postgres/.zain_hms_marker"
+    fi
+    
     # Make scripts executable
     chmod +x scripts/*.sh
     chmod +x docker/entrypoint.prod.sh
@@ -712,6 +740,11 @@ deploy_application() {
     echo -e "${GREEN}  🌐 NGINX: ${NGINX_LATEST}${NC}"
     echo -e "${GREEN}  🐍 Python: ${PYTHON_LATEST}${NC}"
     echo ""
+    
+    # Remove any existing problematic volumes
+    echo -e "${BLUE}🧹 Cleaning up any problematic Docker volumes...${NC}"
+    sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml down -v 2>/dev/null || true
+    docker volume rm zain-hms_postgres_data 2>/dev/null || true
     
     # Pull base images only (exclude web container which needs to be built)
     echo -e "${BLUE}📥 Pulling base Docker images...${NC}"
