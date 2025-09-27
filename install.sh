@@ -751,9 +751,13 @@ deploy_application() {
     # The docker-compose.prod.yml already uses bind mounts with proper driver_opts
     # Just ensure the directories exist with correct permissions
     mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
-    chown -R 999:999 "$INSTALL_DIR/data/postgres"
-    chmod 700 "$INSTALL_DIR/data/postgres"
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media}
+    
+    # Set permissions for data directories (but make them readable for Docker build context)
+    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"
+    chmod -R 755 "$INSTALL_DIR/data"
+    
+    # PostgreSQL directory will get proper restrictive permissions after container creation
+    # This prevents Docker build context permission errors
     
     # Verify docker-compose.prod.yml is valid
     if ! sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
@@ -812,6 +816,11 @@ deploy_application() {
         echo -e "${YELLOW}⚠️  Build failed, retrying with fallback options...${NC}"
         sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml build web --no-cache
     }
+    
+    # Set proper PostgreSQL permissions after build is complete
+    echo -e "${BLUE}🔒 Setting final PostgreSQL directory permissions...${NC}"
+    chown -R 999:999 "$INSTALL_DIR/data/postgres"
+    chmod 700 "$INSTALL_DIR/data/postgres"
     
     # Start services
     sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml up -d

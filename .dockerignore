@@ -21,3 +21,8 @@ logs/
 media/
 static/admin/
 static/rest_framework/
+data/
+backups/
+*.sqlite3
+.env.prod
+docker-compose.prod.yml.backup
