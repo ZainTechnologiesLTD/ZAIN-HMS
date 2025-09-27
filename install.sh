@@ -586,7 +586,8 @@ configure_environment() {
     # Generate secure passwords
     DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
     REDIS_PASSWORD=$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-20)
-    SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())" 2>/dev/null || openssl rand -base64 75 | tr -d "=+/" | cut -c1-50)
+    # Generate Django secret key using safe characters only to avoid sed delimiter issues
+    SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())" 2>/dev/null || openssl rand -hex 25)
     
     # Generate proper Redis URL with password
     REDIS_URL_WITH_PASSWORD="redis://:${REDIS_PASSWORD}@redis:6379/0"
@@ -606,11 +607,11 @@ configure_environment() {
     echo "INSTALLED_ARCHITECTURE=$(uname -m)" >> "$INSTALL_DIR/.env.prod"
     echo "SERVER_IP=$(curl -s https://ipinfo.io/ip 2>/dev/null || hostname -I | awk '{print $1}')" >> "$INSTALL_DIR/.env.prod"
     
-    # Update environment file with generated values
-    sed -i "s/your-very-secure-database-password-123/$DB_PASSWORD/g" "$INSTALL_DIR/.env.prod"
-    sed -i "s/your-secure-redis-password-123/$REDIS_PASSWORD/g" "$INSTALL_DIR/.env.prod"
-    sed -i "s/your-super-secret-django-key-here-must-be-50-characters-long-and-unique-123456789/$SECRET_KEY/g" "$INSTALL_DIR/.env.prod"
-    sed -i "s/yourdomain.com/$DOMAIN/g" "$INSTALL_DIR/.env.prod"
+    # Update environment file with generated values (using | delimiter to avoid issues with special chars)
+    sed -i "s|your-very-secure-database-password-123|$DB_PASSWORD|g" "$INSTALL_DIR/.env.prod"
+    sed -i "s|your-secure-redis-password-123|$REDIS_PASSWORD|g" "$INSTALL_DIR/.env.prod"
+    sed -i "s|your-super-secret-django-key-here-must-be-50-characters-long-and-unique-123456789|$SECRET_KEY|g" "$INSTALL_DIR/.env.prod"
+    sed -i "s|yourdomain.com|$DOMAIN|g" "$INSTALL_DIR/.env.prod"
     
     # Fix Redis URL to include password (handles both existing formats)
     sed -i "s|REDIS_URL=redis://redis:6379/0|REDIS_URL=${REDIS_URL_WITH_PASSWORD}|g" "$INSTALL_DIR/.env.prod"
