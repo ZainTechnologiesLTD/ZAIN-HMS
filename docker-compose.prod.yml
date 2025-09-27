@@ -115,8 +115,8 @@ services:
     volumes:
       - ./docker/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - static_volume:/var/www/static:ro
-      - media_volume:/var/www/media:ro
+      - ./data/static:/var/www/static:ro
+      - ./data/media:/var/www/media:ro
       - ./docker/ssl:/etc/ssl/certs:ro
       - ./logs/nginx:/var/log/nginx
     networks:
