@@ -809,44 +809,19 @@ deploy_application() {
     # Prepare for deployment (cleanup already done upfront)
     echo -e "${BLUE}� Preparing for deployment with fresh environment...${NC}"
     
-    # Create fresh PostgreSQL data directory structure
-    echo -e "${BLUE}📁 Creating fresh PostgreSQL data directory structure...${NC}"
-    mkdir -p "$INSTALL_DIR/data"/{postgres,redis,static,media}
+    # Create directory structure for bind mounts (Redis, static, media)
+    echo -e "${BLUE}📁 Creating directory structure for bind mounts...${NC}"
+    mkdir -p "$INSTALL_DIR/data"/{redis,static,media,backups}
     
-    # Verify directory is clean and accessible
-    if [ ! -d "$INSTALL_DIR/data/postgres" ]; then
-        echo -e "${RED}❌ Failed to create PostgreSQL data directory${NC}"
-        exit 1
-    fi
+    # Set permissions for bind mount directories  
+    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media,backups}
+    chmod -R 755 "$INSTALL_DIR/data"/{redis,static,media,backups}
     
-    # Set proper ownership for PostgreSQL data directory
-    chown -R 999:999 "$INSTALL_DIR/data/postgres"
-    chmod -R 700 "$INSTALL_DIR/data/postgres"
+    # Configure PostgreSQL with named volume (avoids overlay filesystem issues)
+    echo -e "${BLUE}🐘 Configuring PostgreSQL with named volume...${NC}"
+    echo -e "${GREEN}✅ PostgreSQL will use Docker named volume to avoid mounting conflicts${NC}"
     
-    # Verify ownership was set correctly
-    if [ "$(stat -c '%u' "$INSTALL_DIR/data/postgres")" != "999" ]; then
-        echo -e "${RED}❌ Failed to set PostgreSQL directory ownership${NC}"
-        exit 1
-    fi
-    
-    # Configure direct bind mount directories (no external volumes needed)
-    echo -e "${BLUE}🐘 Configuring PostgreSQL direct bind mount...${NC}"
-    
-    # Create PostgreSQL data marker file for identification
-    echo "ZAIN HMS PostgreSQL Data Directory - $(date)" > "$INSTALL_DIR/data/postgres/.zain_hms_marker"
-    chown 999:999 "$INSTALL_DIR/data/postgres/.zain_hms_marker"
-    
-    # Set permissions for all data directories  
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media}
-    chmod -R 755 "$INSTALL_DIR/data"/{redis,static,media}
-    
-    # Final verification of PostgreSQL directory
-    if [ ! -d "$INSTALL_DIR/data/postgres" ] || [ "$(stat -c '%u' "$INSTALL_DIR/data/postgres")" != "999" ]; then
-        echo -e "${RED}❌ PostgreSQL directory setup failed${NC}"
-        exit 1
-    fi
-    
-    echo -e "${GREEN}✅ Direct bind mount configuration completed successfully${NC}"
+    echo -e "${GREEN}✅ Named volume configuration completed successfully${NC}"
     
     # Verify docker-compose.prod.yml is valid
     if ! sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
@@ -854,7 +829,7 @@ deploy_application() {
         sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config
     fi
     
-    echo -e "${GREEN}✅ Direct bind mount configuration verified${NC}"
+    echo -e "${GREEN}✅ Named volume configuration verified${NC}"
     
     # Pull base images only (exclude web container which needs to be built)
     echo -e "${BLUE}📥 Pulling base Docker images...${NC}"
@@ -888,8 +863,8 @@ deploy_application() {
         echo -e "${YELLOW}⚠️  NGINX image verification failed${NC}"
     fi
     
-    # Start services with direct bind mounts (avoids Docker overlay filesystem errors)
-    echo -e "${BLUE}🚀 Starting services with direct bind mount configuration...${NC}"
+    # Start services with named volumes (avoids Docker overlay filesystem errors)
+    echo -e "${BLUE}🚀 Starting services with named volume configuration...${NC}"
     echo -e "${YELLOW}⚙️  Preparing environment and building containers with SSL-aware configuration...${NC}"
     
     # Create symlink for Docker Compose to find environment variables
