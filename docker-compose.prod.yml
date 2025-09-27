@@ -45,7 +45,7 @@ services:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=postgresql://${DB_USER:-zain_hms_user}:${DB_PASSWORD}@db:5432/${DB_NAME:-zain_hms}
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=${REDIS_URL}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
       - MAIN_DOMAIN=${MAIN_DOMAIN:-localhost}
       - EMAIL_HOST=${EMAIL_HOST}
@@ -93,7 +93,7 @@ services:
     networks:
       - zain_hms_network
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
