@@ -30,10 +30,22 @@ wait_for_db() {
 wait_for_redis() {
     echo -e "${YELLOW}⏳ Waiting for Redis cache...${NC}"
     
-    until redis-cli -h redis ping > /dev/null 2>&1; do
-        echo -e "${YELLOW}Redis is unavailable - sleeping${NC}"
-        sleep 2
-    done
+    # Extract Redis password from REDIS_URL if available
+    if [ -n "$REDIS_URL" ]; then
+        REDIS_PASSWORD=$(echo $REDIS_URL | sed 's|.*://:\([^@]*\)@.*|\1|')
+    fi
+    
+    if [ -n "$REDIS_PASSWORD" ]; then
+        until redis-cli -h redis -a "$REDIS_PASSWORD" ping > /dev/null 2>&1; do
+            echo -e "${YELLOW}Redis is unavailable - sleeping${NC}"
+            sleep 2
+        done
+    else
+        until redis-cli -h redis ping > /dev/null 2>&1; do
+            echo -e "${YELLOW}Redis is unavailable - sleeping${NC}"
+            sleep 2
+        done
+    fi
     
     echo -e "${GREEN}✅ Redis is ready!${NC}"
 }
