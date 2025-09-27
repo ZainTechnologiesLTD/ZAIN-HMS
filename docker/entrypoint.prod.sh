@@ -120,11 +120,14 @@ cache.clear()
 print('Cache cleared')
 " || true
 
-# Set proper permissions
-echo -e "${YELLOW}🔒 Setting file permissions...${NC}"
+# Set proper permissions and ownership for runtime directories
+echo -e "${YELLOW}🔒 Setting file permissions and ownership...${NC}"
+mkdir -p /app/logs /app/media /app/staticfiles /app/backups
+chown -R zain:zain /app/logs /app/media /app/staticfiles /app/backups || true
 chmod -R 755 /app/staticfiles || true
 chmod -R 755 /app/media || true
 chmod -R 755 /app/logs || true
+chmod -R 755 /app/backups || true
 
 echo -e "${GREEN}✅ All setup commands completed successfully!${NC}"
 echo -e "${BLUE}🚀 Starting application...${NC}"
