@@ -829,38 +829,24 @@ deploy_application() {
         exit 1
     fi
     
-    # Create external PostgreSQL volume with bind mount configuration
-    echo -e "${BLUE}🐘 Creating external PostgreSQL volume with verification...${NC}"
+    # Configure direct bind mount directories (no external volumes needed)
+    echo -e "${BLUE}🐘 Configuring PostgreSQL direct bind mount...${NC}"
     
-    # Double-check volume doesn't exist
-    if docker volume inspect zain_hms_postgres_data >/dev/null 2>&1; then
-        echo -e "${YELLOW}⚠️  Volume exists, removing...${NC}"
-        docker volume rm zain_hms_postgres_data
-    fi
+    # Create PostgreSQL data marker file for identification
+    echo "ZAIN HMS PostgreSQL Data Directory - $(date)" > "$INSTALL_DIR/data/postgres/.zain_hms_marker"
+    chown 999:999 "$INSTALL_DIR/data/postgres/.zain_hms_marker"
     
-    # Create the external volume
-    if docker volume create --driver local \
-        --opt type=none \
-        --opt o=bind \
-        --opt device="$INSTALL_DIR/data/postgres" \
-        zain_hms_postgres_data; then
-        echo -e "${GREEN}✅ External PostgreSQL volume created successfully${NC}"
-    else
-        echo -e "${RED}❌ Failed to create external PostgreSQL volume${NC}"
-        exit 1
-    fi
-    
-    # Verify the volume was created correctly
-    if ! docker volume inspect zain_hms_postgres_data >/dev/null 2>&1; then
-        echo -e "${RED}❌ PostgreSQL volume verification failed${NC}"
-        exit 1
-    fi
-    
-    # Set permissions for other data directories  
+    # Set permissions for all data directories  
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"/{redis,static,media}
     chmod -R 755 "$INSTALL_DIR/data"/{redis,static,media}
     
-    echo -e "${GREEN}✅ PostgreSQL volume created and verified successfully${NC}"
+    # Final verification of PostgreSQL directory
+    if [ ! -d "$INSTALL_DIR/data/postgres" ] || [ "$(stat -c '%u' "$INSTALL_DIR/data/postgres")" != "999" ]; then
+        echo -e "${RED}❌ PostgreSQL directory setup failed${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✅ Direct bind mount configuration completed successfully${NC}"
     
     # Verify docker-compose.prod.yml is valid
     if ! sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
@@ -868,7 +854,7 @@ deploy_application() {
         sudo -u "$SERVICE_USER" docker-compose -f docker-compose.prod.yml config
     fi
     
-    echo -e "${GREEN}✅ Bind mount configuration verified${NC}"
+    echo -e "${GREEN}✅ Direct bind mount configuration verified${NC}"
     
     # Pull base images only (exclude web container which needs to be built)
     echo -e "${BLUE}📥 Pulling base Docker images...${NC}"
@@ -902,8 +888,8 @@ deploy_application() {
         echo -e "${YELLOW}⚠️  NGINX image verification failed${NC}"
     fi
     
-    # Start services with bind mounts (avoids volume mounting errors)
-    echo -e "${BLUE}🚀 Starting services with bind mount configuration...${NC}"
+    # Start services with direct bind mounts (avoids Docker overlay filesystem errors)
+    echo -e "${BLUE}🚀 Starting services with direct bind mount configuration...${NC}"
     echo -e "${YELLOW}⚙️  Preparing environment and building containers with SSL-aware configuration...${NC}"
     
     # Create symlink for Docker Compose to find environment variables
