@@ -65,13 +65,13 @@ pytz==2023.4  # Updated timezone data
 # boto3==1.34.0
 
 # Health monitoring (uncomment if using)
-# django-health-check==3.17.0
+django-health-check==3.17.0
 
 # Database backups (uncomment if using)
-# django-dbbackup==4.0.2
+django-dbbackup==4.0.2
 
 # Translation management (uncomment if using)
-# django-rosetta==0.9.9
+django-rosetta==0.9.9
 
 # Form styling (required for Django forms)
 django-crispy-forms==2.1
@@ -80,7 +80,7 @@ django-widget-tweaks==1.5.0
 
 # Development tools (uncomment for development)
 # django-debug-toolbar==4.2.0
-# django-extensions==3.2.3
+django-extensions==3.2.3
 
 # ===== HEAVY DATA SCIENCE PACKAGES =====
 # Note: These are commented out to reduce Docker image size and installation time
